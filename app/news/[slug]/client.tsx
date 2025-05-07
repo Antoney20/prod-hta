@@ -139,7 +139,6 @@ const NewsDetailClient = ({ newsItem }: NewsDetailClientProps) => {
                 </div>
               </div>
               
-              {/* Share Section */}
               <div className="mt-8 pt-8 border-t border-gray-200">
                 <h3 className="text-lg font-semibold mb-4">Share This Article</h3>
                 <div className="flex space-x-4">

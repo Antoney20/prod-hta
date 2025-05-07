@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   keywords: [
     "health technology assessment news",
     "HTA updates",
+    "cema hta", 
     "healthcare news Kenya",
     "healthcare technology assessment",
     "Kenya healthcare policy",

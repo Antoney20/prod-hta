@@ -75,7 +75,7 @@ export default function HeroSection() {
         >
           {/* Card 1 */}
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1338BE]">
-            <h3 className="text-xl font-semibold mb-3">Health Benefits Package</h3>
+            <h2 className="text-xl font-semibold mb-3">Health Benefits Package</h2>
             <p className="text-gray-600">
               Reviewing and optimizing the Social Health Authority (SHA) program to ensure comprehensive coverage.
             </p>
@@ -83,7 +83,7 @@ export default function HeroSection() {
           
           {/* Card 2 */}
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#63C5DA]">
-            <h3 className="text-xl font-semibold mb-3">Fair Pricing & Tariffs</h3>
+            <h2 className="text-xl font-semibold mb-3">Fair Pricing & Tariffs</h2>
             <p className="text-gray-600">
               Providing evidence-based recommendations on equitable pricing for healthcare services.
             </p>
@@ -91,7 +91,7 @@ export default function HeroSection() {
           
           {/* Card 3 */}
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1338BE]">
-            <h3 className="text-xl font-semibold mb-3">Program Monitoring</h3>
+            <h2 className="text-xl font-semibold mb-3">Program Monitoring</h2>
             <p className="text-gray-600">
               Continuously improving the SHA program through careful monitoring and evaluation.
             </p>

@@ -39,7 +39,7 @@ export default function AboutSection() {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="blue-gradient-text">About</span> Us
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto"></div>
+          {/* <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto"></div> */}
         </motion.div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -52,7 +52,7 @@ export default function AboutSection() {
             variants={fadeIn}
           >
             <div className="relative h-72 md:h-96 w-full rounded-lg overflow-hidden shadow-xl">
-              {/* Replace with your actual image */}
+              
               <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1338BE]/10 z-10"></div>
               <Image
                 src="/about-image.jpg" 

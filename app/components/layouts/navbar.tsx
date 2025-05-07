@@ -329,11 +329,10 @@ export default function Navbar() {
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold">
               <span className="text-[#1338BE]">HTA</span>
-              <span className="text-[#63C5DA]">LOGO</span>
+              {/* <span className="text-[#63C5DA]">LOGO</span> */}
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             {links.map((link) => (
               <div 

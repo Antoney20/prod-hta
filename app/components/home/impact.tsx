@@ -107,7 +107,7 @@ export default function HTAImpactSection() {
               <div className="relative h-64 md:h-80 w-full rounded-lg overflow-hidden shadow-lg">
                 <Image
                   src="/images/hta-impact.jpg" 
-                  alt="Healthcare impact visualization"
+                  alt="HTA impact"
                   fill
                   style={{ objectFit: "cover" }}
                   className="z-0"

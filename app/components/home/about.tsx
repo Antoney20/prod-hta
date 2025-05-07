@@ -56,7 +56,7 @@ export default function AboutSection() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1338BE]/10 z-10"></div>
               <Image
                 src="/about-image.jpg" 
-                alt="Health technology assessment in action"
+                alt="HTA in action"
                 fill
                 style={{ objectFit: "cover" }}
                 className="z-0"

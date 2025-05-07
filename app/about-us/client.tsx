@@ -201,7 +201,7 @@ function MissionSection() {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1338BE]/10 z-10"></div>
                 <Image
                   src="/images/mission-image.jpg" 
-                  alt="Health technology assessment team in discussion"
+                  alt="Health technology assessment team "
                   width={600}
                   height={400}
                   layout="responsive"

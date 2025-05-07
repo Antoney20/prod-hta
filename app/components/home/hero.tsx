@@ -8,6 +8,11 @@ import { motion } from "framer-motion"
 export default function HeroSection() {
   return (
     <section className="pt-24 md:pt-32 pb-12 md:pb-20">
+
+      <div className="absolute top-0 left-0 w-full h-full">
+          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/50 to-transparent rounded-bl-full"></div>
+          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/20 to-transparent rounded-tr-full"></div>
+        </div>
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Text Content */}
@@ -63,7 +68,7 @@ export default function HeroSection() {
         
         {/* Feature cards */}
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 2xl:mt-44"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}

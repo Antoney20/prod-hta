@@ -264,14 +264,14 @@ import Image from 'next/image'
 
 const links = [
   { href: '/', label: 'Home' },
-  { href: '/about', label: 'About Us' },
+  { href: '/about-us', label: 'About Us' },
   { 
     href: '/services', 
     label: 'Services',
     hasDropdown: true,
     dropdownItems: [
       { href: '/services/health-benefits-package', label: 'Health Benefits Package' },
-      { href: '/services/pricing-tariffs', label: 'Pricing & Tariffs' },
+      { href: '/services/pricing-tariffs', label: 'Pricing & Tariffs Advisory' },
       { href: '/services/program-monitoring', label: 'Program Monitoring' },
     ] 
   },
@@ -328,8 +328,8 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold">
-              <span className="text-[#1338BE]">Health</span>
-              <span className="text-[#63C5DA]">TA</span>
+              <span className="text-[#1338BE]">HTA</span>
+              <span className="text-[#63C5DA]">LOGO</span>
             </span>
           </Link>
 

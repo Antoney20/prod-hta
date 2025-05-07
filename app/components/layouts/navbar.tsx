@@ -260,7 +260,6 @@ import { Menu, X, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
 
 const links = [
   { href: '/', label: 'Home' },
@@ -275,8 +274,9 @@ const links = [
       { href: '/services/program-monitoring', label: 'Program Monitoring' },
     ] 
   },
-  { href: '/team', label: 'Our Team' },
+  { href: '/our-team', label: 'Our Team' },
   { href: '/resources', label: 'Resources' },
+  { href: '/capacity-building', label: 'Capacity building'},
   { href: '/news', label: 'News' },
 ]
 
@@ -285,10 +285,10 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   
-  // Desktop dropdown state
+
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   
-  // Handle scroll effect
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50)

@@ -1,0 +1,45 @@
+{
+
+    "members": [
+      {
+        "name": "Walter G. Jaoko",
+        "title": "Prof.",
+        "role": "Chairperson",
+        "image": "/images/team/walter-jaoko.jpg"
+      },
+      {
+        "name": "Patrick Amoth",
+        "title": "Dr.",
+        "role": "Member",
+        "image": "/images/team/patrick-amoth.jpg"
+     
+      },
+      {
+        "name": "Nehemiah Odera",
+        "title": "",
+        "role": "Member",
+        "image": "/images/team/nehemiah-odera.jpg"
+      
+      },
+      {
+        "name": "Christine Wambugu",
+        "title": "Dr.",
+        "role": "Member",
+        "image": "/images/team/christine-wambugu.jpg"
+  
+      },
+      {
+        "name": "Tabitha Okech",
+        "title": "Dr.",
+        "role": "Member",
+        "image": "/images/team/tabitha-okech.jpg"
+      },
+      {
+        "name": "Patricia Nyokabi",
+        "title": "Dr.",
+        "role": "Member",
+        "image": "/images/team/patricia-nyokabi.jpg"
+    
+      }
+    ]
+  }

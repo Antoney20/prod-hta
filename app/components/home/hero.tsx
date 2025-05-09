@@ -90,7 +90,7 @@ export default function HeroSection() {
           </div>
           
           {/* Card 3 */}
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1338BE]">
+          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#090a0e]">
             <h2 className="text-xl font-semibold mb-3">Program Monitoring</h2>
             <p className="text-gray-600">
               Continuously improving the SHA program through careful monitoring and evaluation.

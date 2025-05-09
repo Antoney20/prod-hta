@@ -30,7 +30,6 @@ export default function HTAImpactSection() {
     <section className="py-12 md:py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-10">
-          {/* Content Column (Left) */}
           <motion.div 
             className="w-full lg:w-1/2"
             initial="hidden"
@@ -43,7 +42,6 @@ export default function HTAImpactSection() {
               className="relative mb-5"
             >
               <div className="absolute left-0 top-0 h-full">
-                {/* Animated vertical line */}
                 <motion.div
                   initial={{ height: 0 }}
                   animate={{ height: '100%' }}
@@ -94,7 +92,6 @@ export default function HTAImpactSection() {
             </motion.div>
           </motion.div>
           
-          {/* Image Column (Right) */}
           <motion.div 
             className="w-full lg:w-1/2"
             initial="hidden"
@@ -103,7 +100,6 @@ export default function HTAImpactSection() {
             variants={fadeIn}
           >
             <div className="relative">
-              {/* Main image */}
               <div className="relative h-64 md:h-80 w-full rounded-lg overflow-hidden shadow-lg">
                 <Image
                   src="/images/hta-impact.jpg" 
@@ -115,7 +111,7 @@ export default function HTAImpactSection() {
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#1338BE]/20 to-transparent"></div>
               </div>
               
-              {/* Floating stats card */}
+              {/* float */}
               <motion.div 
                 className="absolute -bottom-10 -left-5 md:left-5 bg-white p-4 rounded-md shadow-lg border-l-4 border-[#1338BE] max-w-xs"
                 initial={{ opacity: 0, y: 20 }}

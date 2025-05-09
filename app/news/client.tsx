@@ -10,17 +10,17 @@ import { slugify } from '@/lib/utils'
 import newsData from '../data/news.json'
 import Navbar from '../components/layouts/navbar'
 
-interface NewsItem {
-  id: number
-  title: string
-  date: string
-  category: string
-  image: string
-  excerpt: string
-  author: string
-  authorRole?: string
-  featured?: boolean
-}
+// interface NewsItem {
+//   id: number
+//   title: string
+//   date: string
+//   category: string
+//   image: string
+//   excerpt: string
+//   author: string
+//   authorRole?: string
+//   featured?: boolean
+// }
 
 const CategoryBadge = ({ category }: { category: string }) => {
   const colors: Record<string, string> = {
@@ -43,27 +43,23 @@ const CategoryBadge = ({ category }: { category: string }) => {
 
 export default function NewsClient() {
   const [activeCategory, setActiveCategory] = useState<string>('All')
-  
-  // Memoize sorted news to avoid unnecessary sorts on re-renders
+
   const sortedNews = useMemo(() => {
     return [...newsData.newsItems].sort((a, b) => {
       return new Date(b.date).getTime() - new Date(a.date).getTime()
     })
   }, [])
 
-  // Memoize featured news for performance
   const featuredNews = useMemo(() => {
     return sortedNews.find((item) => item.featured)
   }, [sortedNews])
   
-  // Memoize regular news to filter out featured content
   const regularNews = useMemo(() => {
     return featuredNews 
       ? sortedNews.filter(item => item.id !== featuredNews.id)
       : sortedNews
   }, [sortedNews, featuredNews])
   
-  // Memoize filtered news based on active category
   const filteredNews = useMemo(() => {
     if (activeCategory === 'All') {
       return regularNews
@@ -71,13 +67,11 @@ export default function NewsClient() {
     return regularNews.filter(news => news.category === activeCategory)
   }, [regularNews, activeCategory])
 
-  // Memoize available categories for filter buttons
   const availableCategories = useMemo(() => {
     const categoriesSet = new Set(sortedNews.map(item => item.category))
     return Array.from(categoriesSet)
   }, [sortedNews])
-  
-  // Count news items by category for display
+
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {}
     sortedNews.forEach(item => {

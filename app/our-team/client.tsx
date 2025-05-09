@@ -39,11 +39,11 @@ export default function TeamClient() {
   }
   
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen ">
       <Navbar />
       
-      {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-gradient-to-b from-gray-50 to-white">
+
+      <section className="pt-32 pb-16 ">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -62,7 +62,7 @@ export default function TeamClient() {
         </div>
       </section>
       
-      {/* Team Section */}
+
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
          

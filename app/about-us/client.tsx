@@ -10,7 +10,7 @@ import Navbar from '../components/layouts/navbar'
 
 export default function AboutClient() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-[#f0f0f0]">
       <Navbar />
       
       {/* Hero Section */}
@@ -70,7 +70,7 @@ function HeroSection() {
       <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/30 to-transparent rounded-bl-full"></div>
+          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/30 to-transparent rounded-bl-full"></div>  
           <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/10 to-transparent rounded-tr-full"></div>
         </div>
         
@@ -79,18 +79,18 @@ function HeroSection() {
             initial={{ height: 0 }}
             animate={{ height: '4rem' }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="h-4 w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA]"
+            className="h-4 w-0.5 bg-gradient-to-b from-[#1338BE] via-[#63C5DA] to-[#090a0e] "
           ></motion.div>
           
-          {/* Second animated vertical line */}
+          
           <motion.div
             initial={{ height: 0 }}
             animate={{ height: '6rem' }}
             transition={{ duration: 1, delay: 0.8 }}
-            className="h-6 w-0.5 bg-gradient-to-b from-[#63C5DA] to-[#1338BE] mt-4"
+            className="h-6 w-0.5 bg-gradient-to-b from-[#63C5DA] via-[#090a0e]   to-[#1338BE] mt-4"
           ></motion.div>
           
-          {/* Third animated vertical line */}
+         
           <motion.div
             initial={{ height: 0 }}
             animate={{ height: '4rem' }}
@@ -114,11 +114,11 @@ function HeroSection() {
               About <span className="text-[#1338BE]">Health Technology</span> Assessment
             </motion.h1>
             
-            <motion.div 
+            {/* <motion.div 
               variants={itemVariants}
               className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-8"
             ></motion.div>
-            
+             */}
             <motion.p 
               variants={itemVariants}
               className="text-xl text-gray-700 mb-10 max-w-3xl mx-auto"

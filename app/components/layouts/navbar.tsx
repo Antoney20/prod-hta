@@ -297,7 +297,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Close menu when route changes
+
   useEffect(() => {
     setIsOpen(false)
     setActiveDropdown(null)
@@ -393,7 +393,7 @@ export default function Navbar() {
                     )}>
                       {link.label}
                     </span>
-                    <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-gradient-to-r from-[#63C5DA] to-[#1338BE] group-hover:w-full transition-all duration-300 ease-in-out"></span>
+                    <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-gradient-to-r from-[#63C5DA] to-[#090a0e] group-hover:w-full transition-all duration-300 ease-in-out"></span>
                   </Link>
                 )}
               </div>

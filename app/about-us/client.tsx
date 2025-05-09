@@ -7,34 +7,22 @@ import { motion, useAnimation } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { Button } from '@/components/ui/button'
 import Navbar from '../components/layouts/navbar'
+import Footer from '../components/layouts/footer'
 
 export default function AboutClient() {
   return (
     <main className="min-h-screen bg-[#f0f0f0]">
       <Navbar />
       
-      {/* Hero Section */}
       <HeroSection />
-      
-      {/* Our Mission Section */}
       <MissionSection />
-      
-      {/* Core Values Section */}
-      <ValuesSection />
-      
-      {/* Our Journey Section */}
-      {/* <JourneySection /> */}
-      
-      {/* Collaborative Partners Section */}
+      {/* <ValuesSection /> */}
       <PartnersSection />
-      
-      {/* <Footer /> */}
+      <Footer/>
     </main>
   )
 }
 
-
-// Hero Section Component
 function HeroSection() {
     const controls = useAnimation()
     const [ref, inView] = useInView({
@@ -149,7 +137,6 @@ function HeroSection() {
   }
 
 
-// Mission Section Component
 function MissionSection() {
   const controls = useAnimation()
   const [ref, inView] = useInView({
@@ -182,10 +169,9 @@ function MissionSection() {
   }
 
   return (
-    <section className="py-12">
+    <section className="py-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-12">
-          {/* Image Column */}
           <motion.div 
             ref={ref}
             initial="hidden"
@@ -211,15 +197,14 @@ function MissionSection() {
               
               <motion.div 
                 variants={itemVariants}
-                className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#1338BE]/90 to-transparent p-6"
+                className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#f0f0f0]/90 to-transparent p-6"
               >
-                <h3 className="text-white text-xl font-semibold">Guided by Evidence</h3>
-                <p className="text-white/90 text-sm">Our recommendations are based on rigorous scientific assessment</p>
+                <h3 className="text-black text-xl font-semibold">Guided by Evidence</h3>
+                <p className="text-gray-800 text-sm">Our guidelines and feedback are based on detailed assessment and evaluation</p>
               </motion.div>
             </motion.div>
           </motion.div>
 
-          {/* Content Column */}
           <motion.div 
             ref={ref}
             initial="hidden"
@@ -233,11 +218,6 @@ function MissionSection() {
             >
               Our <span className="text-[#1338BE]">Mission</span>
             </motion.h2>
-            
-            <motion.div 
-              variants={itemVariants}
-              className="w-20 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mb-8"
-            ></motion.div>
             
             <motion.p 
               variants={itemVariants}
@@ -274,46 +254,45 @@ function MissionSection() {
   )
 }
 
-// Core Values Section Component
-function ValuesSection() {
-  const controls = useAnimation()
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
+// function ValuesSection() {
+//   const controls = useAnimation()
+//   const [ref, inView] = useInView({
+//     triggerOnce: true,
+//     threshold: 0.1,
+//   })
 
-  useEffect(() => {
-    if (inView) {
-      controls.start('visible')
-    }
-  }, [controls, inView])
+//   useEffect(() => {
+//     if (inView) {
+//       controls.start('visible')
+//     }
+//   }, [controls, inView])
 
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
+//   const containerVariants = {
+//     hidden: {},
+//     visible: {
+//       transition: {
+//         staggerChildren: 0.1,
+//       },
+//     },
+//   }
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  }
+//   const itemVariants = {
+//     hidden: { opacity: 0, y: 20 },
+//     visible: {
+//       opacity: 1,
+//       y: 0,
+//       transition: { duration: 0.5, ease: 'easeOut' },
+//     },
+//   }
 
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  }
+//   const cardVariants = {
+//     hidden: { opacity: 0, scale: 0.95 },
+//     visible: {
+//       opacity: 1,
+//       scale: 1,
+//       transition: { duration: 0.5, ease: 'easeOut' },
+//     },
+//   }
 
 //   const values = [
 //     {
@@ -363,67 +342,62 @@ function ValuesSection() {
 //     },
 //   ]
 
-  return (
-    <section className="py-16 md:py-24">
-      <div className="container mx-auto px-4">
-        <motion.div 
-          ref={ref}
-          initial="hidden"
-          animate={controls}
-          variants={containerVariants}
-          className="text-center max-w-3xl mx-auto mb-16"
-        >
-          <motion.h2 
-            variants={itemVariants}
-            className="text-3xl font-bold mb-6"
-          >
-            Our Core <span className="text-[#1338BE]">Values</span>
-          </motion.h2>
+//   return (
+//     <section className="py-8 md:py-12">
+//       <div className="container mx-auto px-4">
+//         <motion.div 
+//           ref={ref}
+//           initial="hidden"
+//           animate={controls}
+//           variants={containerVariants}
+//           className="text-center max-w-3xl mx-auto mb-16"
+//         >
+//           <motion.h2 
+//             variants={itemVariants}
+//             className="text-3xl font-bold mb-6 text-black"
+//           >
+//             Our Values
+//           </motion.h2>
           
-          <motion.div 
-            variants={itemVariants}
-            className="w-20 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-8"
-          ></motion.div>
-          
-          <motion.p 
-            variants={itemVariants}
-            className="text-gray-700 text-lg"
-          >
-            Our values guide every assessment, recommendation, and interaction, 
-            ensuring we remain focused on our mission to improve healthcare for all Kenyans.
-          </motion.p>
-        </motion.div>
+    
+//           <motion.p 
+//             variants={itemVariants}
+//             className="text-gray-800 text-lg"
+//           >
+//             Our values guide every assessment, recommendation, and interaction, 
+//             ensuring we remain focused on our mission to improve healthcare for all Kenyans.
+//           </motion.p>
+//         </motion.div>
 
         
         
-        {/* <motion.div 
-          ref={ref}
-          initial="hidden"
-          animate={controls}
-          variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-        >
-          {values.map((value, index) => (
-            <motion.div
-              key={index}
-              variants={cardVariants}
-              whileHover={{ y: -10, transition: { duration: 0.3 } }}
-              className={`p-6 rounded-lg shadow-md bg-gradient-to-br ${value.color} border-b-4 ${value.border}`}
-            >
-              <div className="mb-4">
-                {value.icon}
-              </div>
-              <h3 className="text-xl font-semibold mb-3">{value.title}</h3>
-              <p className="text-gray-700">{value.description}</p>
-            </motion.div>
-          ))}
-        </motion.div> */}
-      </div>
-    </section>
-  )
-}
+//         {/* <motion.div 
+//           ref={ref}
+//           initial="hidden"
+//           animate={controls}
+//           variants={containerVariants}
+//           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+//         >
+//           {values.map((value, index) => (
+//             <motion.div
+//               key={index}
+//               variants={cardVariants}
+//               whileHover={{ y: -10, transition: { duration: 0.3 } }}
+//               className={`p-6 rounded-lg shadow-md bg-gradient-to-br ${value.color} border-b-4 ${value.border}`}
+//             >
+//               <div className="mb-4">
+//                 {value.icon}
+//               </div>
+//               <h3 className="text-xl font-semibold mb-3">{value.title}</h3>
+//               <p className="text-gray-700">{value.description}</p>
+//             </motion.div>
+//           ))}
+//         </motion.div> */}
+//       </div>
+//     </section>
+//   )
+// }
 
-// Collaborative Partners Section Component
 function PartnersSection() {
   const controls = useAnimation()
   const [ref, inView] = useInView({
@@ -480,19 +454,15 @@ function PartnersSection() {
           initial="hidden"
           animate={controls}
           variants={containerVariants}
-          className="text-center max-w-3xl mx-auto mb-16"
+          className="text-center max-w-3xl mx-auto mb-12"
         >
           <motion.h2 
             variants={itemVariants}
             className="text-3xl font-bold mb-6"
           >
-            Our <span className="text-[#1338BE]">Partners</span>
+            Our Partners
           </motion.h2>
           
-          <motion.div 
-            variants={itemVariants}
-            className="w-20 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-8"
-          ></motion.div>
           
           <motion.p 
             variants={itemVariants}
@@ -529,16 +499,7 @@ function PartnersSection() {
           ))}
         </motion.div>
         
-        <motion.div 
-          variants={itemVariants}
-          className="text-center mt-12"
-        >
-          <Link href="/contact">
-            <Button variant="outline" className="border-2 border-[#1338BE] text-[#1338BE] hover:bg-[#1338BE] hover:text-white px-8 py-2 rounded-md">
-              Partner With Us
-            </Button>
-          </Link>
-        </motion.div>
+       
       </div>
     </section>
   )

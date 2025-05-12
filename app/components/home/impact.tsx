@@ -100,12 +100,12 @@ export default function HTAImpactSection() {
             variants={fadeIn}
           >
             <div className="relative">
-              <div className="relative h-64 md:h-80 w-full rounded-lg overflow-hidden shadow-lg">
+              <div className="relative h-80 md:h-90 w-full rounded-lg overflow-hidden shadow-lg">
                 <Image
-                  src="/images/hta-impact.jpg" 
-                  alt="HTA impact"
+                  src="/images/health-financing.jpeg" 
+                  alt="Sustainable Finance Strategies for Healthcare "
                   fill
-                  style={{ objectFit: "cover" }}
+                  // style={{ objectFit: "cover" }}
                   className="z-0"
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#1338BE]/20 to-transparent"></div>

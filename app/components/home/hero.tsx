@@ -55,7 +55,7 @@ export default function HeroSection() {
               
               <div className="absolute inset-0 bg-gradient-to-r from-[#63C5DA]/20 to-[#1338BE]/20 z-10"></div>
               <Image
-                src="/hero-image.jpg" 
+                src="/images/health-awareness.jpeg" 
                 alt="HTA hero section image"
                 fill
                 style={{ objectFit: "cover" }}

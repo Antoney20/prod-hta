@@ -164,8 +164,8 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <Mail size={20} className="text-[#63C5DA] mr-3 flex-shrink-0" aria-hidden="true" />
-                <a href="mailto:contact@healthta.ke" className="text-gray-300 text-sm hover:text-[#63C5DA] transition-colors duration-300" aria-label="Email HealthTA at contact@healthta.ke">
-                  contact@healthta.ke
+                <a href="#" className="text-gray-300 text-sm hover:text-[#63C5DA] transition-colors duration-300" aria-label="Email HealthTA at contact@healthta.ke">
+                  coming soon
                 </a>
               </li>
               <li className="flex items-center">

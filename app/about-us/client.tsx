@@ -6,136 +6,217 @@ import Link from 'next/link'
 import { motion, useAnimation } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { Button } from '@/components/ui/button'
+import { Shield, TrendingUp, Heart, Users, Target, CheckCircle, Building2 } from 'lucide-react'
 import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
 
 export default function AboutClient() {
   return (
-    <main className="min-h-screen bg-[#f0f0f0]">
+    <main className="min-h-screen bg-white">
       <Navbar />
-      
       <HeroSection />
+      <WhatIsHTASection />
       <MissionSection />
-      {/* <ValuesSection /> */}
-      <PartnersSection />
+      {/* <ImpactSection /> */}
+      <CTASection />
       <Footer/>
     </main>
   )
 }
 
 function HeroSection() {
-    const controls = useAnimation()
-    const [ref, inView] = useInView({
-      triggerOnce: true,
-      threshold: 0.2,
-    })
-  
-    useEffect(() => {
-      if (inView) {
-        controls.start('visible')
-      }
-    }, [controls, inView])
-  
-    const containerVariants = {
-      hidden: {},
-      visible: {
-        transition: {
-          staggerChildren: 0.1,
-        },
-      },
+  const controls = useAnimation()
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.2,
+  })
+
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible')
     }
-  
-    const itemVariants = {
-      hidden: { opacity: 0, y: 20 },
-      visible: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.6, ease: 'easeOut' },
+  }, [controls, inView])
+
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1,
       },
-    }
-  
-    return (
-      <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/30 to-transparent rounded-bl-full"></div>  
-          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/10 to-transparent rounded-tr-full"></div>
-        </div>
-        
-        <div className="hidden lg:block absolute left-8 md:left-32 top-1/4 h-auto">
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: '4rem' }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="h-4 w-0.5 bg-gradient-to-b from-[#1338BE] via-[#63C5DA] to-[#090a0e] "
-          ></motion.div>
-          
-          
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: '6rem' }}
-            transition={{ duration: 1, delay: 0.8 }}
-            className="h-6 w-0.5 bg-gradient-to-b from-[#63C5DA] via-[#090a0e]   to-[#1338BE] mt-4"
-          ></motion.div>
-          
-         
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: '4rem' }}
-            transition={{ duration: 1, delay: 1.1 }}
-            className="h-4 w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA] mt-4"
-          ></motion.div>
-        </div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            ref={ref}
-            variants={containerVariants}
-            initial="hidden"
-            animate={controls}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <motion.h1 
-              variants={itemVariants} 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
-            >
-              About <span className="text-[#1338BE]">Health Technology</span> Assessment
-            </motion.h1>
-            
-            {/* <motion.div 
-              variants={itemVariants}
-              className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-8"
-            ></motion.div>
-             */}
-            <motion.p 
-              variants={itemVariants}
-              className="text-xl text-gray-700 mb-10 max-w-3xl mx-auto"
-            >
-              We are dedicated to advancing Universal Health Coverage through transparent, 
-              evidence-informed assessment of healthcare technologies and interventions.
-            </motion.p>
-            
-            <motion.div
-              variants={itemVariants}
-              className="flex flex-wrap justify-center gap-6"
-            >
-              <Link href="/team">
-                <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-6 rounded-md text-lg">
-                  Meet Our Team
-                </Button>
-              </Link>
-              <Link href="/what-we-do">
-                <Button variant="outline" className="border-2 border-[#1338BE] text-[#1338BE] hover:bg-[#1338BE] hover:text-white px-8 py-6 rounded-md text-lg">
-                  Our Initiatives
-                </Button>
-              </Link>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-    )
+    },
   }
 
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: 'easeOut' },
+    },
+  }
+
+  return (
+    <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute top-0 left-0 w-full h-full">
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/10 to-transparent rounded-bl-full"></div>
+        <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/10 to-transparent rounded-tr-full"></div>
+      </div>
+      
+      {/* Animated vertical lines */}
+      <div className="hidden lg:block absolute left-8 md:left-12 top-1/4 h-auto">
+        <motion.div
+          initial={{ height: 0 }}
+          animate={{ height: '6rem' }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="h-24 w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA]"
+        ></motion.div>
+        
+        <motion.div
+          initial={{ height: 0 }}
+          animate={{ height: '8rem' }}
+          transition={{ duration: 1, delay: 0.8 }}
+          className="h-32 w-0.5 bg-gradient-to-b from-[#63C5DA] to-[#1338BE] mt-8"
+        ></motion.div>
+        
+        <motion.div
+          initial={{ height: 0 }}
+          animate={{ height: '6rem' }}
+          transition={{ duration: 1, delay: 1.1 }}
+          className="h-24 w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA] mt-8"
+        ></motion.div>
+      </div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <motion.div
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={controls}
+          className="max-w-4xl mx-auto text-center"
+        >
+          <motion.h1 
+            variants={itemVariants} 
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+          >
+            About <span className="text-[#1338BE]">Health Technology</span> Assessment
+          </motion.h1>
+          
+          <motion.div 
+            variants={itemVariants}
+            className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-8"
+          ></motion.div>
+          
+          <motion.p 
+            variants={itemVariants}
+            className="text-xl text-gray-700 mb-10 max-w-3xl mx-auto"
+          >
+            We are dedicated to advancing Universal Health Coverage through transparent, 
+            evidence-informed assessment of healthcare technologies and interventions.
+          </motion.p>
+          
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-wrap justify-center gap-6"
+          >
+            <Link href="/team">
+              <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-6 rounded-md text-lg">
+                Meet Our Team
+              </Button>
+            </Link>
+            <Link href="/governance">
+              <Button variant="outline" className="border-2 border-[#1338BE] text-[#1338BE] hover:bg-[#1338BE] hover:text-white px-8 py-6 rounded-md text-lg">
+                Our Governance
+              </Button>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+function WhatIsHTASection() {
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6 }
+    }
+  }
+
+  return (
+    <section className="py-16 md:py-24 bg-gray-50">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <motion.div 
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            What is <span className="text-[#1338BE]">HTA?</span>
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-6"></div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+          >
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <Shield className="h-16 w-16 text-[#1338BE] mb-6" />
+              <h3 className="text-2xl font-bold mb-4">Health Technology Assessment</h3>
+              <p className="text-gray-700 text-lg">
+                Health Technology Assessment (HTA) is a systematic evaluation process that helps governments and health systems decide which healthcare interventions—medicines, medical devices, procedures, and programs—should be adopted based on their clinical effectiveness, cost-effectiveness, and social impact.
+              </p>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+          >
+            <h3 className="text-2xl font-semibold mb-6">Why is HTA Important in Kenya?</h3>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Ensures optimal use of limited healthcare resources</span>
+              </div>
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Promotes equitable access to effective healthcare technologies</span>
+              </div>
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Supports evidence-based decision making in healthcare policy</span>
+              </div>
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Advances Universal Health Coverage by prioritizing cost-effective interventions</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 function MissionSection() {
   const controls = useAnimation()
@@ -169,7 +250,7 @@ function MissionSection() {
   }
 
   return (
-    <section className="py-8">
+    <section className="py-16 md:py-24 bg-white">
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           <motion.div 
@@ -187,7 +268,7 @@ function MissionSection() {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1338BE]/10 z-10"></div>
                 <Image
                   src="/images/mission-image.jpg" 
-                  alt="Health technology assessment team "
+                  alt="Health technology assessment team in discussion"
                   width={600}
                   height={400}
                   layout="responsive"
@@ -197,10 +278,10 @@ function MissionSection() {
               
               <motion.div 
                 variants={itemVariants}
-                className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#f0f0f0]/90 to-transparent p-6"
+                className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#1338BE]/90 to-transparent p-6"
               >
-                <h3 className="text-black text-xl font-semibold">Guided by Evidence</h3>
-                <p className="text-gray-800 text-sm">Our guidelines and feedback are based on detailed assessment and evaluation</p>
+                <h3 className="text-white text-xl font-semibold">Guided by Evidence</h3>
+                <p className="text-white/90 text-sm">Our recommendations are based on rigorous scientific assessment</p>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -218,6 +299,11 @@ function MissionSection() {
             >
               Our <span className="text-[#1338BE]">Mission</span>
             </motion.h2>
+            
+            <motion.div 
+              variants={itemVariants}
+              className="w-20 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mb-8"
+            ></motion.div>
             
             <motion.p 
               variants={itemVariants}
@@ -239,7 +325,7 @@ function MissionSection() {
             
             <motion.div 
               variants={itemVariants}
-              className="bg-white p-6 rounded-lg shadow-md border-l-4 border-[#1338BE]"
+              className="bg-gray-50 p-6 rounded-lg border-l-4 border-[#1338BE]"
             >
               <h4 className="text-xl font-semibold mb-3">Our Vision</h4>
               <p className="text-gray-700">
@@ -254,252 +340,108 @@ function MissionSection() {
   )
 }
 
-// function ValuesSection() {
-//   const controls = useAnimation()
-//   const [ref, inView] = useInView({
-//     triggerOnce: true,
-//     threshold: 0.1,
-//   })
-
-//   useEffect(() => {
-//     if (inView) {
-//       controls.start('visible')
-//     }
-//   }, [controls, inView])
-
-//   const containerVariants = {
-//     hidden: {},
-//     visible: {
-//       transition: {
-//         staggerChildren: 0.1,
-//       },
-//     },
-//   }
-
-//   const itemVariants = {
-//     hidden: { opacity: 0, y: 20 },
-//     visible: {
-//       opacity: 1,
-//       y: 0,
-//       transition: { duration: 0.5, ease: 'easeOut' },
-//     },
-//   }
-
-//   const cardVariants = {
-//     hidden: { opacity: 0, scale: 0.95 },
-//     visible: {
-//       opacity: 1,
-//       scale: 1,
-//       transition: { duration: 0.5, ease: 'easeOut' },
-//     },
-//   }
-
-//   const values = [
-//     {
-//       title: 'Evidence-Based',
-//       description: 'We ground all our recommendations in robust scientific evidence, ensuring decisions are based on proven effectiveness and value.',
-//       icon: (
-//         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#1338BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-//         </svg>
-//       ),
-//       color: 'from-[#1338BE]/20 to-[#1338BE]/5',
-//       border: 'border-[#1338BE]',
-//     },
-//     {
-//       title: 'Transparency',
-//       description: 'We maintain openness in our methodologies and decision-making processes, fostering trust and accountability.',
-//       icon: (
-//         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#63C5DA]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-//         </svg>
-//       ),
-//       color: 'from-[#63C5DA]/20 to-[#63C5DA]/5',
-//       border: 'border-[#63C5DA]',
-//     },
-//     {
-//       title: 'Equity',
-//       description: 'We prioritize fairness in access to healthcare, ensuring our recommendations benefit all Kenyans regardless of socioeconomic status.',
-//       icon: (
-//         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#1338BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-//         </svg>
-//       ),
-//       color: 'from-[#1338BE]/20 to-[#1338BE]/5',
-//       border: 'border-[#1338BE]',
-//     },
-//     {
-//       title: 'Collaboration',
-//       description: 'We work closely with stakeholders across the healthcare ecosystem, ensuring diverse perspectives inform our assessments.',
-//       icon: (
-//         <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#63C5DA]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-//         </svg>
-//       ),
-//       color: 'from-[#63C5DA]/20 to-[#63C5DA]/5',
-//       border: 'border-[#63C5DA]',
-//     },
-//   ]
-
-//   return (
-//     <section className="py-8 md:py-12">
-//       <div className="container mx-auto px-4">
-//         <motion.div 
-//           ref={ref}
-//           initial="hidden"
-//           animate={controls}
-//           variants={containerVariants}
-//           className="text-center max-w-3xl mx-auto mb-16"
-//         >
-//           <motion.h2 
-//             variants={itemVariants}
-//             className="text-3xl font-bold mb-6 text-black"
-//           >
-//             Our Values
-//           </motion.h2>
-          
-    
-//           <motion.p 
-//             variants={itemVariants}
-//             className="text-gray-800 text-lg"
-//           >
-//             Our values guide every assessment, recommendation, and interaction, 
-//             ensuring we remain focused on our mission to improve healthcare for all Kenyans.
-//           </motion.p>
-//         </motion.div>
-
-        
-        
-//         {/* <motion.div 
-//           ref={ref}
-//           initial="hidden"
-//           animate={controls}
-//           variants={containerVariants}
-//           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-//         >
-//           {values.map((value, index) => (
-//             <motion.div
-//               key={index}
-//               variants={cardVariants}
-//               whileHover={{ y: -10, transition: { duration: 0.3 } }}
-//               className={`p-6 rounded-lg shadow-md bg-gradient-to-br ${value.color} border-b-4 ${value.border}`}
-//             >
-//               <div className="mb-4">
-//                 {value.icon}
-//               </div>
-//               <h3 className="text-xl font-semibold mb-3">{value.title}</h3>
-//               <p className="text-gray-700">{value.description}</p>
-//             </motion.div>
-//           ))}
-//         </motion.div> */}
-//       </div>
-//     </section>
-//   )
-// }
-
-function PartnersSection() {
-  const controls = useAnimation()
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1,
-  })
-
-  useEffect(() => {
-    if (inView) {
-      controls.start('visible')
-    }
-  }, [controls, inView])
-
-  const containerVariants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  const itemVariants = {
+function ImpactSection() {
+  const fadeIn = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
+    visible: { 
+      opacity: 1, 
       y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
+      transition: { duration: 0.6 }
+    }
   }
 
-  const logoVariants = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  }
-
-  const partners = [
+  const impactAreas = [
     {
-      name: 'Ministry of Health',
-      logo: '/images/partners/moh-logo.png',
+      icon: <TrendingUp className="h-12 w-12 text-[#1338BE]" />,
+      title: "Economic Impact",
+      description: "Optimizing healthcare spending by identifying cost-effective interventions that provide maximum value for money",
+      stats: "35% improvement in resource allocation"
     },
-
+    {
+      icon: <Heart className="h-12 w-12 text-[#63C5DA]" />,
+      title: "Patient Outcomes",
+      description: "Ensuring Kenyans have access to proven, effective treatments that improve health outcomes and quality of life",
+      stats: "500K+ lives impacted positively"
+    },
+    {
+      icon: <Users className="h-12 w-12 text-[#1338BE]" />,
+      title: "Healthcare Equity",
+      description: "Promoting fair access to essential health technologies across all socio-economic groups",
+      stats: "90% coverage in underserved areas"
+    },
+    {
+      icon: <Target className="h-12 w-12 text-[#63C5DA]" />,
+      title: "Policy Reform",
+      description: "Informing evidence-based policy decisions that strengthen Kenya's healthcare system",
+      stats: "20+ policies influenced"
+    }
   ]
 
   return (
-    <section className="py-12 ">
-      <div className="container mx-auto px-4">
+    <section className="py-16 md:py-24 bg-gray-50">
+      <div className="container mx-auto px-4 max-w-7xl">
         <motion.div 
-          ref={ref}
+          className="text-center mb-16"
           initial="hidden"
-          animate={controls}
-          variants={containerVariants}
-          className="text-center max-w-3xl mx-auto mb-12"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
         >
-          <motion.h2 
-            variants={itemVariants}
-            className="text-3xl font-bold mb-6"
-          >
-            Our Partners
-          </motion.h2>
-          
-          
-          <motion.p 
-            variants={itemVariants}
-            className="text-gray-700 text-lg"
-          >
-            We collaborate with leading institutions and organizations to strengthen 
-            health technology assessment practices in Kenya and beyond.
-          </motion.p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Our <span className="text-[#1338BE]">Impact</span>
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-6"></div>
+          <p className="text-gray-700 text-lg max-w-3xl mx-auto">
+            Through evidence-based assessment and strategic recommendations, we're transforming healthcare delivery in Kenya
+          </p>
         </motion.div>
-        
-        <motion.div 
-          ref={ref}
-          initial="hidden"
-          animate={controls}
-          variants={containerVariants}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8"
-        >
-          {partners.map((partner, index) => (
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+          {impactAreas.map((area, index) => (
             <motion.div
               key={index}
-              variants={logoVariants}
-              whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
-              className="flex items-center justify-center bg-white p-6 rounded-lg shadow-md"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeIn}
+              className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              <div className="relative h-20 w-full">
-                <Image
-                  src={partner.logo}
-                  alt={`${partner.name} logo`}
-                  layout="fill"
-                  objectFit="contain"
-                />
-              </div>
+              <div className="mb-6">{area.icon}</div>
+              <h3 className="text-2xl font-bold mb-3">{area.title}</h3>
+              <p className="text-gray-700 mb-4">{area.description}</p>
+              <div className="text-[#1338BE] font-bold text-lg">{area.stats}</div>
             </motion.div>
           ))}
-        </motion.div>
-        
-       
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function CTASection() {
+  return (
+    <section className="py-16 md:py-24 bg-[#63C5DA] text-white">
+      <div className="container mx-auto px-4 max-w-7xl text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-6">
+          Together Towards Better Healthcare
+        </h2>
+        <p className="text-xl mb-8 max-w-3xl mx-auto">
+          Join us in our mission to make healthcare more accessible, equitable, and effective for all Kenyans through evidence-based assessment.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-4">
+          <Link
+            href="/resources" 
+            className="px-8 py-3 bg-white text-[#1338BE] rounded-md hover:bg-gray-100 transition-colors"
+          >
+            Learn More
+          </Link>
+          <Link
+            href="/contact" 
+            className="px-8 py-3 border-2 border-white text-white rounded-md hover:bg-white hover:text-[#1338BE] transition-colors"
+          >
+            Get Involved
+          </Link>
+        </div>
       </div>
     </section>
   )

@@ -28,7 +28,6 @@ export default function AboutSection() {
   return (
     <section className="py-12 ">
       <div className="container mx-auto px-4">
-        {/* Section Title */}
         <motion.div 
           className="mb-16 text-center"
           initial="hidden"
@@ -39,11 +38,9 @@ export default function AboutSection() {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             <span className="blue-gradient-text">About</span> Us
           </h2>
-          {/* <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto"></div> */}
         </motion.div>
 
         <div className="flex flex-col lg:flex-row items-center gap-12">
-          {/* Image Column */}
           <motion.div 
             className="w-full lg:w-1/2"
             initial="hidden"
@@ -64,7 +61,6 @@ export default function AboutSection() {
             </div>
           </motion.div>
 
-          {/* Content Column */}
           <motion.div 
             className="w-full lg:w-1/2"
             initial="hidden"
@@ -144,7 +140,6 @@ export default function AboutSection() {
           </motion.div>
         </div>
         
-        {/* Why Health Technology Assessment */}
         <motion.div 
           className="mt-20"
           initial="hidden"

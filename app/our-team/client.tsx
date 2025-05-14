@@ -80,19 +80,30 @@ export default function TeamClient() {
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
                 variants={itemVariants}
               >
-                <div className="relative h-64 md:h-80">
-                  {member.image ? (
-                    <Image
-                      src={member.image}
-                      alt={`Photo of ${member.title} ${member.name}`}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#63C5DA]/30 to-[#1338BE]/30 flex items-center justify-center">
-                      <User size={64} className="text-[#1338BE]/70" />
-                    </div>
-                  )}
+                
+
+              <div className="relative w-full h-64 md:h-80 rounded-md bg-white">
+                {member.image ? (
+                  <Image
+                    src={member.image}
+                    alt={`Photo of ${member.title} ${member.name}`}
+                    fill
+                    className="object-contain object-center"
+                    sizes="(max-width: 640px) 100vw, 
+                          (max-width: 768px) 50vw, 
+                          (max-width: 1024px) 33vw, 
+                          (max-width: 1280px) 25vw, 
+                          (max-width: 1536px) 20vw, 
+                          300px"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-[#63C5DA]/30 to-[#1338BE]/30 flex items-center justify-center rounded-md">
+                    <User size={64} className="text-[#1338BE]/70" />
+                  </div>
+                )}
+
+
+
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-6">
                     <h3 className="text-xl font-bold text-white mb-1">
                       {member.title && <span>{member.title} </span>}

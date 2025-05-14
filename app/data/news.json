@@ -2,9 +2,9 @@
     "newsItems": [
       {
         "id": 1,
-        "title": "CEMA to Lead Kenya's Health Benefits & Tariffs Panel",
-        "excerpt": "CEMA has been appointed to host the Health Benefits Package and Tariffs Advisory Panel, a significant step toward advancing evidence-based healthcare decision-making in Kenya.",
-        "content": "<p> CEMA is hosting the Health Benefits Package and Tariffs Advisory Panel following its appointment by Kenya’s Cabinet Secretary for Health in February. The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/><p> This initiative will promote a transparent, evidence-informed approach to the operationalization of the newly launched SHA program while facilitating the institutionalization of health technology assessment in the country.  </p><br/><p> <p>By hosting the panel, CEMA will serve as a joint secretariat with the Ministry of Health and leverage its expertise in health economics, epidemiology, actuarial science, and health sciences to support decision-making and policy development in Kenya.</p><br/> <br/>",
+        "title": "UoN to Lead Kenya’s Health Benefits & Tariffs Panel",
+        "excerpt": "University of Nairobi has been appointed to host the Health Benefits Package and Tariffs Advisory Panel, a significant step toward advancing evidence-based healthcare decision-making in Kenya.",
+        "content": "<p> University of Nairobi is hosting the Health Benefits Package and Tariffs Advisory Panel following its appointment by Kenya’s Cabinet Secretary for Health in February. The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/><p> This initiative will promote a transparent, evidence-informed approach to the operationalization of the newly launched SHA program while facilitating the institutionalization of health technology assessment in the country.  </p><br/><p> <p>By hosting the panel, CEMA will serve as a joint secretariat with the Ministry of Health and leverage its expertise in health economics, epidemiology, actuarial science, and health sciences to support decision-making and policy development in Kenya.</p><br/> <br/>",
         "author": "Admin",
         "authorRole": "Health admin",
         "featured": true,
@@ -14,19 +14,25 @@
         "tags": ["health policy", "HTA", "benefits package", "tariffs", "CEMA", "Kenya healthcare"]
       },
 
-      {
+
+            {
         "id": 2,
-        "title": "CEMA to Lead Kenya's Health Benefits & Tariffs Panel",
-        "excerpt": "CEMA has been appointed to host the Health Benefits Package and Tariffs Advisory Panel, a significant step toward advancing evidence-based healthcare decision-making in Kenya.",
-        "content": "<p> CEMA is hosting the Health Benefits Package and Tariffs Advisory Panel following its appointment by Kenya’s Cabinet Secretary for Health in February. The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/><p> This initiative will promote a transparent, evidence-informed approach to the operationalization of the newly launched SHA program while facilitating the institutionalization of health technology assessment in the country.  </p><br/><p> <p>By hosting the panel, CEMA will serve as a joint secretariat with the Ministry of Health and leverage its expertise in health economics, epidemiology, actuarial science, and health sciences to support decision-making and policy development in Kenya.</p><br/> <br/>",
+        "title": " Health Benefits & Tariffs Advisory Panel Secretariat Holds Inaugural Meeting After Gazettement",
+        "excerpt": " Health Benefits & Tariffs Advisory Panel Secretariat Holds Inaugural Meeting After Gazettement",
+        "content": "<p> UThe Health Benefits and Tariffs Advisory Panel secretariat held its first planning meeting a fortnight ago following the  gazettement of the advisory body to guide the Social Health Authority (SHA) on tariffs and benefits.</p><br/><p> The gazettement of the advisory panel follows their appointment by the Ministry of Health, in February.  </p><br/><p> <p>ByThe panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/> <br/>",
         "author": "Admin",
         "authorRole": "Health admin",
         "featured": true,
         "date": "2025-05-03",
-        "category": "Announcements",
+        "category": "Health",
         "image": "/images/news/cema-panel-appointment.jpg",
-        "tags": ["health policy", "HTA", "benefits package", "tariffs", "CEMA", "Kenya healthcare"]
+        "tags": ["health policy", "HTA",  "UoN", "Kenya healthcare"]
       }
+
+     
+
+
+     
 
     ]
   }

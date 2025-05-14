@@ -49,7 +49,7 @@ export default function HTAImpactSection() {
                   className="h-full w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA] hidden lg:block"
                 ></motion.div>
               </div>
-              <h3 className="text-2xl font-semibold pl-5 text-[#1338BE]">Our Impact on Healthcare</h3>
+              <h3 className="text-2xl font-semibold pl-5 text-[#020e3c]">Our Impact on Healthcare</h3>
             </motion.div>
 
             <motion.p 
@@ -84,7 +84,7 @@ export default function HTAImpactSection() {
               className="lg:pl-5"
             >
               <Link href="/resources">
-                <Button className="bg-white hover:bg-gray-50 text-[#1338BE] border border-[#1338BE] group px-6">
+                <Button className="bg-white hover:bg-gray-50 text-[#020e3c] border border-[#1338BE] group px-6">
                   Explore More About 
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -119,7 +119,7 @@ export default function HTAImpactSection() {
                 transition={{ delay: 0.4, duration: 0.5 }}
                 viewport={{ once: true }}
               >
-                <h4 className="font-bold text-[#1338BE] text-lg">Data-Driven Decisions</h4>
+                <h4 className="font-bold text-[#020e3c] text-lg">Data-Driven Decisions</h4>
                 <p className="text-sm text-gray-600">
                   Through systematic evaluation, we've helped implement cost-effective healthcare interventions reaching over 5 million Kenyans.
                 </p>

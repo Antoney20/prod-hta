@@ -207,9 +207,8 @@ export default function GovernanceClient() {
             variants={fadeIn}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Stakeholder Roles in the <span className="text-[#1338BE]">HTA Process</span>
+              Stakeholder Roles and overall governance of the HTA.
             </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-6"></div>
             <p className="text-gray-700 text-lg max-w-3xl mx-auto">
               Successful HTA implementation requires collaboration among various stakeholders, each playing a crucial role in the process.
             </p>

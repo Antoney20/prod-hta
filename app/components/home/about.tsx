@@ -28,17 +28,17 @@ export default function AboutSection() {
   return (
     <section className="py-12 ">
       <div className="container mx-auto px-4">
-        <motion.div 
+        {/* <motion.div 
           className="mb-16 text-center"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
           variants={fadeIn}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            <span className="blue-gradient-text">About</span> Us
-          </h2>
-        </motion.div>
+          {/* <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            About Us
+          </h2> 
+        </motion.div> */}
 
         <div className="flex flex-col lg:flex-row items-center gap-12">
           <motion.div 
@@ -69,7 +69,7 @@ export default function AboutSection() {
             variants={staggerChildren}
           >
             <motion.h3 
-              className="text-2xl font-semibold mb-4 text-[#1338BE]"
+              className="text-2xl font-semibold mb-4 text-[#020e3c]"
               variants={fadeIn}
             >
               The Benefits Package and Tariffs Advisory Panel
@@ -83,7 +83,7 @@ export default function AboutSection() {
             </motion.p>
             
             <motion.h4 
-              className="text-xl font-medium mb-3 text-[#1338BE]"
+              className="text-xl font-medium mb-3 text-[#020e3c]"
               variants={fadeIn}
             >
               Our Main Objectives
@@ -148,7 +148,7 @@ export default function AboutSection() {
           variants={fadeIn}
         >
           <h3 className="text-2xl font-semibold mb-8 text-center">
-            Why <span className="text-[#1338BE]">Health Technology Assessment</span> Matters
+            Why <span className="text-[#020e3c]">Health Technology Assessment</span> Matters
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -159,7 +159,7 @@ export default function AboutSection() {
               transition={{ duration: 0.3 }}
             >
               <div className="w-14 h-14 rounded-full bg-[#1338BE]/10 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#1338BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#020e3c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
@@ -193,7 +193,7 @@ export default function AboutSection() {
               transition={{ duration: 0.3 }}
             >
               <div className="w-14 h-14 rounded-full bg-[#1338BE]/10 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#1338BE]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#020e3c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>

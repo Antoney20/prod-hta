@@ -21,7 +21,7 @@ export default function ContactSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Get in <span className="text-[#1338BE]">Touch</span>
+            Get in <span className="text-[#020e3c]">Touch</span>
           </h2>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
             Have questions about our work or interested in collaboration? We're here to help.
@@ -36,7 +36,7 @@ export default function ContactSection() {
             viewport={{ once: true }}
             className="bg-white text-gray-900 p-8 rounded-xl shadow-lg border border-gray-100"
           >
-            <h3 className="text-xl font-bold mb-6 text-[#1338BE]">Send Us a Message</h3>
+            <h3 className="text-xl font-bold mb-6 text-[#020e3c]">Send Us a Message</h3>
             <p className="text-gray-600 mb-8">
               Fill out the form below and our team will get back to you as soon as possible.
             </p>
@@ -111,7 +111,7 @@ export default function ContactSection() {
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
           >
-            <h3 className="text-xl font-bold mb-6 text-[#1338BE]">Contact Information</h3>
+            <h3 className="text-xl font-bold mb-6 text-[#020e3c]">Contact Information</h3>
             <p className="text-gray-700 mb-8">
               The Health Technology Assessment Panel is dedicated to promoting transparent, 
               evidence-informed approaches to healthcare decision-making in Kenya. 
@@ -121,14 +121,14 @@ export default function ContactSection() {
             <div className="space-y-8">
               <div className="flex items-start">
                 <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <Mail className="h-6 w-6 text-[#1338BE]" />
+                  <Mail className="h-6 w-6 text-[#020e3c]" />
                 </div>
                 <div>
                   <h4 className="text-lg font-medium mb-1">Email Us</h4>
                   <p className="text-gray-700 mb-1">For general inquiries:</p>
                   <a 
                     href="#" 
-                    className="text-[#1338BE] hover:text-[#63C5DA] transition-colors"
+                    className="text-[#020e3c] hover:text-[#63C5DA] transition-colors"
                   >
                     Contact Us
                   </a>
@@ -137,7 +137,7 @@ export default function ContactSection() {
               
               <div className="flex items-start">
                 <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <MapPin className="h-6 w-6 text-[#1338BE]" />
+                  <MapPin className="h-6 w-6 text-[#020e3c]" />
                 </div>
                 <div>
                   <h4 className="text-lg font-medium mb-1">Visit Us</h4>
@@ -160,14 +160,14 @@ export default function ContactSection() {
               
               <div className="flex items-start">
                 <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <Phone className="h-6 w-6 text-[#1338BE]" />
+                  <Phone className="h-6 w-6 text-[#020e3c]" />
                 </div>
                 <div>
                   <h4 className="text-lg font-medium mb-1">Call Us</h4>
                   <p className="text-gray-700 mb-1">Monday to Friday, 8am - 5pm EAT</p>
                   <a 
                     href="#" 
-                    className="text-[#1338BE] hover:text-[#63C5DA] transition-colors"
+                    className="text-[#020e3c] hover:text-[#63C5DA] transition-colors"
                   >
                     Coming soon
                   </a>

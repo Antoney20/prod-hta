@@ -17,7 +17,7 @@ export default function FAQsSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Frequently Asked <span className="text-[#1338BE]">Questions</span>
+            Frequently Asked Questions
           </h2>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
             Find answers to common questions about Health Technology Assessment and the Benefits Package and Tariffs Advisory Panel.

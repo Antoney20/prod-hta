@@ -99,13 +99,10 @@ function HeroSection() {
             variants={itemVariants} 
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
           >
-            About <span className="text-[#1338BE]">Health Technology</span> Assessment
+            About <span className="text-[#020e3c]">Health Technology</span> Assessment
           </motion.h1>
           
-          <motion.div 
-            variants={itemVariants}
-            className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-8"
-          ></motion.div>
+      
           
           <motion.p 
             variants={itemVariants}
@@ -119,13 +116,13 @@ function HeroSection() {
             variants={itemVariants}
             className="flex flex-wrap justify-center gap-6"
           >
-            <Link href="/team">
+            <Link href="/our-team">
               <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-6 rounded-md text-lg">
                 Meet Our Team
               </Button>
             </Link>
             <Link href="/governance">
-              <Button variant="outline" className="border-2 border-[#1338BE] text-[#1338BE] hover:bg-[#1338BE] hover:text-white px-8 py-6 rounded-md text-lg">
+              <Button variant="outline" className="border-2 border-[#1338BE] text-[#020e3c] hover:bg-[#1338BE] hover:text-white px-8 py-6 rounded-md text-lg">
                 Our Governance
               </Button>
             </Link>
@@ -157,9 +154,8 @@ function WhatIsHTASection() {
           variants={fadeIn}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            What is <span className="text-[#1338BE]">HTA?</span>
+            What is <span className="text-[#020e3c]">HTA?</span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-6"></div>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -170,7 +166,7 @@ function WhatIsHTASection() {
             variants={fadeIn}
           >
             <div className="bg-white p-8 rounded-xl shadow-lg">
-              <Shield className="h-16 w-16 text-[#1338BE] mb-6" />
+              <Shield className="h-16 w-16 text-[#020e3c] mb-6" />
               <h3 className="text-2xl font-bold mb-4">Health Technology Assessment</h3>
               <p className="text-gray-700 text-lg">
                 Health Technology Assessment (HTA) is a systematic evaluation process that helps governments and health systems decide which healthcare interventions—medicines, medical devices, procedures, and programs—should be adopted based on their clinical effectiveness, cost-effectiveness, and social impact.
@@ -278,10 +274,10 @@ function MissionSection() {
               
               <motion.div 
                 variants={itemVariants}
-                className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-[#1338BE]/90 to-transparent p-6"
+                className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-gray-500 to-transparent p-6"
               >
-                <h3 className="text-white text-xl font-semibold">Guided by Evidence</h3>
-                <p className="text-white/90 text-sm">Our recommendations are based on rigorous scientific assessment</p>
+                <h3 className="text-black text-xl font-semibold">Guided by Evidence</h3>
+                <p className="text-black/90 text-sm">Our recommendations are based on rigorous scientific assessment</p>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -295,21 +291,18 @@ function MissionSection() {
           >
             <motion.h2 
               variants={itemVariants}
-              className="text-3xl font-bold mb-6"
+              className="text-3xl font-bold mb-4"
             >
-              Our <span className="text-[#1338BE]">Mission</span>
+              Our <span className="text-[#020e3c]">Mission</span>
             </motion.h2>
             
-            <motion.div 
-              variants={itemVariants}
-              className="w-20 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mb-8"
-            ></motion.div>
+          
             
             <motion.p 
               variants={itemVariants}
               className="text-gray-700 text-lg mb-6"
             >
-              The Health Technology Assessment Panel is dedicated to promoting a transparent, 
+              The Health Technology Assessment is dedicated to promoting a transparent, 
               evidence-informed approach to the operationalization of healthcare programs, while 
               institutionalizing health technology assessment methodologies in Kenya.
             </motion.p>
@@ -352,7 +345,7 @@ function ImpactSection() {
 
   const impactAreas = [
     {
-      icon: <TrendingUp className="h-12 w-12 text-[#1338BE]" />,
+      icon: <TrendingUp className="h-12 w-12 text-[#020e3c]" />,
       title: "Economic Impact",
       description: "Optimizing healthcare spending by identifying cost-effective interventions that provide maximum value for money",
       stats: "35% improvement in resource allocation"
@@ -364,7 +357,7 @@ function ImpactSection() {
       stats: "500K+ lives impacted positively"
     },
     {
-      icon: <Users className="h-12 w-12 text-[#1338BE]" />,
+      icon: <Users className="h-12 w-12 text-[#020e3c]" />,
       title: "Healthcare Equity",
       description: "Promoting fair access to essential health technologies across all socio-economic groups",
       stats: "90% coverage in underserved areas"
@@ -388,9 +381,8 @@ function ImpactSection() {
           variants={fadeIn}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Our <span className="text-[#1338BE]">Impact</span>
+            Our <span className="text-[#020e3c]">Impact</span>
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-6"></div>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
             Through evidence-based assessment and strategic recommendations, we're transforming healthcare delivery in Kenya
           </p>
@@ -409,7 +401,7 @@ function ImpactSection() {
               <div className="mb-6">{area.icon}</div>
               <h3 className="text-2xl font-bold mb-3">{area.title}</h3>
               <p className="text-gray-700 mb-4">{area.description}</p>
-              <div className="text-[#1338BE] font-bold text-lg">{area.stats}</div>
+              <div className="text-[#020e3c] font-bold text-lg">{area.stats}</div>
             </motion.div>
           ))}
         </div>
@@ -431,13 +423,13 @@ function CTASection() {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link
             href="/resources" 
-            className="px-8 py-3 bg-white text-[#1338BE] rounded-md hover:bg-gray-100 transition-colors"
+            className="px-8 py-3 bg-white text-[#020e3c] rounded-md hover:bg-gray-100 transition-colors"
           >
             Learn More
           </Link>
           <Link
             href="/contact" 
-            className="px-8 py-3 border-2 border-white text-white rounded-md hover:bg-white hover:text-[#1338BE] transition-colors"
+            className="px-8 py-3 border-2 border-white text-white rounded-md hover:bg-white hover:text-[#020e3c] transition-colors"
           >
             Get Involved
           </Link>

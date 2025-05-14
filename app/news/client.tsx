@@ -108,7 +108,6 @@ export default function NewsClient() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-2xl md:text-4xl font-bold mb-4">News & Updates</h1>
-            <div className="w-20 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mb-6"></div>
             <p className="text-xl text-gray-700 max-w-3xl">
               Stay informed about our ongoing projects, research findings, and upcoming events in the
               field of Health Technology Assessment.

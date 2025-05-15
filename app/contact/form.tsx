@@ -244,37 +244,16 @@ function ContactFormSection() {
                 </div>
                 <div>
                   <h4 className="text-lg font-medium mb-1">Email Us</h4>
-                  <p className="text-gray-700 mb-2">For general inquiries and partnership opportunities:</p>
+                  <p className="text-gray-700 mb-2">For general inquiries contact.</p>
                   <a 
-                    href="mailto:contact@healthta.ke" 
+                    href="#" 
                     className="text-[#020e3c] hover:text-black transition-colors"
                   >
-                    contact@healthta.ke
+                  hbtap@uonbi.ac.ke
                   </a>
                 </div>
               </div>
-              
-              <div className="flex items-start mb-6">
-                <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <MapPin className="h-6 w-6 text-[#020e3c]" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium mb-1">Visit Us</h4>
-                  <p className="text-gray-700">
-                    Center for Epidemiological Modelling and Analysis<br />
-                    University of Nairobi, Kenya
-                  </p>
-                  <a
-                    href="https://cema-africa.uonbi.ac.ke"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center px-4 py-2 rounded-md bg-[#1338BE] text-white hover:bg-[#63C5DA] transition-colors text-sm"
-                  >
-                    Visit CEMA Website
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </div>
-              </div>
+            
               
               <div className="flex items-start">
                 <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">

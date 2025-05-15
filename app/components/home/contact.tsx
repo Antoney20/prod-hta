@@ -106,108 +106,85 @@ export default function ContactSection() {
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <h3 className="text-xl font-bold mb-6 text-[#020e3c]">Contact Information</h3>
-            <p className="text-gray-700 mb-8">
-              The Health Technology Assessment Panel is dedicated to promoting transparent, 
-              evidence-informed approaches to healthcare decision-making in Kenya. 
-              Get in touch to learn more about our work.
-            </p>
-            
-            <div className="space-y-8">
-              <div className="flex items-start">
-                <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <Mail className="h-6 w-6 text-[#020e3c]" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium mb-1">Email Us</h4>
-                  <p className="text-gray-700 mb-1">For general inquiries:</p>
-                  <a 
-                    href="#" 
-                    className="text-[#020e3c] hover:text-[#63C5DA] transition-colors"
+                    initial={{ opacity: 0, x: 30 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    viewport={{ once: true }}
+                    className="space-y-8"
                   >
-                    Contact Us
-                  </a>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <MapPin className="h-6 w-6 text-[#020e3c]" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium mb-1">Visit Us</h4>
-                  <p className="text-gray-700">
-                    Center for Epidemiological Modelling and Analysis<br />
-                    University of Nairobi<br />
-                    Nairobi, Kenya
-                  </p>
-                  <a
-                    href="https://cema-africa.uonbi.ac.ke"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center px-4 py-2 rounded-md bg-[#1338BE] text-white hover:bg-[#63C5DA] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1338BE]"
-                  >
-                    Learn more about CEMA
-                    <ExternalLink className="ml-2 h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-              
-              <div className="flex items-start">
-                <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
-                  <Phone className="h-6 w-6 text-[#020e3c]" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-medium mb-1">Call Us</h4>
-                  <p className="text-gray-700 mb-1">Monday to Friday, 8am - 5pm EAT</p>
-                  <a 
-                    href="#" 
-                    className="text-[#020e3c] hover:text-[#63C5DA] transition-colors"
-                  >
-                    Coming soon
-                  </a>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-12">
-              <h4 className="text-lg font-medium mb-4">Connect With Us</h4>
-              <div className="flex space-x-4">
-                <a 
-                  href="#" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
-                  aria-label="Follow us on Twitter"
-                >
-                  <Twitter className="h-5 w-5" />
-                </a>
-                <a 
-                  href="#"
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
-                  aria-label="Connect with us on LinkedIn"
-                >
-                  <Linkedin className="h-5 w-5" />
-                </a>
-                <a 
-                  href="#" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
-                  aria-label="Subscribe to our YouTube channel"
-                >
-                  <Youtube className="h-5 w-5" />
-                </a>
-              </div>
-            </div>
-          </motion.div>
+                    <div>
+                      <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Contact Information</h3>
+                      <p className="text-gray-700 mb-8">
+                        The Health Technology Assessment is committed to promoting transparent, 
+                        evidence-informed approaches to healthcare decision-making in Kenya. 
+                        We welcome inquiries from stakeholders, researchers, and partners.
+                      </p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-6 rounded-xl">
+                      <div className="flex items-start mb-6">
+                        <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
+                          <Mail className="h-6 w-6 text-[#020e3c]" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-medium mb-1">Email Us</h4>
+                          <p className="text-gray-700 mb-2">For general inquiries contact.</p>
+                          <a 
+                            href="#" 
+                            className="text-[#020e3c] hover:text-black transition-colors"
+                          >
+                          hbtap@uonbi.ac.ke
+                          </a>
+                        </div>
+                      </div>
+                    
+                      
+                      <div className="flex items-start">
+                        <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
+                          <Phone className="h-6 w-6 text-[#020e3c]" />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-medium mb-1">Office Hours</h4>
+                          <p className="text-gray-700">Monday to Friday, 8:00 AM - 5:00 PM EAT</p>
+                          <p className="text-gray-600 text-sm mt-1">Closed on public holidays</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-6 rounded-xl border border-gray-200">
+                      <h4 className="text-lg font-medium mb-4">Connect With Us</h4>
+                      <p className="text-gray-700 mb-4">Follow us on social media for the latest updates:</p>
+                      <div className="flex space-x-4">
+                        <a 
+                          href="#" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
+                          aria-label="Follow us on Twitter"
+                        >
+                          <Twitter className="h-5 w-5" />
+                        </a>
+                        <a 
+                          href="#"
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
+                          aria-label="Connect with us on LinkedIn"
+                        >
+                          <Linkedin className="h-5 w-5" />
+                        </a>
+                        <a 
+                          href="#" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
+                          aria-label="Subscribe to our YouTube channel"
+                        >
+                          <Youtube className="h-5 w-5" />
+                        </a>
+                      </div>
+                    </div>
+                  </motion.div>
         </div>
       </div>
     </section>

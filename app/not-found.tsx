@@ -105,43 +105,7 @@ export default function NotFound() {
               </Button>
             </div>
             
-            {/* Quick Links */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="mt-12"
-            >
-              <p className="text-sm text-gray-600 mb-4">
-                Here are some helpful links:
-              </p>
-              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-                <Link 
-                  href="/about" 
-                  className="text-[#1338BE] hover:text-[#63C5DA] text-sm hover:underline transition-colors"
-                >
-                  About Us
-                </Link>
-                <Link 
-                  href="/services" 
-                  className="text-[#1338BE] hover:text-[#63C5DA] text-sm hover:underline transition-colors"
-                >
-                  Our Services
-                </Link>
-                <Link 
-                  href="/team" 
-                  className="text-[#1338BE] hover:text-[#63C5DA] text-sm hover:underline transition-colors"
-                >
-                  Our Team
-                </Link>
-                <Link 
-                  href="/faqs" 
-                  className="text-[#1338BE] hover:text-[#63C5DA] text-sm hover:underline transition-colors"
-                >
-                  FAQs
-                </Link>
-              </div>
-            </motion.div>
+       
             
             {/* Support Message */}
             <motion.div 
@@ -152,8 +116,8 @@ export default function NotFound() {
             >
               <p className="text-xs text-gray-500">
                 If you continue to experience issues, please email 
-                <a href="mailto:support@healthta.ke" className="text-[#1338BE] hover:underline ml-1">
-                  support@healthta.ke
+                <a href="#" className="text-[#1338BE] hover:underline ml-1">
+                  hbtap@uonbi.ac.ke
                 </a>
               </p>
             </motion.div>

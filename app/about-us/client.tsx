@@ -116,14 +116,14 @@ function HeroSection() {
             variants={itemVariants}
             className="flex flex-wrap justify-center gap-6"
           >
-            <Link href="/our-team">
+            <Link href="/governance">
               <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-6 rounded-md text-lg">
-                Meet Our Team
+                Governance
               </Button>
             </Link>
-            <Link href="/governance">
+            <Link href="/resources">
               <Button variant="outline" className="border-2 border-[#1338BE] text-[#020e3c] hover:bg-[#1338BE] hover:text-white px-8 py-6 rounded-md text-lg">
-                Our Governance
+                Learn More 
               </Button>
             </Link>
           </motion.div>

@@ -90,16 +90,11 @@ export default function Footer() {
                   About Us
                 </Link>
               </li>
+             
               <li>
-                <Link href="/services" className="text-gray-300 hover:text-[#63C5DA] transition-colors duration-300 flex items-center group">
+                <Link href="/governance" className="text-gray-300 hover:text-[#63C5DA] transition-colors duration-300 flex items-center group">
                   <ArrowUpRight size={16} className="mr-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
-                  Services
-                </Link>
-              </li>
-              <li>
-                <Link href="/our-team" className="text-gray-300 hover:text-[#63C5DA] transition-colors duration-300 flex items-center group">
-                  <ArrowUpRight size={16} className="mr-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
-                  Our Team
+                  Governance
                 </Link>
               </li>
               <li>
@@ -157,15 +152,15 @@ export default function Footer() {
               <li className="flex items-start">
                 <MapPin size={20} className="text-[#63C5DA] mr-3 mt-1 flex-shrink-0" aria-hidden="true" />
                 <span className="text-gray-300 text-sm">
-                  Health Technology Assessment Panel<br />
-                  University of Nairobi<br />
+                  Health Technology Assessment<br />
+                  The University of Nairobi<br />
                   Nairobi, Kenya
                 </span>
               </li>
               <li className="flex items-center">
                 <Mail size={20} className="text-[#63C5DA] mr-3 flex-shrink-0" aria-hidden="true" />
-                <a href="#" className="text-gray-300 text-sm hover:text-[#63C5DA] transition-colors duration-300" aria-label="Email HealthTA at contact@healthta.ke">
-                  coming soon
+                <a href="#" className="text-gray-300 text-sm hover:text-[#63C5DA] transition-colors duration-300" aria-label="Email HealthTA at hbtap@uonbi.ac.ke">
+                  hbtap@uonbi.ac.ke
                 </a>
               </li>
               <li className="flex items-center">
@@ -220,7 +215,7 @@ export default function Footer() {
               )}
               
               <p className="text-gray-50 text-xs">
-                You will receive regular updates about our work and can unsubscribe at any time by clicking the unsubscribe link in each email, or by contacting contact@healthta.ke. For more information see our <Link href="/privacy-policy" className="text-gray-300 hover:text-[#63C5DA] underline">privacy policy</Link>.
+                You will receive regular updates about our work and can unsubscribe at any time by clicking the unsubscribe link in each email, or by contacting hbtap@uonbi.ac.ke For more information see our <Link href="/privacy-policy" className="text-gray-300 hover:text-[#63C5DA] underline">privacy policy</Link>.
               </p>
             </form>
           </div>
@@ -231,16 +226,15 @@ export default function Footer() {
           <div className="text-gray-300 text-sm mb-4 md:mb-0">
             © 2025 Health Technology Assessment. All rights reserved.
           </div>
-          <a 
+          {/* <a 
             href="https://cema-africa.uonbi.ac.ke/" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-gray-300 hover:text-[#63C5DA] flex items-center transition-colors duration-300"
             aria-label="Visit CEMA website"
-          >
-            <span className="text-white mr-2"> The University of Nairobi</span> || 
-            Powered by CEMA
-          </a>
+          > */}
+            <span className="text-white mr-2"> The University of Nairobi</span> 
+          {/* </a> */}
         </div>
       </div>
     </footer>

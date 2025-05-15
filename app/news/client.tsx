@@ -9,6 +9,7 @@ import { slugify } from '@/lib/utils'
 
 import newsData from '../data/news.json'
 import Navbar from '../components/layouts/navbar'
+import Footer from '../components/layouts/footer'
 
 // interface NewsItem {
 //   id: number
@@ -261,6 +262,7 @@ export default function NewsClient() {
           )}
         </div>
       </section>
+      <Footer/>
     </main>
   )
 }

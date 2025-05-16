@@ -76,25 +76,25 @@ function WhatIsHTASection() {
             <h3 className="text-2xl font-semibold mb-6">Why is HTA Important in Kenya?</h3>
             <div className="space-y-4">
               <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center mr-3">
                   <CheckCircle className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-gray-700">Ensures optimal use of limited healthcare resources</span>
               </div>
               <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center mr-3">
                   <CheckCircle className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-gray-700">Promotes equitable access to effective healthcare technologies</span>
               </div>
               <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center mr-3">
                   <CheckCircle className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-gray-700">Supports evidence-based decision making in healthcare policy</span>
               </div>
               <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center mr-3">
                   <CheckCircle className="h-3 w-3 text-white" />
                 </div>
                 <span className="text-gray-700">Advances Universal Health Coverage by prioritizing cost-effective interventions</span>
@@ -144,7 +144,7 @@ function HeroSection() {
       {/* Background Pattern */}
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/10 to-transparent rounded-bl-full"></div>
-        <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/10 to-transparent rounded-tr-full"></div>
+        <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1d8fc3]/10 to-transparent rounded-tr-full"></div>
       </div>
       
       {/* Animated vertical lines */}
@@ -153,21 +153,21 @@ function HeroSection() {
           initial={{ height: 0 }}
           animate={{ height: '6rem' }}
           transition={{ duration: 1, delay: 0.5 }}
-          className="h-24 w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA]"
+          className="h-24 w-0.5 bg-gradient-to-b from-[#1d8fc3] to-[#63C5DA]"
         ></motion.div>
         
         <motion.div
           initial={{ height: 0 }}
           animate={{ height: '8rem' }}
           transition={{ duration: 1, delay: 0.8 }}
-          className="h-32 w-0.5 bg-gradient-to-b from-[#63C5DA] to-[#1338BE] mt-8"
+          className="h-32 w-0.5 bg-gradient-to-b from-[#63C5DA] to-[#1d8fc3] mt-8"
         ></motion.div>
         
         <motion.div
           initial={{ height: 0 }}
           animate={{ height: '6rem' }}
           transition={{ duration: 1, delay: 1.1 }}
-          className="h-24 w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA] mt-8"
+          className="h-24 w-0.5 bg-gradient-to-b from-[#1d8fc3] to-[#63C5DA] mt-8"
         ></motion.div>
       </div>
       
@@ -201,12 +201,12 @@ function HeroSection() {
             className="flex flex-wrap justify-center gap-6"
           >
             <Link href="/governance">
-              <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-6 rounded-md text-lg">
+              <Button className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-6 rounded-md text-lg">
                 Governance
               </Button>
             </Link>
             <Link href="/resources">
-              <Button variant="outline" className="border-2 border-[#1338BE] text-[#020e3c] hover:bg-[#1338BE] hover:text-white px-8 py-6 rounded-md text-lg">
+              <Button variant="outline" className="border-2 border-[#1d8fc3] text-[#020e3c] hover:bg-[#1d8fc3] hover:text-white px-8 py-6 rounded-md text-lg">
                 Learn More 
               </Button>
             </Link>
@@ -265,7 +265,7 @@ function MissionSection() {
               className="relative rounded-lg overflow-hidden shadow-xl"
             >
               <div className="aspect-w-16 aspect-h-9">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1338BE]/10 z-10"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1d8fc3]/10 z-10"></div>
                 <Image
                   src="/images/mission-image.jpg" 
                   alt="Health technology assessment team in discussion"
@@ -322,7 +322,7 @@ function MissionSection() {
             
             <motion.div 
               variants={itemVariants}
-              className="bg-gray-50 p-6 rounded-lg border-l-4 border-[#1338BE]"
+              className="bg-gray-50 p-6 rounded-lg border-l-4 border-[#1d8fc3]"
             >
               <h4 className="text-xl font-semibold mb-3">Our Vision</h4>
               <p className="text-gray-700">

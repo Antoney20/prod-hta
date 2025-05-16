@@ -126,7 +126,7 @@ export default function NewsClient() {
                     className="object-cover"
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
-                    <span className="bg-[#1338BE] text-white px-4 py-1 rounded-full text-sm font-medium">
+                    <span className="bg-[#27aae1] text-white px-4 py-1 rounded-full text-sm font-medium">
                       Featured
                     </span>
                     <CategoryBadge category={featuredNews.category} />
@@ -145,7 +145,7 @@ export default function NewsClient() {
                     </div>
                     <Link
                       href={`/news/${slugify(featuredNews.title)}`}
-                      className="inline-flex items-center px-5 py-2.5 bg-[#1338BE] text-white rounded-lg hover:bg-[#63C5DA] transition-colors"
+                      className="inline-flex items-center px-5 py-2.5 bg-[#27aae1] text-white rounded-lg hover:bg-[#63C5DA] transition-colors"
                     >
                       Read full story <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
@@ -171,7 +171,7 @@ export default function NewsClient() {
               onClick={() => setActiveCategory('All')}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeCategory === 'All'
-                  ? 'bg-[#1338BE] text-white'
+                  ? 'bg-[#27aae1] text-white'
                   : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
               }`}
             >
@@ -183,7 +183,7 @@ export default function NewsClient() {
                 onClick={() => setActiveCategory(category)}
                 className={`px-4 py-2 rounded-lg transition-colors ${
                   activeCategory === category
-                    ? 'bg-[#1338BE] text-white'
+                    ? 'bg-[#27aae1] text-white'
                     : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
                 }`}
               >
@@ -220,7 +220,7 @@ export default function NewsClient() {
                   </div>
                   <div className="p-5">
                     <div className="text-sm text-gray-500 mb-2">{news.date}</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#1338BE] transition-colors">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#27aae1] transition-colors">
                       {news.title}
                     </h3>
                     <p className="text-gray-600 mb-4 line-clamp-3">{news.excerpt}</p>
@@ -230,7 +230,7 @@ export default function NewsClient() {
                       </div>
                       <Link
                         href={`/news/${slug}`}
-                        className="text-[#1338BE] font-medium flex items-center hover:text-[#63C5DA] transition-colors"
+                        className="text-[#27aae1] font-medium flex items-center hover:text-[#63C5DA] transition-colors"
                       >
                         Read more <ArrowRight className="h-4 w-4 ml-1" />
                       </Link>

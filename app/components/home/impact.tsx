@@ -46,7 +46,7 @@ export default function HTAImpactSection() {
                   initial={{ height: 0 }}
                   animate={{ height: '100%' }}
                   transition={{ duration: 1, delay: 0.5 }}
-                  className="h-full w-0.5 bg-gradient-to-b from-[#1338BE] to-[#63C5DA] hidden lg:block"
+                  className="h-full w-0.5 bg-gradient-to-b from-[#1d8fc3] to-[#63C5DA] hidden lg:block"
                 ></motion.div>
               </div>
               <h3 className="text-2xl font-semibold pl-5 text-[#020e3c]">Our Impact on Healthcare</h3>
@@ -66,7 +66,7 @@ export default function HTAImpactSection() {
             >
               <h4 className="font-medium text-gray-900 mb-2">Key Achievements</h4>
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                <div className="w-3 h-3 rounded-full bg-[#1338BE]"></div>
+                <div className="w-3 h-3 rounded-full bg-[#1d8fc3]"></div>
                 <p>SuccessfulL impact on overall ....</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
@@ -74,7 +74,7 @@ export default function HTAImpactSection() {
                 <p>Contributed to reduction of .....</p>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <div className="w-3 h-3 rounded-full bg-[#1338BE]"></div>
+                <div className="w-3 h-3 rounded-full bg-[#1d8fc3]"></div>
                 <p>Contributed to......</p>
               </div>
             </motion.div>
@@ -84,7 +84,7 @@ export default function HTAImpactSection() {
               className="lg:pl-5"
             >
               <Link href="/resources">
-                <Button className="bg-white hover:bg-gray-50 text-[#020e3c] border border-[#1338BE] group px-6">
+                <Button className="bg-white hover:bg-gray-50 text-[#020e3c] border border-[#1d8fc3] group px-6">
                   Explore More About 
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -108,12 +108,12 @@ export default function HTAImpactSection() {
                   // style={{ objectFit: "cover" }}
                   className="z-0"
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[#1338BE]/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#1d8fc3]/20 to-transparent"></div>
               </div>
               
               {/* float */}
               <motion.div 
-                className="absolute -bottom-10 -left-5 md:left-5 bg-white p-4 rounded-md shadow-lg border-l-4 border-[#1338BE] max-w-xs"
+                className="absolute -bottom-10 -left-5 md:left-5 bg-white p-4 rounded-md shadow-lg border-l-4 border-[#1d8fc3] max-w-xs"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}

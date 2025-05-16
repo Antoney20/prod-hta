@@ -50,7 +50,7 @@ export default function AboutSection() {
           >
             <div className="relative h-72 md:h-96 w-full rounded-lg overflow-hidden shadow-xl">
               
-              <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1338BE]/10 z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1d8fc3]/10 z-10"></div>
               <Image
                 src="/images/health-financing.jpeg" 
                 alt="Sustainable Finance Strategies for Healthcare "
@@ -94,7 +94,7 @@ export default function AboutSection() {
                 variants={fadeIn} 
                 className="flex items-start gap-3"
               >
-                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center">
+                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -106,7 +106,7 @@ export default function AboutSection() {
                 variants={fadeIn} 
                 className="flex items-start gap-3"
               >
-                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center">
+                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -118,7 +118,7 @@ export default function AboutSection() {
                 variants={fadeIn} 
                 className="flex items-start gap-3"
               >
-                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center">
+                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
@@ -132,7 +132,7 @@ export default function AboutSection() {
               className="mt-8"
             >
               <Link href="/team">
-                <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-6 py-2 rounded-md">
+                <Button className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-6 py-2 rounded-md">
                   Meet Our Team
                 </Button>
               </Link>
@@ -154,11 +154,11 @@ export default function AboutSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Card 1 */}
             <motion.div 
-              className="bg-white p-6 rounded-lg shadow-md border-b-4 border-[#1338BE] hover:shadow-lg transition-shadow duration-300"
+              className="bg-white p-6 rounded-lg shadow-md border-b-4 border-[#1d8fc3] hover:shadow-lg transition-shadow duration-300"
               whileHover={{ y: -5 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="w-14 h-14 rounded-full bg-[#1338BE]/10 flex items-center justify-center mb-4">
+              <div className="w-14 h-14 rounded-full bg-[#1d8fc3]/10 flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#020e3c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
@@ -188,11 +188,11 @@ export default function AboutSection() {
             
             {/* Card 3 */}
             <motion.div 
-              className="bg-white p-6 rounded-lg shadow-md border-b-4 border-[#1338BE] hover:shadow-lg transition-shadow duration-300"
+              className="bg-white p-6 rounded-lg shadow-md border-b-4 border-[#1d8fc3] hover:shadow-lg transition-shadow duration-300"
               whileHover={{ y: -5 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="w-14 h-14 rounded-full bg-[#1338BE]/10 flex items-center justify-center mb-4">
+              <div className="w-14 h-14 rounded-full bg-[#1d8fc3]/10 flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-[#020e3c]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>

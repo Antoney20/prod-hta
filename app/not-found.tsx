@@ -44,8 +44,8 @@ export default function NotFound() {
             className="mb-8"
           >
             <div className="text-3xl font-bold">
-              <span className="text-[#1338BE]">Health</span>
-              <span className="text-[#63C5DA]">TA</span>
+              <span className="text-[#27aae1]">Health Benefits and Tariffs Advisory Panel</span>
+              
             </div>
           </motion.div>
           
@@ -65,7 +65,7 @@ export default function NotFound() {
               transition={{ delay: 0.3, duration: 0.5 }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <div className="w-32 h-32 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] opacity-20"></div>
+              <div className="w-32 h-32 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#27aae1] opacity-20"></div>
             </motion.div>
           </motion.div>
           
@@ -85,7 +85,7 @@ export default function NotFound() {
             <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
               <Button 
                 asChild
-                className="bg-[#1338BE] hover:bg-[#63C5DA] text-white flex items-center justify-center px-6 py-2"
+                className="bg-[#27aae1] hover:bg-[#63C5DA] text-white flex items-center justify-center px-6 py-2"
               >
                 <Link href="/">
                   <Home className="mr-2 h-4 w-4" />
@@ -96,7 +96,7 @@ export default function NotFound() {
               <Button 
                 asChild
                 variant="outline" 
-                className="border-[#1338BE] text-[#1338BE] hover:bg-[#1338BE] hover:text-white flex items-center justify-center px-6 py-2"
+                className="border-[#27aae1] text-[#27aae1] hover:bg-[#27aae1] hover:text-white flex items-center justify-center px-6 py-2"
               >
                 <Link href="/contact">
                   <HelpCircle className="mr-2 h-4 w-4" />
@@ -116,7 +116,7 @@ export default function NotFound() {
             >
               <p className="text-xs text-gray-500">
                 If you continue to experience issues, please email 
-                <a href="#" className="text-[#1338BE] hover:underline ml-1">
+                <a href="#" className="text-[#27aae1] hover:underline ml-1">
                   hbtap@uonbi.ac.ke
                 </a>
               </p>

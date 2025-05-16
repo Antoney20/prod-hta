@@ -56,11 +56,11 @@ const NewsDetailClient = ({ newsItem }: NewsDetailClientProps) => {
             </Link>
             
             <div className="flex items-center space-x-3 mb-4">
-              <span className=" bg-[#1338BE] text-white px-3 py-1 rounded-full text-sm font-medium">
+              <span className=" bg-[#27aae1] text-white px-3 py-1 rounded-full text-sm font-medium">
                 {newsItem.category}
               </span>
               {newsItem.featured && (
-                <span className="bg-[#1338BE] text-white  px-3 py-1 rounded-full text-sm font-medium">
+                <span className="bg-[#27aae1] text-white  px-3 py-1 rounded-full text-sm font-medium">
                   Featured
                 </span>
               )}
@@ -123,7 +123,7 @@ const NewsDetailClient = ({ newsItem }: NewsDetailClientProps) => {
               {/* Tags Section */}
               <div className="mt-12 pt-8 border-t border-gray-200">
                 <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <Tag className="mr-2 h-5 w-5 text-[#1338BE]" />
+                  <Tag className="mr-2 h-5 w-5 text-[#27aae1]" />
                   Tags
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -193,7 +193,7 @@ const NewsDetailClient = ({ newsItem }: NewsDetailClientProps) => {
                           <span className="text-xs text-gray-500 block mb-1">{item.date}</span>
                           <Link 
                             href={`/news/${slugify(item.title)}`}
-                            className="font-medium hover:text-[#1338BE] transition-colors line-clamp-2"
+                            className="font-medium hover:text-[#27aae1] transition-colors line-clamp-2"
                           >
                             {item.title}
                           </Link>
@@ -211,7 +211,7 @@ const NewsDetailClient = ({ newsItem }: NewsDetailClientProps) => {
                     <Link 
                       key={category}
                       href={`/news?category=${category}`}
-                      className="flex justify-between items-center py-2 hover:text-[#1338BE] transition-colors"
+                      className="flex justify-between items-center py-2 hover:text-[#27aae1] transition-colors"
                     >
                       <span>{category}</span>
                       <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full">

@@ -14,7 +14,7 @@ const CategoryBadge = ({ category }: { category: string }) => {
   const colors: Record<string, string> = {
     'General': 'bg-blue-100 text-blue-800',
     'Events': 'bg-green-100 text-green-800',
-    'Announcements': 'bg-[#1338BE]/10 text-[#1338BE]',
+    'Announcements': 'bg-[#1d8fc3]/10 text-[#1d8fc3]',
     'Policy': 'bg-gray-100 text-gray-800',
   }
   
@@ -49,7 +49,7 @@ const NewsCard = ({ news, index }: { news: typeof newsData.newsItems[0]; index: 
       </div>
       <div className="p-5">
         <div className="text-sm text-gray-500 mb-2">{news.date}</div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#1338BE] transition-colors line-clamp-2">
+        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[#1d8fc3] transition-colors line-clamp-2">
           <Link href={`/news/${slug}`}>
             {news.title}
           </Link>
@@ -59,7 +59,7 @@ const NewsCard = ({ news, index }: { news: typeof newsData.newsItems[0]; index: 
           <div className="text-sm text-gray-600">
             By <span className="font-medium">{news.author}</span>
           </div>
-          <Link href={`/news/${slug}`} className="text-[#1338BE] font-medium flex items-center hover:text-[#63C5DA] transition-colors">
+          <Link href={`/news/${slug}`} className="text-[#1d8fc3] font-medium flex items-center hover:text-[#63C5DA] transition-colors">
             Read more <span className='sr-only'> about {news.title} </span> <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </div>
@@ -94,7 +94,7 @@ export default function NewsSection() {
           transition={{ duration: 0.5, delay: 0.3 }}
           viewport={{ once: true }}
         >
-          <Button asChild className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-3 rounded-md">
+          <Button asChild className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-3 rounded-md">
             <Link href="/news">
               Browse All Updates <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

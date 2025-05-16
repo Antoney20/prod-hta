@@ -45,7 +45,7 @@ export default function GovernanceClient() {
   const stakeholders = [
     {
       title: "Ministry of Health (MoH)",
-      icon: <Building2 className="h-8 w-8 text-[#1338BE]" />,
+      icon: <Building2 className="h-8 w-8 text-[#27aae1]" />,
       responsibilities: [
         "Lead the HTA process: Coordinate national efforts and ensure HTA is part of health policy and planning",
         "Set priorities for which technologies or interventions should be assessed",
@@ -68,7 +68,7 @@ export default function GovernanceClient() {
 
     {
       title: "Parliament and Policymakers",
-      icon: <Heart className="h-8 w-8 text-[#1338BE]" />,
+      icon: <Heart className="h-8 w-8 text-[#27aae1]" />,
       responsibilities: [
         "Support HTA through legislation: Make laws or policies that ensure HTA is used in health planning.",
         "Allocate funding to support HTA processes and recommended interventions.",
@@ -88,7 +88,7 @@ export default function GovernanceClient() {
     },
     {
       title: "Patients and the General Public",
-      icon: <Users className="h-8 w-8 text-[#1338BE]" />,
+      icon: <Users className="h-8 w-8 text-[#27aae1]" />,
       responsibilities: [
         "Voice their needs and preferences: This helps ensure HTA considers what matters most to communities (e.g., access, cultural fit).",
         "Participate in public consultations about health priorities and HTA decisions.",
@@ -110,7 +110,7 @@ export default function GovernanceClient() {
 
   {
     title: "Medical Supplies and Procurement Agencies",
-    icon: <Package className="h-8 w-8 text-[#1338BE]" />,
+    icon: <Package className="h-8 w-8 text-[#27aae1]" />,
     responsibilities: [
       "Use HTA results to inform which products to buy and stock.",
       "Negotiate better prices for technologies shown to be effective and affordable.",
@@ -129,7 +129,7 @@ export default function GovernanceClient() {
 
   {
     title: "Health Insurers and SHA",
-    icon: <ShieldCheck className="h-8 w-8 text-[#1338BE]" />,
+    icon: <ShieldCheck className="h-8 w-8 text-[#27aae1]" />,
     responsibilities: [
       " Use HTA evidence to determine what services to cover.",
       "Negotiate coverage plans based on what delivers the best value.",
@@ -150,7 +150,7 @@ export default function GovernanceClient() {
 
   {
     title: "Civil Society and Patient Advocacy Groups",
-    icon: <Heart className="h-8 w-8 text-[#1338BE]" />,
+    icon: <Heart className="h-8 w-8 text-[#27aae1]" />,
     responsibilities: [
       "Watchdog role: Ensure the HTA process remains fair, participatory, and accountable.",
       "Educate communities about HTA and how decisions are made.",
@@ -184,9 +184,9 @@ export default function GovernanceClient() {
             className="text-center max-w-3xl mx-auto"
           >
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-[#1338BE]">Governance</span> of Health Technology Assessment
+              <span className="text-[#27aae1]">Governance</span> of Health Technology Assessment
             </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#1338BE] mx-auto mb-6"></div>
+            <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#27aae1] mx-auto mb-6"></div>
             <p className="text-lg text-gray-700">
               Understanding the governance structure and stakeholder roles in Kenya's Health Technology Assessment process
             </p>
@@ -259,13 +259,13 @@ export default function GovernanceClient() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <a 
               href="/resources" 
-              className="px-8 py-3 bg-white text-[#1338BE] rounded-md hover:bg-gray-100 transition-colors"
+              className="px-8 py-3 bg-white text-[#27aae1] rounded-md hover:bg-gray-100 transition-colors"
             >
               Learn More
             </a>
             <a 
               href="/contact" 
-              className="px-8 py-3 border-2 border-white text-white rounded-md hover:bg-white hover:text-[#1338BE] transition-colors"
+              className="px-8 py-3 border-2 border-white text-white rounded-md hover:bg-white hover:text-[#27aae1] transition-colors"
             >
               Get Involved
             </a>

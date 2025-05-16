@@ -11,7 +11,7 @@ export default function HeroSection() {
 
       <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/50 to-transparent rounded-bl-full"></div>
-          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/20 to-transparent rounded-tr-full"></div>
+          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1d8fc3]/20 to-transparent rounded-tr-full"></div>
         </div>
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -23,7 +23,7 @@ export default function HeroSection() {
             transition={{ duration: 0.5 }}
           >
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-black mb-4">
-              <span className="text-[#1338BE]">Towards advancing</span> <br />
+              <span className="text-[#1d8fc3]">Towards advancing</span> <br />
               Universal Health Coverage
             </h1>
             <p className="text-gray-700 text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
@@ -32,12 +32,12 @@ export default function HeroSection() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/about">
-                <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white px-8 py-2 rounded-md text-base">
+                <Button className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-2 rounded-md text-base">
                   Learn More
                 </Button>
               </Link>
               <Link href="/contact">
-                <Button variant="outline" className="border-[#1338BE] text-[#1338BE] hover:bg-[#1338BE] hover:text-white px-8 py-2 rounded-md text-base">
+                <Button variant="outline" className="border-[#1d8fc3] text-[#1d8fc3] hover:bg-[#1d8fc3] hover:text-white px-8 py-2 rounded-md text-base">
                   Contact Us
                 </Button>
               </Link>
@@ -53,7 +53,7 @@ export default function HeroSection() {
           >
             <div className="relative h-64 md:h-96 w-full rounded-lg overflow-hidden shadow-xl">
               
-              <div className="absolute inset-0 bg-gradient-to-r from-[#63C5DA]/20 to-[#1338BE]/20 z-10"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#63C5DA]/20 to-[#1d8fc3]/20 z-10"></div>
               <Image
                 src="/images/health-awareness.jpeg" 
                 alt="HTA hero section image"
@@ -74,7 +74,7 @@ export default function HeroSection() {
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           {/* Card 1 */}
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1338BE]">
+          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1d8fc3]">
             <h2 className="text-xl font-semibold mb-3">Health Benefits and Tariffs Advisory Panel</h2>
             <p className="text-gray-600">
               Reviewing and optimizing the Social Health Authority (SHA) program to ensure comprehensive coverage.

@@ -52,7 +52,7 @@ function FAQItem({ question, answer, isOpen, toggleOpen }: FAQItemProps) {
   return (
     <motion.div 
       className={`border rounded-lg overflow-hidden transition-all duration-300 ${
-        isOpen ? 'shadow-md border-[#1338BE]' : 'border-gray-200 hover:border-gray-300'
+        isOpen ? 'shadow-md border-[#1d8fc3]' : 'border-gray-200 hover:border-gray-300'
       }`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -65,7 +65,7 @@ function FAQItem({ question, answer, isOpen, toggleOpen }: FAQItemProps) {
       >
         <h3 className="text-lg font-semibold pr-8">{question}</h3>
         <div className={`flex-shrink-0 p-2 rounded-full transition-colors ${
-          isOpen ? 'bg-[#1338BE]/10 text-[#1338BE]' : 'bg-gray-100 text-gray-500'
+          isOpen ? 'bg-[#1d8fc3]/10 text-[#1d8fc3]' : 'bg-gray-100 text-gray-500'
         }`}>
           {isOpen ? <Minus size={16} /> : <Plus size={16} />}
         </div>

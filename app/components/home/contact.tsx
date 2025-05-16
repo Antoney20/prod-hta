@@ -52,7 +52,7 @@ export default function ContactSection() {
                     id="fullName"
                     name="fullName"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1d8fc3] focus:border-[#1d8fc3] outline-none transition"
                     placeholder="Your name"
                   />
                 </div>
@@ -65,7 +65,7 @@ export default function ContactSection() {
                     id="email"
                     name="email"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1d8fc3] focus:border-[#1d8fc3] outline-none transition"
                     placeholder="Your email"
                   />
                 </div>
@@ -80,7 +80,7 @@ export default function ContactSection() {
                   id="subject"
                   name="subject"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1d8fc3] focus:border-[#1d8fc3] outline-none transition"
                   placeholder="How can we help?"
                 />
               </div>
@@ -94,12 +94,12 @@ export default function ContactSection() {
                   name="message"
                   rows={5}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition resize-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1d8fc3] focus:border-[#1d8fc3] outline-none transition resize-none"
                   placeholder="Your message..."
                 ></textarea>
               </div>
               
-              <Button type="submit" className="w-full bg-[#1338BE] hover:bg-[#63C5DA] text-white py-3">
+              <Button type="submit" className="w-full bg-[#1d8fc3] hover:bg-[#63C5DA] text-white py-3">
                 Send Message <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </form>
@@ -123,7 +123,7 @@ export default function ContactSection() {
                     
                     <div className="bg-gray-50 p-6 rounded-xl">
                       <div className="flex items-start mb-6">
-                        <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
+                        <div className="bg-[#1d8fc3]/10 p-3 rounded-full mr-4">
                           <Mail className="h-6 w-6 text-[#020e3c]" />
                         </div>
                         <div>
@@ -140,7 +140,7 @@ export default function ContactSection() {
                     
                       
                       <div className="flex items-start">
-                        <div className="bg-[#1338BE]/10 p-3 rounded-full mr-4">
+                        <div className="bg-[#1d8fc3]/10 p-3 rounded-full mr-4">
                           <Phone className="h-6 w-6 text-[#020e3c]" />
                         </div>
                         <div>
@@ -159,7 +159,7 @@ export default function ContactSection() {
                           href="#" 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
+                          className="bg-gray-100 hover:bg-[#1d8fc3] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
                           aria-label="Follow us on Twitter"
                         >
                           <Twitter className="h-5 w-5" />
@@ -168,7 +168,7 @@ export default function ContactSection() {
                           href="#"
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
+                          className="bg-gray-100 hover:bg-[#1d8fc3] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
                           aria-label="Connect with us on LinkedIn"
                         >
                           <Linkedin className="h-5 w-5" />
@@ -177,7 +177,7 @@ export default function ContactSection() {
                           href="#" 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="bg-gray-100 hover:bg-[#1338BE] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
+                          className="bg-gray-100 hover:bg-[#1d8fc3] hover:text-white transition-colors w-10 h-10 rounded-full flex items-center justify-center"
                           aria-label="Subscribe to our YouTube channel"
                         >
                           <Youtube className="h-5 w-5" />

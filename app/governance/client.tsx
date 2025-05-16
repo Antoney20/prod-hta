@@ -75,7 +75,7 @@
 //           >
 //             <a 
 //               href="#team-members" 
-//               className="inline-flex items-center bg-white text-blue-900 px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold hover:bg-blue-50 transition-colors"
+//               className="inline-flex items-center bg-white text-[#27aae1] px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold hover:bg-blue-50 transition-colors"
 //             >
 //               Meet the Team
 //               <motion.svg 
@@ -127,7 +127,7 @@
                 
 //                 <div className="text-center">
 //                   {member.title && (
-//                     <p className="text-sm text-blue-900 font-semibold mb-1">
+//                     <p className="text-sm text-[#27aae1] font-semibold mb-1">
 //                       {member.title}
 //                     </p>
 //                   )}
@@ -242,14 +242,14 @@ export default function TeamClient() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-blue-100">
-              <User className="w-16 h-16 sm:w-20 sm:h-20 text-blue-400" />
+              <User className="w-16 h-16 sm:w-20 sm:h-20 text-[#27aae1]" />
             </div>
           )}
         </div>
         
         <div className="text-center">
           {member.title && (
-            <p className="text-sm text-blue-900 font-semibold mb-1">
+            <p className="text-sm text-[#27aae1] font-semibold mb-1">
               {member.title}
             </p>
           )}
@@ -300,7 +300,7 @@ export default function TeamClient() {
           >
             <a 
               href="#panel-members" 
-              className="inline-flex items-center bg-white text-blue-900 px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold hover:bg-blue-50 transition-colors"
+              className="inline-flex items-center bg-white text-[#27aae1] px-6 md:px-8 py-3 md:py-4 rounded-full font-semibold hover:bg-blue-50 transition-colors"
             >
               Meet the Team
               <motion.svg 
@@ -350,15 +350,15 @@ export default function TeamClient() {
               </h4>
               <ul className="space-y-3 text-gray-700">
                 <li className="flex items-start">
-                  <span className="text-blue-900 mr-2">•</span>
+                  <span className="text-[#27aae1] mr-2">•</span>
                   <span>To review and update the existing benefits package in accordance with the applicable health technology assessment</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-blue-900 mr-2">•</span>
+                  <span className="text-[#27aae1] mr-2">•</span>
                   <span>To review and update the existing tariffs in accordance with the applicable health technology assessment</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-blue-900 mr-2">•</span>
+                  <span className="text-[#27aae1] mr-2">•</span>
                   <span>To identify and define the health interventions that are not available in Kenya</span>
                 </li>
               </ul>

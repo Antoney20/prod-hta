@@ -14,7 +14,7 @@ const links = [
   // { href: '/our-team', label: 'Our Team' },
   {href: '/governance', label: 'Governance'},
   { href: '/resources', label: 'Resources' },
-  { href: '/capacity-building', label: 'Capacity building' },
+  { href: '/capacity-building', label: 'Capacity Strengthening' },
   { href: '/news', label: 'News' },
 ]
 
@@ -47,28 +47,29 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold">
-              <span className="text-[#1338BE]">HBTAP</span>
+              <span className="text-[#1d8fc3]">HBTAP</span>
             </span>
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-4">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium transition-colors hover:text-[#1338BE] relative group"
+                className={cn(
+                  'text-sm font-medium px-2 py-2 rounded transition-colors',
+                  pathname === link.href
+                    ? 'bg-[#27aae1] text-white'
+                    : 'text-black hover:bg-[#27aae1] hover:text-white'
+                )}
               >
-                <span className={cn(
-                  pathname === link.href ? 'text-[#1338BE]' : 'text-black'
-                )}>
-                  {link.label}
-                </span>
-                <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-gradient-to-r from-[#63C5DA] to-[#090a0e] group-hover:w-full transition-all duration-300 ease-in-out"></span>
+                {link.label}
               </Link>
             ))}
+
             <Link href="/contact">
-              <Button variant="default" className="bg-[#1338BE] hover:bg-[#63C5DA] text-white transition-colors duration-300">
+              <Button variant="default" className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white transition-colors duration-300">
                 Contact Us
               </Button>
             </Link>
@@ -100,20 +101,37 @@ export default function Navbar() {
             className="lg:hidden bg-white border-t border-gray-200 overflow-hidden"
           >
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-              {links.map((link) => (
+              {/* {links.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
                     'text-sm font-medium transition-colors py-2',
-                    pathname === link.href ? 'text-[#1338BE]' : 'text-black hover:text-[#1338BE]'
+                    pathname === link.href ? 'text-[#1d8fc3]' : 'text-black hover:text-[#1d8fc3]'
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))} */}
+
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'text-sm font-medium px-3 py-2 rounded transition-colors',
+                    pathname === link.href
+                      ? 'bg-[#27aae1] text-white'
+                      : 'text-black hover:bg-[#27aae1] hover:text-white'
                   )}
                 >
                   {link.label}
                 </Link>
               ))}
+
+
               <Link href="/contact">
-                <Button className="bg-[#1338BE] hover:bg-[#63C5DA] text-white w-full">
+                <Button className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white w-full">
                   Contact Us
                 </Button>
               </Link>

@@ -11,17 +11,7 @@ import newsData from '../data/news.json'
 import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
 
-// interface NewsItem {
-//   id: number
-//   title: string
-//   date: string
-//   category: string
-//   image: string
-//   excerpt: string
-//   author: string
-//   authorRole?: string
-//   featured?: boolean
-// }
+
 
 const CategoryBadge = ({ category }: { category: string }) => {
   const colors: Record<string, string> = {

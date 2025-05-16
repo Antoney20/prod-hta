@@ -183,7 +183,7 @@ function HeroSection() {
             variants={itemVariants} 
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
           >
-            About <span className="text-[#020e3c]">Health Technology</span> Assessment
+            About <span className="text-[#020e3c]">Health Benefits and Tariffs Advisory Panel</span>
           </motion.h1>
           
       

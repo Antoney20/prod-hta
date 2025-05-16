@@ -20,7 +20,7 @@ export default function FAQsSection() {
             Frequently Asked Questions
           </h2>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            Find answers to common questions about Health Benefits Package and Tariffs Advisory Panel.
+            Find answers to common questions about Health Benefits and Tariffs Advisory Panel.
           </p>
         </div>
         

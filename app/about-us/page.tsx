@@ -3,7 +3,7 @@ import AboutClient from './client'
 
 
 export const metadata: Metadata = {
-  title: 'About Us | Health Technology Assessment | Health Benefits and  Tariffs Advisory panel',
+  title: 'About Us | Health Benefits and  Tariffs Advisory panel',
   description: 'The  Health Benefits and  Tariffs Advisory panel is dedicated to transparent, evidence-informed healthcare decision-making to advance Universal Health Coverage in Kenya.',
   keywords: 'Health Technology Assessment, HTA, Kenya healthcare, Benefits Package, Tariffs Advisory Panel, Universal Health Coverage, evidence-based healthcare',
   openGraph: {

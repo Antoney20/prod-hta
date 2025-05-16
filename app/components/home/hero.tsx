@@ -75,7 +75,7 @@ export default function HeroSection() {
         >
           {/* Card 1 */}
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1338BE]">
-            <h2 className="text-xl font-semibold mb-3">Health Benefits Package</h2>
+            <h2 className="text-xl font-semibold mb-3">Health Benefits and Tariffs Advisory Panel</h2>
             <p className="text-gray-600">
               Reviewing and optimizing the Social Health Authority (SHA) program to ensure comprehensive coverage.
             </p>

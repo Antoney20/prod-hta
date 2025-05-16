@@ -56,7 +56,7 @@ export default function HTAImpactSection() {
               className="text-gray-700 mb-5 lg:pl-5"
               variants={fadeIn}
             >
-              Health Technology Assessment provides critical insights that shape healthcare policy, 
+              Health Benefits and Tariffs Advisory Panel provides critical insights that shape healthcare policy, 
               ensuring resources are allocated to interventions that deliver the greatest value and benefit to patients.
             </motion.p>
             

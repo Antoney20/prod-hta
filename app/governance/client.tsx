@@ -201,7 +201,10 @@ const memberImages: Record<string, string> = {
   // "Nehemiah Odera": "/images/team/nehemiah-odera.jpg",
   // "Christine Wambugu": "/images/team/christine-wambugu.jpg",
   "Tabitha Okech": "/images/team/Dr. Tabitha Okech.JPG",
-  "Patricia Nyokabi": "/images/team/Dr. Patricia Nyokabi.JPG"
+  "Patricia Nyokabi": "/images/team/Dr. Patricia Nyokabi.JPG",
+  "Abdiaziz Abdikadir Ahmed": "/images/team/Abdiaziz-Ahmed.jpg",
+  "Mary Kigasia Amuyunzu-Nyamongo": "/images/team/Mary-Amuyunzu-Nyamongo.png",
+  "Robert Rapando" :"/images/team/Robert Rapando.jpg"
 }
 
 export default function TeamClient() {

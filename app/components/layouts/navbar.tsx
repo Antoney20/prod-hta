@@ -47,7 +47,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold">
-              <span className="text-[#1338BE]">HTA</span>
+              <span className="text-[#1338BE]">HBTAP</span>
             </span>
           </Link>
 

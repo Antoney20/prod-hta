@@ -131,7 +131,7 @@ function ContactFormSection() {
           >
             <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Send Us a Message</h3>
             <p className="text-gray-600 mb-8">
-              Fill out the form below and our team will respond within 24-48 hours.
+              Fill out the form below and our team will respond as soon as possible.
             </p>
             
             <form onSubmit={handleSubmit} className="space-y-6">

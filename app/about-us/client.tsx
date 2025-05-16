@@ -306,7 +306,7 @@ function MissionSection() {
               variants={itemVariants}
               className="text-gray-700 text-lg mb-6"
             >
-              The Health Technology Assessment is dedicated to promoting a transparent, 
+              We are dedicated to promoting a transparent, 
               evidence-informed approach to the operationalization of healthcare programs, while 
               institutionalizing health technology assessment methodologies in Kenya.
             </motion.p>

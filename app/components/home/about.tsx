@@ -79,7 +79,7 @@ export default function AboutSection() {
               className="text-gray-700 mb-6"
               variants={fadeIn}
             >
-              The Benefits Package and Tariffs Advisory Panel (BPTAP) is an initiative dedicated to promoting a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program, while institutionalizing health technology assessment in Kenya.
+              The Health Benefits Package and Tariffs Advisory Panel (BPTAP) is an initiative dedicated to promoting a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program, while institutionalizing health technology assessment in Kenya.
             </motion.p>
             
             <motion.h4 

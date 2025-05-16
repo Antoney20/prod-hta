@@ -86,7 +86,7 @@ function HeroSection() {
             Get in Touch
           </h1>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            Have questions about health technology assessment or want to collaborate? 
+            Have questions about Health Benefits and Tariffs Advisory Panel? 
             We're here to help advance evidence-based healthcare decisions in Kenya.
           </p>
         </motion.div>
@@ -231,7 +231,7 @@ function ContactFormSection() {
             <div>
               <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Contact Information</h3>
               <p className="text-gray-700 mb-8">
-                The Health Technology Assessment is committed to promoting transparent, 
+                The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, 
                 evidence-informed approaches to healthcare decision-making in Kenya. 
                 We welcome inquiries from stakeholders, researchers, and partners.
               </p>

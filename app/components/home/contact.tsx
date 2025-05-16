@@ -115,7 +115,7 @@ export default function ContactSection() {
                     <div>
                       <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Contact Information</h3>
                       <p className="text-gray-700 mb-8">
-                        The Health Technology Assessment is committed to promoting transparent, 
+                        The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, 
                         evidence-informed approaches to healthcare decision-making in Kenya. 
                         We welcome inquiries from stakeholders, researchers, and partners.
                       </p>

@@ -15,14 +15,98 @@ export default function AboutClient() {
     <main className="min-h-screen bg-white">
       <Navbar />
       <HeroSection />
-      <WhatIsHTASection />
+     
       <MissionSection />
+       <WhatIsHTASection />
       {/* <ImpactSection /> */}
       <CTASection />
       <Footer/>
     </main>
   )
 }
+
+
+function WhatIsHTASection() {
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6 }
+    }
+  }
+
+  return (
+    <section className="py-16 md:py-24 bg-gray-50">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <motion.div 
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            What is <span className="text-[#020e3c]">HTA?</span>
+          </h2>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+          >
+            <div className="bg-white p-8 rounded-xl shadow-lg">
+              <Shield className="h-16 w-16 text-[#020e3c] mb-6" />
+              <h3 className="text-2xl font-bold mb-4">Health Technology Assessment</h3>
+              <p className="text-gray-700 text-lg">
+                Health Technology Assessment (HTA) is a systematic evaluation process that helps governments and health systems decide which healthcare interventions—medicines, medical devices, procedures, and programs—should be adopted based on their clinical effectiveness, cost-effectiveness, and social impact.
+              </p>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeIn}
+          >
+            <h3 className="text-2xl font-semibold mb-6">Why is HTA Important in Kenya?</h3>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Ensures optimal use of limited healthcare resources</span>
+              </div>
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Promotes equitable access to effective healthcare technologies</span>
+              </div>
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Supports evidence-based decision making in healthcare policy</span>
+              </div>
+              <div className="flex items-start">
+                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
+                  <CheckCircle className="h-3 w-3 text-white" />
+                </div>
+                <span className="text-gray-700">Advances Universal Health Coverage by prioritizing cost-effective interventions</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 
 function HeroSection() {
   const controls = useAnimation()
@@ -133,86 +217,6 @@ function HeroSection() {
   )
 }
 
-function WhatIsHTASection() {
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6 }
-    }
-  }
-
-  return (
-    <section className="py-16 md:py-24 bg-gray-50">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <motion.div 
-          className="text-center mb-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            What is <span className="text-[#020e3c]">HTA?</span>
-          </h2>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-          >
-            <div className="bg-white p-8 rounded-xl shadow-lg">
-              <Shield className="h-16 w-16 text-[#020e3c] mb-6" />
-              <h3 className="text-2xl font-bold mb-4">Health Technology Assessment</h3>
-              <p className="text-gray-700 text-lg">
-                Health Technology Assessment (HTA) is a systematic evaluation process that helps governments and health systems decide which healthcare interventions—medicines, medical devices, procedures, and programs—should be adopted based on their clinical effectiveness, cost-effectiveness, and social impact.
-              </p>
-            </div>
-          </motion.div>
-          
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeIn}
-          >
-            <h3 className="text-2xl font-semibold mb-6">Why is HTA Important in Kenya?</h3>
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
-                  <CheckCircle className="h-3 w-3 text-white" />
-                </div>
-                <span className="text-gray-700">Ensures optimal use of limited healthcare resources</span>
-              </div>
-              <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
-                  <CheckCircle className="h-3 w-3 text-white" />
-                </div>
-                <span className="text-gray-700">Promotes equitable access to effective healthcare technologies</span>
-              </div>
-              <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
-                  <CheckCircle className="h-3 w-3 text-white" />
-                </div>
-                <span className="text-gray-700">Supports evidence-based decision making in healthcare policy</span>
-              </div>
-              <div className="flex items-start">
-                <div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1338BE] flex items-center justify-center mr-3">
-                  <CheckCircle className="h-3 w-3 text-white" />
-                </div>
-                <span className="text-gray-700">Advances Universal Health Coverage by prioritizing cost-effective interventions</span>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 function MissionSection() {
   const controls = useAnimation()

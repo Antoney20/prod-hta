@@ -41,7 +41,7 @@ export default function Footer() {
               </div>
             </div> */}
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
-              <b>The Health Technology Assessment</b><br />
+              <b>The Health Benefits and Tariffs Advisory Panel</b><br />
               <i>Towards advancing Universal Health Coverage</i><br />
               Promoting transparent, evidence-informed approaches to healthcare decision-making through the Social Health Authority program, while institutionalizing health technology assessment in Kenya.
             </p>
@@ -152,7 +152,7 @@ export default function Footer() {
               <li className="flex items-start">
                 <MapPin size={20} className="text-[#63C5DA] mr-3 mt-1 flex-shrink-0" aria-hidden="true" />
                 <span className="text-gray-300 text-sm">
-                  Health Technology Assessment<br />
+                  Health Benefits and Tariffs Advisory Panel<br />
                   The University of Nairobi<br />
                   Nairobi, Kenya
                 </span>
@@ -224,7 +224,7 @@ export default function Footer() {
         {/* Bottom Footer */}
         <div className="pt-4 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <div className="text-gray-300 text-sm mb-4 md:mb-0">
-            © 2025 Health Technology Assessment. All rights reserved.
+            © 2025 Health Benefits and Tariffs Advisory Panel. All rights reserved.
           </div>
           {/* <a 
             href="https://cema-africa.uonbi.ac.ke/" 

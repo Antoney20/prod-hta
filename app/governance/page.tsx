@@ -4,17 +4,17 @@ import TeamClient from './client'
 
 export const metadata: Metadata = {
   title: 'Our Team',
-  description: 'Meet the dedicated experts of the Benefits Package and Tariffs Advisory Panel (BPTAP) working to advance evidence-based healthcare decision-making in Kenya.',
+  description: 'Meet the dedicated experts of the Health Benefits Package and Tariffs Advisory Panel (HBPTAP) working to advance evidence-based healthcare decision-making in Kenya.',
   openGraph: {
-    title: 'Our Team | Health Technology Assessment Kenya',
-    description: 'Meet the dedicated experts of the Benefits Package and Tariffs Advisory Panel (BPTAP) working to advance evidence-based healthcare decision-making in Kenya.',
+    title: 'Our Team | Health Benefits and Tariffs Advisory Panel',
+    description: 'Meet the dedicated experts of the Benefits Package and Tariffs Advisory Panel (HBPTAP) working to advance evidence-based healthcare decision-making in Kenya.',
     url: 'https://hta-chi.vercel.app/team',
     images: [
       {
         url: '/og-team.jpg',
         width: 1200,
         height: 630,
-        alt: 'Benefits Package and Tariffs Advisory Panel Team',
+        alt: 'Health Benefits and Tariffs Advisory Panel Team',
       },
     ],
   },

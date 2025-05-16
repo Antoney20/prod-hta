@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Health Technology Assessment Kenya | Center for Epidemiological Modelling and Analysis",
-    default: "Health Technology Assessment Kenya | Advancing Evidence-Based Healthcare | Center for Epidemiological Modelling and Analysis"
+    template: "%s | Health Benefits and Tariffs Advisory Panel| The University of Nairobi",
+    default: "Health Benefits and Tariffs Advisory Panel| Advancing Evidence-Based Healthcare | The University of Nairobi"
   },
-  description: "The official portal for Health Technology Assessment Kenya, promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+  description: "The official website for Health Technology Assessment Kenya, promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
   keywords: ["health technology assessment", "HTA Kenya", "evidence-based healthcare", "universal health coverage", "SHA program", "healthcare policy", "benefits package", "healthcare tariffs"],
   authors: [{ name: "Health Technology Assessment Panel" }],
   creator: "CEMA",
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Health Technology Assessment Kenya | Advancing Evidence-Based Healthcare",
-    description: "The official portal for Health Technology Assessment Kenya, promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+    title: "Health Benefits and Tariffs Advisory Panel| Advancing Evidence-Based Healthcare",
+    description: "The official website for Health Technology Assessment Kenya, promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
     url: "https://hta-chi.vercel.app",
     siteName: "Health Technology Assessment Kenya",
     images: [

@@ -291,7 +291,7 @@ export default function TeamClient() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="text-lg md:text-xl lg:text-2xl text-black max-w-3xl mx-auto mb-8"
           >
-            Meet the dedicated experts of the Benefits Package and Tariffs Advisory Panel working to advance evidence-based healthcare decision-making in Kenya.
+            Meet the dedicated experts of the Health Benefits Package and Tariffs Advisory Panel working to advance evidence-based healthcare decision-making in Kenya.
           </motion.p>
           <motion.div
             initial={{ y: 30, opacity: 0 }}
@@ -323,7 +323,7 @@ export default function TeamClient() {
         <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              THE BENEFITS PACKAGE AND TARIFFS ADVISORY PANEL
+              THE HEALTH BENEFITS PACKAGE AND TARIFFS ADVISORY PANEL
             </h2>
           </div>
 
@@ -346,7 +346,7 @@ export default function TeamClient() {
             </h3>
             <div className="bg-blue-50 rounded-lg p-8 shadow-md">
               <h4 className="text-xl font-semibold text-gray-900 mb-4">
-                Functions of the Benefits Package and Tariffs Advisory Panel:
+                Functions of the Health Benefits Package and Tariffs Advisory Panel:
               </h4>
               <ul className="space-y-3 text-gray-700">
                 <li className="flex items-start">

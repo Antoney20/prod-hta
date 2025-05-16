@@ -132,7 +132,7 @@ export default function NotFound() {
           className="absolute bottom-4 text-center"
         >
           <p className="text-xs text-gray-500">
-            &copy; {new Date().getFullYear()} Health Technology Assessment Kenya | University of Nairobi
+            &copy; {new Date().getFullYear()} Health Benefits and Tariffs Advisory Panel | The University of Nairobi
           </p>
         </motion.div>
       </div>

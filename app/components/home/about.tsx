@@ -40,7 +40,7 @@ export default function AboutSection() {
           </h2> 
         </motion.div> */}
 
-        <div className="flex flex-col lg:flex-row items-center gap-12">
+        {/* <div className="flex flex-col lg:flex-row items-center gap-12">
           <motion.div 
             className="w-full lg:w-1/2"
             initial="hidden"
@@ -138,7 +138,7 @@ export default function AboutSection() {
               </Link>
             </motion.div>
           </motion.div>
-        </div>
+        </div> */}
         
         <motion.div 
           className="mt-20"

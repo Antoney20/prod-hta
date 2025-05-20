@@ -90,7 +90,6 @@ export default function NewsClient() {
     <main className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Page Header */}
       <section className="pt-32 pb-12 bg-gray-50 text-black">
         <div className="container mx-auto px-4">
           <motion.div
@@ -100,14 +99,12 @@ export default function NewsClient() {
           >
             <h1 className="text-2xl md:text-4xl font-bold mb-4">News & Updates</h1>
             <p className="text-xl text-gray-700 max-w-3xl">
-              Stay informed about our ongoing projects, research findings, and upcoming events in the
-              field of Health Technology Assessment.
+              Stay informed about our ongoing process, findings, outcomes and upcoming events by the Health Benefits and Tariffs advisory Panel.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Featured News */}
       {featuredNews && (
         <section className="py-12 bg-white">
           <div className="container mx-auto px-4">
@@ -157,10 +154,8 @@ export default function NewsClient() {
         </section>
       )}
 
-      {/* News Grid */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
-          {/* Category Filter */}
           <motion.div
             className="mb-8 flex flex-wrap gap-2 justify-center"
             initial={{ opacity: 0, y: 20 }}
@@ -241,7 +236,6 @@ export default function NewsClient() {
             })}
           </motion.div>
 
-          {/* No results message */}
           {filteredNews.length === 0 && (
             <div className="text-center py-12">
               <h3 className="text-xl font-medium text-gray-700 mb-2">No news articles found</h3>

@@ -271,7 +271,7 @@ export default function TeamClient() {
     <>
       <Navbar />
       
-      <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
+      <section className="relative h-[40vh] md:h-[50vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-white"></div>
         </div>

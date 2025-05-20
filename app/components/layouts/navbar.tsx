@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 const links = [
   { href: '/', label: 'Home' },
@@ -44,11 +45,15 @@ export default function Navbar() {
     >
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
-          {/* Logo */}
+    
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold">
-              <span className="text-[#1d8fc3]">HBTAP</span>
-            </span>
+<Image
+              src="/images/logo.jpg" 
+              alt="hbtap" 
+              height={24}
+              width={100}
+              className="w-auto mr-2 rounded-sm transition-opacity duration-300 hover:opacity-80"
+          />
           </Link>
 
           {/* Desktop Links */}

@@ -15,7 +15,7 @@ export default function AboutClient() {
     <main className="min-h-screen bg-white">
       <Navbar />
       <HeroSection />
-     
+     <About/>
       <MissionSection />
        <WhatIsHTASection />
       {/* <ImpactSection /> */}
@@ -47,7 +47,7 @@ function WhatIsHTASection() {
           variants={fadeIn}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            What is <span className="text-[#020e3c]">HTA?</span>
+            WHY <span className="text-[#020e3c]">HTA?</span>
           </h2>
         </motion.div>
 
@@ -181,9 +181,9 @@ function HeroSection() {
         >
           <motion.h1 
             variants={itemVariants} 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+            className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6"
           >
-            About <span className="text-[#020e3c]">Health Benefits and Tariffs Advisory Panel</span>
+              The Health Benefits and Tariffs Advisory Panel
           </motion.h1>
           
       
@@ -196,7 +196,7 @@ function HeroSection() {
             evidence-informed assessment of healthcare technologies and interventions.
           </motion.p>
           
-          <motion.div
+          {/* <motion.div
             variants={itemVariants}
             className="flex flex-wrap justify-center gap-6"
           >
@@ -210,13 +210,124 @@ function HeroSection() {
                 Learn More 
               </Button>
             </Link>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </div>
     </section>
   )
 }
 
+
+
+function About(){
+
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6 }
+    }
+  }
+
+  const staggerChildren = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  }
+
+  return(
+     <div className="container mx-auto px-4">
+      <div className="flex flex-col lg:flex-row items-center gap-12">
+          <motion.div 
+            className="w-full lg:w-1/2"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeIn}
+          >
+            <div className="relative h-72 md:h-96 w-full rounded-lg overflow-hidden shadow-xl">
+              
+              <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1d8fc3]/10 z-10"></div>
+              <Image
+                src="/images/health-financing.jpeg" 
+                alt="Sustainable Finance Strategies for Healthcare "
+                fill
+                style={{ objectFit: "cover" }}
+                className="z-0"
+              />
+            </div>
+          </motion.div>
+
+          <motion.div 
+            className="w-full lg:w-1/2"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerChildren}
+          >
+
+            <motion.p 
+              className="text-gray-700 mb-6"
+              variants={fadeIn}
+            >
+              The Health Benefits and Tariffs Advisory Panel (HBTAP) is an initiative to promote a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program.
+            </motion.p>
+            
+            <motion.h4 
+              className="text-xl font-medium mb-3 text-[#020e3c]"
+              variants={fadeIn}
+            >
+              Our Main Objectives
+            </motion.h4>
+            
+            <motion.ul variants={staggerChildren} className="space-y-3 mb-8">
+              <motion.li 
+                variants={fadeIn} 
+                className="flex items-start gap-3"
+              >
+                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p>To review the Health Benefits and Tariffs Advisory Panel for the Social Health Authority (SHA) program</p>
+              </motion.li>
+              
+              <motion.li 
+                variants={fadeIn} 
+                className="flex items-start gap-3"
+              >
+                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p>To advise on fair pricing and tariffs for healthcare services</p>
+              </motion.li>
+              
+              <motion.li 
+                variants={fadeIn} 
+                className="flex items-start gap-3"
+              >
+                <div className="mt-1.5 flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-r from-[#63C5DA] to-[#1d8fc3] flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <p>To monitor the program for continuous improvement and sustainability</p>
+              </motion.li>
+            </motion.ul>
+            
+          </motion.div>
+        </div>
+        </div>
+  )
+}
 
 function MissionSection() {
   const controls = useAnimation()
@@ -252,7 +363,7 @@ function MissionSection() {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col lg:flex-row items-center gap-12">
+        <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
           <motion.div 
             ref={ref}
             initial="hidden"
@@ -337,89 +448,89 @@ function MissionSection() {
   )
 }
 
-function ImpactSection() {
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.6 }
-    }
-  }
+// function ImpactSection() {
+//   const fadeIn = {
+//     hidden: { opacity: 0, y: 20 },
+//     visible: { 
+//       opacity: 1, 
+//       y: 0,
+//       transition: { duration: 0.6 }
+//     }
+//   }
 
-  const impactAreas = [
-    {
-      icon: <TrendingUp className="h-12 w-12 text-[#020e3c]" />,
-      title: "Economic Impact",
-      description: "Optimizing healthcare spending by identifying cost-effective interventions that provide maximum value for money",
-      stats: "35% improvement in resource allocation"
-    },
-    {
-      icon: <Heart className="h-12 w-12 text-[#63C5DA]" />,
-      title: "Patient Outcomes",
-      description: "Ensuring Kenyans have access to proven, effective treatments that improve health outcomes and quality of life",
-      stats: "500K+ lives impacted positively"
-    },
-    {
-      icon: <Users className="h-12 w-12 text-[#020e3c]" />,
-      title: "Healthcare Equity",
-      description: "Promoting fair access to essential health technologies across all socio-economic groups",
-      stats: "90% coverage in underserved areas"
-    },
-    {
-      icon: <Target className="h-12 w-12 text-[#63C5DA]" />,
-      title: "Policy Reform",
-      description: "Informing evidence-based policy decisions that strengthen Kenya's healthcare system",
-      stats: "20+ policies influenced"
-    }
-  ]
+//   const impactAreas = [
+//     {
+//       icon: <TrendingUp className="h-12 w-12 text-[#020e3c]" />,
+//       title: "Economic Impact",
+//       description: "Optimizing healthcare spending by identifying cost-effective interventions that provide maximum value for money",
+//       stats: "35% improvement in resource allocation"
+//     },
+//     {
+//       icon: <Heart className="h-12 w-12 text-[#63C5DA]" />,
+//       title: "Patient Outcomes",
+//       description: "Ensuring Kenyans have access to proven, effective treatments that improve health outcomes and quality of life",
+//       stats: "500K+ lives impacted positively"
+//     },
+//     {
+//       icon: <Users className="h-12 w-12 text-[#020e3c]" />,
+//       title: "Healthcare Equity",
+//       description: "Promoting fair access to essential health technologies across all socio-economic groups",
+//       stats: "90% coverage in underserved areas"
+//     },
+//     {
+//       icon: <Target className="h-12 w-12 text-[#63C5DA]" />,
+//       title: "Policy Reform",
+//       description: "Informing evidence-based policy decisions that strengthen Kenya's healthcare system",
+//       stats: "20+ policies influenced"
+//     }
+//   ]
 
-  return (
-    <section className="py-16 md:py-24 bg-gray-50">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <motion.div 
-          className="text-center mb-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeIn}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Our <span className="text-[#020e3c]">Impact</span>
-          </h2>
-          <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            Through evidence-based assessment and strategic recommendations, we're transforming healthcare delivery in Kenya
-          </p>
-        </motion.div>
+//   return (
+//     <section className="py-16 md:py-24 bg-gray-50">
+//       <div className="container mx-auto px-4 max-w-7xl">
+//         <motion.div 
+//           className="text-center mb-16"
+//           initial="hidden"
+//           whileInView="visible"
+//           viewport={{ once: true }}
+//           variants={fadeIn}
+//         >
+//           <h2 className="text-3xl md:text-4xl font-bold mb-4">
+//             Our <span className="text-[#020e3c]">Impact</span>
+//           </h2>
+//           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
+//             Through evidence-based assessment and strategic recommendations, we're transforming healthcare delivery in Kenya
+//           </p>
+//         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          {impactAreas.map((area, index) => (
-            <motion.div
-              key={index}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeIn}
-              className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="mb-6">{area.icon}</div>
-              <h3 className="text-2xl font-bold mb-3">{area.title}</h3>
-              <p className="text-gray-700 mb-4">{area.description}</p>
-              <div className="text-[#020e3c] font-bold text-lg">{area.stats}</div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
+//         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+//           {impactAreas.map((area, index) => (
+//             <motion.div
+//               key={index}
+//               initial="hidden"
+//               whileInView="visible"
+//               viewport={{ once: true }}
+//               variants={fadeIn}
+//               className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+//             >
+//               <div className="mb-6">{area.icon}</div>
+//               <h3 className="text-2xl font-bold mb-3">{area.title}</h3>
+//               <p className="text-gray-700 mb-4">{area.description}</p>
+//               <div className="text-[#020e3c] font-bold text-lg">{area.stats}</div>
+//             </motion.div>
+//           ))}
+//         </div>
+//       </div>
+//     </section>
+//   )
+// }
 
 function CTASection() {
   return (
     <section className="py-16 md:py-24 bg-[#63C5DA] text-white">
       <div className="container mx-auto px-4 max-w-7xl text-center">
         <h2 className="text-3xl md:text-4xl font-bold mb-6">
-          Together Towards Better Healthcare
+          Towards Advancing Universal Health Coverage
         </h2>
         <p className="text-xl mb-8 max-w-3xl mx-auto">
           Join us in our mission to make healthcare more accessible, equitable, and effective for all Kenyans through evidence-based assessment.

@@ -36,15 +36,10 @@ export default function HeroSection() {
                   Learn More
                 </Button>
               </Link>
-              <Link href="/contact">
-                <Button variant="outline" className="border-[#1d8fc3] text-[#1d8fc3] hover:bg-[#1d8fc3] hover:text-white px-8 py-2 rounded-md text-base">
-                  Contact Us
-                </Button>
-              </Link>
+              
             </div>
           </motion.div>
           
-          {/* Image/Illustration */}
           <motion.div 
             className="w-full lg:w-1/2"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -66,14 +61,14 @@ export default function HeroSection() {
           </motion.div>
         </div>
         
-        {/* Feature cards */}
-        <motion.div 
+
+        {/* <motion.div 
           className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 2xl:mt-44"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          {/* Card 1 */}
+   
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1d8fc3]">
             <h2 className="text-xl font-semibold mb-3">Health Benefits and Tariffs Advisory Panel</h2>
             <p className="text-gray-600">
@@ -81,7 +76,7 @@ export default function HeroSection() {
             </p>
           </div>
           
-          {/* Card 2 */}
+
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#63C5DA]">
             <h2 className="text-xl font-semibold mb-3">Fair Pricing & Tariffs</h2>
             <p className="text-gray-600">
@@ -89,14 +84,14 @@ export default function HeroSection() {
             </p>
           </div>
           
-          {/* Card 3 */}
+      
           <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#090a0e]">
             <h2 className="text-xl font-semibold mb-3">Program Monitoring</h2>
             <p className="text-gray-600">
               Continuously improving the SHA program through careful monitoring and evaluation.
             </p>
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   )

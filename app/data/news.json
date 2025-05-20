@@ -10,7 +10,7 @@
         "featured": true,
         "date": "2025-05-03",
         "category": "Announcements",
-        "image": "/images/news/cema-panel-appointment.jpg",
+        "image": "/assets/uon.jpg",
         "tags": ["health policy", "HTA", "benefits package", "tariffs", "CEMA", "Kenya healthcare"]
       },
 
@@ -25,7 +25,7 @@
         "featured": true,
         "date": "2025-05-03",
         "category": "Health",
-        "image": "/images/news/cema-panel-appointment.jpg",
+        "image": "/assets/test-image.jpg",
         "tags": ["health policy", "HTA",  "UoN", "Kenya healthcare"]
       }
 

@@ -16,7 +16,7 @@ export default function Home() {
 
     <HeroSection />
     <AboutSection/>
-    <HTAImpactSection/>
+    {/* <HTAImpactSection/> */}
     <NewsSection/>
     <FAQsSection/>
     <ContactSection/>

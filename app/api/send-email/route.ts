@@ -390,8 +390,17 @@ export async function POST(request: NextRequest) {
     const adminEmail = process.env.ADMIN_EMAIL || process.env.MY_EMAIL;
     
   
+    // const mailOptions: Mail.Options = {
+    //   from: `"${fromEmail}  || 'Form Submission'}" `,
+    //   replyTo: fromEmail,
+    //   to: toEmail,
+    //   cc: adminEmail,
+    //   subject,
+    //   text: `From: ${fromEmail}\n\n${body}`,
+    // };
+
     const mailOptions: Mail.Options = {
-      from: `"< ${fromEmail}  || 'Form Submission'}" `,
+      from: fromEmail, 
       replyTo: fromEmail,
       to: toEmail,
       cc: adminEmail,

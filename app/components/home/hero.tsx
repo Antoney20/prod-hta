@@ -27,7 +27,7 @@ export default function HeroSection() {
               Universal Health Coverage
             </h1>
             <p className="text-gray-700 text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
-              Promoting transparent, evidence-informed approaches to healthcare accessibility
+              HBTAP is promoting transparent, evidence-informed approaches to healthcare accessibility
               through the Social Health Authority program.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">

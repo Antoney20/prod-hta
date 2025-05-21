@@ -15,7 +15,7 @@ const links = [
   // { href: '/our-team', label: 'Our Team' },
   {href: '/governance', label: 'Governance'},
   { href: '/resources', label: 'Resources' },
-  { href: '/capacity-building', label: 'Capacity Strengthening' },
+  { href: '/interventions-form', label: 'Interventions Proposal' },
   { href: '/news', label: 'News' },
 ]
 
@@ -56,7 +56,6 @@ export default function Navbar() {
           />
           </Link>
 
-          {/* Desktop Links */}
           <div className="hidden lg:flex items-center space-x-4">
             {links.map((link) => (
               <Link
@@ -95,7 +94,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+
       <AnimatePresence>
         {isOpen && (
           <motion.div

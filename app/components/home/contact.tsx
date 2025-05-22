@@ -28,7 +28,7 @@ export default function ContactSection() {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="grid grid-cols-1  gap-12 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -104,7 +104,7 @@ export default function ContactSection() {
               </Button>
             </form>
           </motion.div>
-          
+{/*           
           <motion.div 
                     initial={{ opacity: 0, x: 30 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -114,11 +114,11 @@ export default function ContactSection() {
                   >
                     <div>
                       <h3 className="text-2xl font-bold mb-6 text-[#020e3c] ">Contact Information</h3>
-                      {/* <p className="text-gray-700 mb-8">
+                      <p className="text-gray-700 mb-8">
                         The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, 
                         evidence-informed approaches to healthcare decision-making in Kenya. 
                         We welcome inquiries from stakeholders, researchers, and partners.
-                      </p> */}
+                      </p>
                     </div>
                     
                     <div className="bg-gray-50 p-6 rounded-xl">
@@ -184,7 +184,7 @@ export default function ContactSection() {
                         </a>
                       </div>
                     </div>
-                  </motion.div>
+                  </motion.div> */}
         </div>
       </div>
     </section>

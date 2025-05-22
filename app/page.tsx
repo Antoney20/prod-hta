@@ -7,6 +7,7 @@ import FAQsSection from "./components/home/faqs";
 import ContactSection from "./components/home/contact";
 import Footer from "./components/layouts/footer";
 import NewsSection from "./components/home/news";
+import CTA from "./components/home/cta";
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
     <NewsSection/>
     {/* <FAQsSection/> */}
     <ContactSection/>
+    <CTA/>
     <Footer/>
     </div>
     </main>

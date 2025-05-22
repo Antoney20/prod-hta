@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button'
 import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
+import CTA from '../components/home/cta'
 
 
 export default function ContactClient() {
@@ -45,6 +46,7 @@ export default function ContactClient() {
       <Navbar />
       <HeroSection />
       <ContactFormSection />
+      <CTA/>
       <SubscribeSection 
         email={email}
         setEmail={setEmail}
@@ -120,7 +122,7 @@ function ContactFormSection() {
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 gap-12">
           {/* Contact Form */}
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
@@ -215,13 +217,15 @@ function ContactFormSection() {
                 ></textarea>
               </div>
               
-              <Button type="submit" className="w-full bg-[#1338BE] hover:bg-[#63C5DA] text-white py-3">
+              <Button type="submit" className="w-full bg-[#1d8fc3] text-white py-3">
                 Send Message <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </form>
           </motion.div>
+
+
           
-          <motion.div 
+          {/* <motion.div 
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -300,7 +304,7 @@ function ContactFormSection() {
                 </a>
               </div>
             </div>
-          </motion.div>
+          </motion.div> */}
         </div>
       </div>
     </section>

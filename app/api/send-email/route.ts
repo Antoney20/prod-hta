@@ -356,6 +356,205 @@
 // }
 
 
+// import { NextRequest, NextResponse } from 'next/server';
+// import nodemailer from 'nodemailer';
+// import Mail from 'nodemailer/lib/mailer';
+
+// export async function POST(request: NextRequest) {
+//   try {
+//     const formData = await request.formData();
+    
+//     const fromEmail = formData.get('from') as string; 
+//     const subject = formData.get('subject') as string;
+//     const body = formData.get('body') as string;
+//     const attachment = formData.get('attachment') as Blob;
+    
+
+//     if (!fromEmail || !subject || !body) {
+//       return NextResponse.json(
+//         { error: 'Missing required fields' },
+//         { status: 400 }
+//       );
+//     }
+  
+//     const transport = nodemailer.createTransport({
+//       service: 'gmail', 
+//       auth: {
+//         user: process.env.MY_EMAIL, 
+//         pass: process.env.MY_PASSWORD,
+//       },
+//     });
+    
+//     const toEmail = process.env.NEXT_PUBLIC_EMAIL_RECIPIENT || process.env.MY_EMAIL;
+    
+//     const adminEmail = process.env.ADMIN_EMAIL || process.env.MY_EMAIL;
+    
+  
+
+//     const mailOptions: Mail.Options = {
+//       from: fromEmail, 
+//       replyTo: fromEmail,
+//       to: toEmail,
+//       cc: adminEmail,
+//       subject,
+//       text: `From: ${fromEmail}\n\n${body}`,
+//     };
+    
+//     if (attachment) {
+//       try {
+//         const buffer = Buffer.from(await attachment.arrayBuffer());
+//         const filename = formData.get('filename') as string || 'intervention_proposal.pdf';
+        
+//         mailOptions.attachments = [
+//           {
+//             filename,
+//             content: buffer,
+//             contentType: 'application/pdf',
+//           },
+//         ];
+//       } catch (attachmentError) {
+//         console.error('Error processing attachment:', attachmentError);
+//       }
+//     }
+    
+//     const sendMailPromise = () => new Promise<string>((resolve, reject) => {
+//       transport.sendMail(mailOptions, function (err, info) {
+//         if (!err) {
+//           resolve('Email sent');
+//         } else {
+//           reject(err.message);
+//         }
+//       });
+//     });
+    
+//     await sendMailPromise();
+    
+//     return NextResponse.json({ 
+//       message: 'Email sent successfully' 
+//     });
+//   } catch (error) {
+//     return NextResponse.json(
+//       { error: 'Failed to send email. Please try again later.' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
+
+// import { NextRequest, NextResponse } from 'next/server';
+// import nodemailer from 'nodemailer';
+// import Mail from 'nodemailer/lib/mailer';
+
+// export async function POST(request: NextRequest) {
+//   try {
+//     const formData = await request.formData();
+    
+//     const fromEmail = formData.get('from') as string; 
+//     const subject = formData.get('subject') as string;
+//     const body = formData.get('body') as string;
+//     const attachment = formData.get('attachment') as Blob;
+//     const additionalAttachment = formData.get('additionalAttachment') as Blob;
+    
+//     if (!fromEmail || !subject || !body) {
+//       return NextResponse.json(
+//         { error: 'Missing required fields' },
+//         { status: 400 }
+//       );
+//     }
+  
+//     const transport = nodemailer.createTransport({
+//       service: 'gmail', 
+//       auth: {
+//         user: process.env.MY_EMAIL, 
+//         pass: process.env.MY_PASSWORD,
+//       },
+//     });
+    
+//     const toEmail =  process.env.MY_EMAIL;
+//     const adminEmail = process.env.ADMIN_EMAIL ;
+
+//     const mailOptions: Mail.Options = {
+//       from: fromEmail, 
+//       replyTo: fromEmail,
+//       to: toEmail,
+//       cc: adminEmail,
+//       subject,
+//       text: `From: ${fromEmail}\n\n${body}`,
+//       attachments: [] 
+//     };
+    
+  
+//     if (attachment) {
+//       try {
+//         const buffer = Buffer.from(await attachment.arrayBuffer());
+//         const filename = formData.get('filename') as string || 'intervention_proposal.pdf';
+        
+//         mailOptions.attachments!.push({
+//           filename,
+//           content: buffer,
+//           contentType: 'application/pdf',
+//         });
+//       } catch (attachmentError) {
+//         console.error('Error processing main attachment:', attachmentError);
+//       }
+//     }
+    
+//     if (additionalAttachment) {
+//       try {
+//         const additionalBuffer = Buffer.from(await additionalAttachment.arrayBuffer());
+//         const additionalFilename = formData.get('additionalFilename') as string || 'supporting_document.pdf';
+        
+//         mailOptions.attachments!.push({
+//           filename: additionalFilename,
+//           content: additionalBuffer,
+//           contentType: 'application/pdf',
+//         });
+//       } catch (additionalAttachmentError) {
+//         console.error('Error processing additional attachment:', additionalAttachmentError);
+//       }
+//     }
+    
+//     // const sendMailPromise = () => new Promise<string>((resolve, reject) => {
+//     //   transport.sendMail(mailOptions, function (err: { message: any; }, info: any) {
+//     //     if (!err) {
+//     //       resolve('Email sent');
+//     //     } else {
+//     //       reject(err.message);
+//     //     }
+//     //   });
+//     // });
+
+
+//         const sendMailPromise = () => new Promise<string>((resolve, reject) => {
+//       transport.sendMail(mailOptions, function (err, info) {
+//         if (!err) {
+//           resolve('Email sent');
+//         } else {
+//           reject(err.message);
+//         }
+//       });
+//     });
+    
+//     await sendMailPromise();
+    
+//     return NextResponse.json({ 
+//       message: 'Email sent successfully',
+//       attachments: {
+//         mainPDF: !!attachment,
+//         additionalDocument: !!additionalAttachment
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Email sending error:', error);
+//     return NextResponse.json(
+//       { error: 'Failed to send email. Please try again later.' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
+
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import Mail from 'nodemailer/lib/mailer';
@@ -364,13 +563,13 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     
-    const fromEmail = formData.get('from') as string; 
+    const userEmail = formData.get('from') as string; // User's email from form
     const subject = formData.get('subject') as string;
     const body = formData.get('body') as string;
     const attachment = formData.get('attachment') as Blob;
+    const additionalAttachment = formData.get('additionalAttachment') as Blob;
     
-
-    if (!fromEmail || !subject || !body) {
+    if (!userEmail || !subject || !body) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -385,43 +584,62 @@ export async function POST(request: NextRequest) {
       },
     });
     
-    const toEmail = process.env.NEXT_PUBLIC_EMAIL_RECIPIENT || process.env.MY_EMAIL;
-    
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.MY_EMAIL;
-    
-  
-    // const mailOptions: Mail.Options = {
-    //   from: `"${fromEmail}  || 'Form Submission'}" `,
-    //   replyTo: fromEmail,
-    //   to: toEmail,
-    //   cc: adminEmail,
-    //   subject,
-    //   text: `From: ${fromEmail}\n\n${body}`,
-    // };
+    const toEmail = process.env.MY_EMAIL;
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    // Create enhanced email body that clearly shows who sent it
+    const enhancedBody = `
+BENEFIT PACKAGE INTERVENTION PROPOSAL SUBMISSION
+
+Submitted by: ${userEmail}
+Reply to this email to respond directly to the submitter.
+
+${body}
+
+---
+This email was automatically generated from the HBPTAP intervention proposal form.
+Original sender: ${userEmail}
+    `.trim();
 
     const mailOptions: Mail.Options = {
-      from: fromEmail, 
-      replyTo: fromEmail,
+      from: process.env.MY_EMAIL, // Use your authenticated email as sender
+      replyTo: userEmail, // Set user's email as reply-to
       to: toEmail,
       cc: adminEmail,
-      subject,
-      text: `From: ${fromEmail}\n\n${body}`,
+      subject: `[FORM SUBMISSION] ${subject}`, // Add prefix to identify form submissions
+      text: enhancedBody,
+      attachments: []
     };
     
+    // Add main PDF attachment
     if (attachment) {
       try {
         const buffer = Buffer.from(await attachment.arrayBuffer());
         const filename = formData.get('filename') as string || 'intervention_proposal.pdf';
         
-        mailOptions.attachments = [
-          {
-            filename,
-            content: buffer,
-            contentType: 'application/pdf',
-          },
-        ];
+        mailOptions.attachments!.push({
+          filename,
+          content: buffer,
+          contentType: 'application/pdf',
+        });
       } catch (attachmentError) {
-        console.error('Error processing attachment:', attachmentError);
+        console.error('Error processing main attachment:', attachmentError);
+      }
+    }
+    
+    // Add additional PDF attachment
+    if (additionalAttachment) {
+      try {
+        const additionalBuffer = Buffer.from(await additionalAttachment.arrayBuffer());
+        const additionalFilename = formData.get('additionalFilename') as string || 'supporting_document.pdf';
+        
+        mailOptions.attachments!.push({
+          filename: additionalFilename,
+          content: additionalBuffer,
+          contentType: 'application/pdf',
+        });
+      } catch (additionalAttachmentError) {
+        console.error('Error processing additional attachment:', additionalAttachmentError);
       }
     }
     
@@ -438,9 +656,16 @@ export async function POST(request: NextRequest) {
     await sendMailPromise();
     
     return NextResponse.json({ 
-      message: 'Email sent successfully' 
+      message: 'Email sent successfully',
+      from: process.env.MY_EMAIL, 
+      replyTo: userEmail, 
+      attachments: {
+        mainPDF: !!attachment,
+        additionalDocument: !!additionalAttachment
+      }
     });
   } catch (error) {
+    console.error('Email sending error:', error);
     return NextResponse.json(
       { error: 'Failed to send email. Please try again later.' },
       { status: 500 }

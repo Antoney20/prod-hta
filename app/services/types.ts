@@ -12,6 +12,8 @@ export interface FormData {
   expectedImpact: string;
   signature: string;
   date: string;
+  additionalInfo: string;
+  uploadedDocument: File | null; 
 }
 
 export interface FormErrors {

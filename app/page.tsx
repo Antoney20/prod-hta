@@ -18,7 +18,7 @@ export default function Home() {
     <AboutSection/>
     {/* <HTAImpactSection/> */}
     <NewsSection/>
-    <FAQsSection/>
+    {/* <FAQsSection/> */}
     <ContactSection/>
     <Footer/>
     </div>

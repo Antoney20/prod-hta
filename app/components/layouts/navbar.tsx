@@ -17,6 +17,7 @@ const links = [
   { href: '/resources', label: 'Resources' },
   { href: '/interventions-form', label: 'Interventions Proposal' },
   { href: '/news', label: 'News' },
+  {href: '/faqs', label: "FAQs"}
 ]
 
 export default function Navbar() {

@@ -4,15 +4,21 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { ArrowRight } from "lucide-react"
 
 export default function HeroSection() {
   return (
     <section className="pt-24 md:pt-32 pb-12 md:pb-20">
 
-      <div className="absolute top-0 left-0 w-full h-full">
+      {/* <div className="absolute top-0 left-0 w-full h-full">
           <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/50 to-transparent rounded-bl-full"></div>
           <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1d8fc3]/20 to-transparent rounded-tr-full"></div>
+        </div> */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/50 to-transparent rounded-bl-full pointer-events-none"></div>
+          <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1d8fc3]/20 to-transparent rounded-tr-full pointer-events-none"></div>
         </div>
+
       <div className="container mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Text Content */}
@@ -26,18 +32,24 @@ export default function HeroSection() {
               <span className="text-[#1d8fc3]">Towards advancing</span> <br />
               Universal Health Coverage
             </h1>
-            <p className="text-gray-700 text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
-              HBTAP is promoting transparent, evidence-informed approaches to healthcare accessibility
-              through the Social Health Authority program.
+            <p className="text-gray-900 text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
+              The Health benefits and Tariffs Advisory Panel committed to promoting transparent, evidence-informed approaches to healthcare decision-making in Kenya. We welcome inquiries from stakeholders.
+             
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+
+            <p className="text-gray-700 text-sm max-w-3xl mb-8">
+               Fill the form below for general inquireries. To propose interventions, fill this form <Link className="" href= "/interventions-form"><Button
+               
+               className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-2 rounded-md text-base ml-4 mt-2"> get in touch <ArrowRight/> </Button> </Link>
+            </p>
+            {/* <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/about">
                 <Button className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-2 rounded-md text-base">
                   Learn More
                 </Button>
               </Link>
               
-            </div>
+            </div> */}
           </motion.div>
           
           <motion.div 
@@ -62,36 +74,6 @@ export default function HeroSection() {
         </div>
         
 
-        {/* <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-32 2xl:mt-44"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-   
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#1d8fc3]">
-            <h2 className="text-xl font-semibold mb-3">Health Benefits and Tariffs Advisory Panel</h2>
-            <p className="text-gray-600">
-              Reviewing and optimizing the Social Health Authority (SHA) program to ensure comprehensive coverage.
-            </p>
-          </div>
-          
-
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#63C5DA]">
-            <h2 className="text-xl font-semibold mb-3">Fair Pricing & Tariffs</h2>
-            <p className="text-gray-600">
-              Providing evidence-based recommendations on equitable pricing for healthcare services.
-            </p>
-          </div>
-          
-      
-          <div className="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#090a0e]">
-            <h2 className="text-xl font-semibold mb-3">Program Monitoring</h2>
-            <p className="text-gray-600">
-              Continuously improving the SHA program through careful monitoring and evaluation.
-            </p>
-          </div>
-        </motion.div> */}
       </div>
     </section>
   )

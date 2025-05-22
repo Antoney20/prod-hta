@@ -110,15 +110,15 @@ export default function ContactSection() {
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5 }}
                     viewport={{ once: true }}
-                    className="space-y-8"
+                    className="space-y-8 -mt-8"
                   >
                     <div>
-                      <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Contact Information</h3>
-                      <p className="text-gray-700 mb-8">
+                      <h3 className="text-2xl font-bold mb-6 text-[#020e3c] ">Contact Information</h3>
+                      {/* <p className="text-gray-700 mb-8">
                         The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, 
                         evidence-informed approaches to healthcare decision-making in Kenya. 
                         We welcome inquiries from stakeholders, researchers, and partners.
-                      </p>
+                      </p> */}
                     </div>
                     
                     <div className="bg-gray-50 p-6 rounded-xl">

@@ -71,7 +71,6 @@ function HeroSection() {
 
   return (
     <section className="pt-32 pb-16 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-      {/* Background Pattern */}
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/10 to-transparent rounded-bl-full"></div>
         <div className="absolute bottom-0 left-0 w-1/4 h-1/4 bg-gradient-to-t from-[#1338BE]/10 to-transparent rounded-tr-full"></div>
@@ -115,15 +114,13 @@ function ContactFormSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission here
-    console.log('Form submitted:', formData)
   }
 
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="grid grid-cols-1 gap-12">
-          {/* Contact Form */}
+       
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}

@@ -33,7 +33,7 @@ export default function HeroSection() {
               Universal Health Coverage
             </h1>
             <p className="text-gray-900 text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0">
-              The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, evidence-informed approaches to healthcare decision-making in Kenya. We welcome inquiries from stakeholders.
+              The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, evidence-informed approaches to healthcare decision-making in Kenya. 
              
             </p>
 
@@ -42,14 +42,14 @@ export default function HeroSection() {
                
                className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-2 rounded-md text-base ml-4 mt-2"> get in touch <ArrowRight/> </Button> </Link>
             </p> */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            {/* <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link href="/about">
                 <Button className="bg-[#1d8fc3] hover:bg-[#63C5DA] text-white px-8 py-2 rounded-md text-base">
                   Learn More
                 </Button>
               </Link>
               
-            </div>
+            </div> */}
           </motion.div>
           
           <motion.div 

@@ -43,7 +43,7 @@ export default function Footer() {
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
               <b>The Health Benefits and Tariffs Advisory Panel</b><br />
               <i>Towards advancing Universal Health Coverage</i><br />
-              Promoting transparent, evidence-informed approaches to healthcare decision-making through the Social Health Authority program, while institutionalizing health technology assessment in Kenya.
+              {/* Promoting transparent, evidence-informed approaches to healthcare decision-making through the Social Health Authority program, while institutionalizing health technology assessment in Kenya. */}
             </p>
             <div className="flex space-x-4">
               <a

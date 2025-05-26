@@ -17,17 +17,17 @@ import { Button } from '@/components/ui/button'
 
 export default function ContactSection() {
   return (
-    <section className="py-16 md:py-24 overflow-x-hidden bg-white text-black">
+    <section className="py-16 md:py-16 overflow-x-hidden bg-white text-black">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-0">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Get in <span className="text-[#020e3c]">Touch</span>
           </h2>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            Have questions about our work or interested in collaboration? We're here to help.
+            The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent and evidence-informed approaches to healthcare decision-making in kenya. We welcome inquiries from stakeholders.
           </p>
         </div>
-        
+{/*         
         <div className="grid grid-cols-1  gap-12 items-center">
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
@@ -184,8 +184,8 @@ export default function ContactSection() {
                         </a>
                       </div>
                     </div>
-                  </motion.div> */}
-        </div>
+                  </motion.div> 
+        </div> */}
       </div>
     </section>
   )

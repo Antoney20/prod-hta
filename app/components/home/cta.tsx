@@ -6,16 +6,14 @@ import React from 'react'
 
 function CTA() {
   return (
-    <section className="py-16 mb-8 relative overflow-hidden">
-      {/* Background Elements */}
+    <section className="py-2 mb-8 relative overflow-hidden -mt-8">
       <div className="absolute inset-0 bg-gradient-to-br from-[#138788]/5 via-white to-[#27aae1]/5"></div>
       
-      {/* Floating Geometric Shapes */}
+ 
       <div className="absolute top-10 left-10 w-20 h-20 bg-[#fe7105]/10 rounded-full blur-xl animate-pulse"></div>
       <div className="absolute bottom-10 right-20 w-32 h-32 bg-[#27aae1]/10 rounded-full blur-2xl animate-pulse" style={{animationDelay: '1s'}}></div>
       <div className="absolute top-1/2 right-10 w-16 h-16 bg-[#138788]/15 rotate-45 blur-lg animate-bounce" style={{animationDelay: '0.5s'}}></div>
       
-      {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 opacity-30">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -27,24 +25,21 @@ function CTA() {
         </svg>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
+      <div className="container mx-auto px-4 relative z-10 ">
         <div className="max-w-4xl mx-auto text-center">
           
-          {/* Main Content Card */}
           <div className="group relative">
             <div className="absolute inset-0 bg-gradient-to-r from-[#138788]/20 to-[#27aae1]/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             
             <div className="relative bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-3xl p-12 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
               
-              {/* Text Content */}
               <div className="mb-8">
                 <span className="text-xl md:text-2xl text-gray-700 leading-relaxed block">
-                  Fill the form below for general enquiries. To propose interventions, 
+                  Fill the form below for general inquiries. To propose interventions, 
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#138788] to-[#27aae1] font-semibold"> fill this form</span>
                 </span>
               </div>
 
-              {/* CTA Button */}
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#1d8fc3] to-[#63C5DA] rounded-xl blur-lg opacity-30 animate-pulse"></div>
                 
@@ -56,14 +51,12 @@ function CTA() {
                 </Link>
               </div>
 
-              {/* Decorative Elements */}
               <div className="absolute -top-4 -left-4 w-8 h-8 border-2 border-[#138788]/30 rounded-full"></div>
               <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-[#fe7105]/20 rounded-full"></div>
               
             </div>
           </div>
 
-          {/* Subtle Bottom Accent */}
           <div className="mt-8 flex justify-center">
             <div className="w-24 h-1 bg-gradient-to-r from-[#138788] via-[#27aae1] to-[#fe7105] rounded-full opacity-50"></div>
           </div>

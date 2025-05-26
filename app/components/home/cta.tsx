@@ -35,11 +35,11 @@ function CTA() {
               
               <div className="mb-8">
                 <span className="text-xl md:text-2xl text-gray-700 leading-relaxed block">
-                  Fill the form below for general inquiries. To propose interventions, 
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#138788] to-[#27aae1] font-semibold"> fill this form</span>
+                  <Link href='/contact' className='font-bold text-[#1d8fc3] hover:underline'> Contact us  </Link>for general inquiries.  To propose interventions, 
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#138788] to-[#27aae1] font-semibold">  <Link className= 'text-[#1d8fc3] hover:underline' href= '/interventions-form' >fill this form  </Link></span>
                 </span>
               </div>
-
+{/* 
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-[#1d8fc3] to-[#63C5DA] rounded-xl blur-lg opacity-30 animate-pulse"></div>
                 
@@ -49,7 +49,7 @@ function CTA() {
                     <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                   </Button>
                 </Link>
-              </div>
+              </div> */}
 
               <div className="absolute -top-4 -left-4 w-8 h-8 border-2 border-[#138788]/30 rounded-full"></div>
               <div className="absolute -bottom-4 -right-4 w-6 h-6 bg-[#fe7105]/20 rounded-full"></div>
@@ -57,9 +57,9 @@ function CTA() {
             </div>
           </div>
 
-          <div className="mt-8 flex justify-center">
+          {/* <div className="mt-8 flex justify-center">
             <div className="w-24 h-1 bg-gradient-to-r from-[#138788] via-[#27aae1] to-[#fe7105] rounded-full opacity-50"></div>
-          </div>
+          </div> */}
 
         </div>
       </div>

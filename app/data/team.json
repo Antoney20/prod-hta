@@ -5,34 +5,38 @@
         "name": "Walter G. Jaoko",
         "title": "Prof.",
         "role": "Chairperson",
-        "image": "/images/team/Prof_Walter_Jaoko.jpg"
+        "image": "/images/team/Prof_Walter_Jaoko.jpg",
+        "from": "KAVI - UoN"
       },
       {
         "name": "Patrick Amoth",
         "title": "Dr.",
         "role": "Member",
-        "image": "/images/team/dr_amoth.jpeg"
+        "image": "/images/team/dr_amoth.jpeg",
+        "from" : "MoH - Kenya"
      
       },
       {
         "name": "Nehemiah Odera",
         "title": "",
         "role": "Member",
-        "image": "/images/team/nehemiah-odera.jpg"
-      
+        "image": "/images/team/nehemiah-odera.jpg",
+        "from" :  "National Treasury"
       },
       {
         "name": "Christine Wambugu",
         "title": "Dr.",
         "role": "Member",
-        "image": "/images/team/christine-wambugu.jpg"
+        "image": "/images/team/christine-wambugu.jpg",
+        "from" : "SHA"
   
       },
       {
         "name": "Tabitha Okech",
         "title": "Dr.",
-        "role": "Member",
-        "image": "/images/team/Dr. Tabitha Okech.JPG"
+        "role": "Mem ber",
+        "image": "/images/team/Dr. Tabitha Okech.JPG",
+        "from" : "Kwale County"
       },
       {
         "name": "Patricia Nyokabi",

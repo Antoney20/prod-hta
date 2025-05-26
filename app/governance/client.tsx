@@ -165,34 +165,40 @@ interface TeamMember {
   title: string
   role: string
   image: string
+  from ?: string
 }
 
 interface PanelMember {
   name: string
   title: string
   role: string
+  from ?: string
 }
 
 const panelMembers: PanelMember[] = [
-  { name: "Walter G. Jaoko", title: "Prof.", role: "Chairperson" },
-  { name: "Patrick Amoth", title: "Dr.", role: "Member" },
-  { name: "Nehemiah Odera", title: "", role: "Member" },
-  { name: "Margaret Macharia", title: "", role: "Member" },
-  { name: "Hajara El Busaidy", title: "Dr.", role: "Member" },
-  { name: "Robert Rapando", title: "", role: "Member" },
-  { name: "Gabriel Muswali", title: "Dr.", role: "Member" },
-  { name: "Mary Kigasia Amuyunzu-Nyamongo", title: "Dr.", role: "Member" },
-  { name: "Walter Oyamo Obita", title: "Dr.", role: "Member" },
-  { name: "Valeria Makory", title: "Dr.", role: "Member" },
-  { name: "Stephen Kaboro", title: "", role: "Member" }
+  { name: "Walter G. Jaoko", title: "Prof.", role: "Chairperson" ,  from: "KAVI - UoN"},
+  { name: "Patrick Amoth", title: "Dr.", role: "Member", from : "MoH" },
+  { name: "Nehemiah Odera", title: "", role: "Member" ,  from :  "National Treasury"},
+  { name: "Margaret Macharia", title: "", role: "Member",  from : "SHA" },
+  { name: "Hajara El Busaidy", title: "Dr.", role: "Member", from : "Kwale County" },
+  { name: "Robert Rapando", title: "", role: "Member" , from: "Health Systems Specialist"},
+  { name: "Gabriel Muswali", title: "Dr.", role: "Member" , from : "Public Health Specialist" },
+  { name: "Mary Kigasia Amuyunzu-Nyamongo", title: "Dr.", role: "Member" , from : "HENNET"},
+  { name: "Walter Oyamo Obita", title: "Dr.", role: "Member", from : "KHF" },
+  { name: "Valeria Makory", title: "Dr.", role: "Member" , from :"MoH"},
+  { name: "Stephen Kaboro", title: "", role: "Member" , from :"SHA"}
 ]
 
+
+
+
+
 const secretariatMembers: PanelMember[] = [
-  { name: "Francis Motiri", title: "", role: "Member" },
-  { name: "Christine Wambugu", title: "Dr.", role: "Member" },
-  { name: "Tabitha Okech", title: "Dr.", role: "Member" },
-  { name: "Patricia Nyokabi", title: "Dr.", role: "Member" },
-  { name: "Abdiaziz Abdikadir Ahmed", title: "Dr.", role: "Member" }
+  { name: "Francis Motiri", title: "", role: "Member" , from : "MoH" },
+  { name: "Christine Wambugu", title: "Dr.", role: "Member", from :"MoH" },
+  { name: "Tabitha Okech", title: "Dr.", role: "Member"  , from :"CEMA"},
+  { name: "Patricia Nyokabi", title: "Dr.", role: "Member" , from :"CEMA"},
+  { name: "Abdiaziz Abdikadir Ahmed", title: "Dr.", role: "Member" , from :"UoN"}
 ]
 
 const memberImages: Record<string, string> = {
@@ -262,6 +268,10 @@ export default function TeamClient() {
           <p className="text-sm md:text-base text-gray-700">
             {member.role}
           </p>
+           <p className="text-sm md:text-base  font-bold ">
+            {member.from}
+          </p>
+
         </div>
       </motion.div>
     )

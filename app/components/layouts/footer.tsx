@@ -43,7 +43,7 @@ export default function Footer() {
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
               <b>The Health Benefits and Tariffs Advisory Panel</b><br />
               <i>Towards advancing Universal Health Coverage</i><br />
-              {/* Promoting transparent, evidence-informed approaches to healthcare decision-making through the Social Health Authority program, while institutionalizing health technology assessment in Kenya. */}
+            
             </p>
             <div className="flex space-x-4">
               <a
@@ -112,37 +112,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* <div className="lg:col-span-2 mb-10 lg:mb-0">
-            <h3 className="text-lg font-semibold mb-6 text-white relative pl-4 before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-[#1338BE]">
-              Services
-            </h3>
-            <ul className="space-y-3" aria-label="Services links">
-              <li>
-                <Link
-                  href="/services/health-benefits-package"
-                  className="text-gray-300 hover:text-[#63C5DA] transition-colors duration-300 flex items-center group"
-                >
-                  <ArrowUpRight size={16} className="mr-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
-                  Health Benefits Package
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/services/pricing-tariffs"
-                  className="text-gray-300 hover:text-[#63C5DA] transition-colors duration-300 flex items-center group"
-                >
-                  <ArrowUpRight size={16} className="mr-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
-                  Pricing & Tariffs
-                </Link>
-              </li>
-              <li>
-                <Link href="/services/program-monitoring" className="text-gray-300 hover:text-[#63C5DA] transition-colors duration-300 flex items-center group">
-                  <ArrowUpRight size={16} className="mr-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true" />
-                  Program Monitoring
-                </Link>
-              </li>
-            </ul>
-          </div> */}
+        
 
           <div className="lg:col-span-3">
             <h3 className="text-lg font-semibold mb-6 text-white relative pl-4 before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1">
@@ -221,18 +191,11 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Footer */}
         <div className="pt-4 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <div className="text-gray-300 text-sm mb-4 md:mb-0">
             © 2025 Health Benefits and Tariffs Advisory Panel. All rights reserved.
           </div>
-          {/* <a 
-            href="https://cema-africa.uonbi.ac.ke/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-gray-300 hover:text-[#63C5DA] flex items-center transition-colors duration-300"
-            aria-label="Visit CEMA website"
-          > */}
+       
             <span className="text-white mr-2"> The University of Nairobi</span> 
           {/* </a> */}
         </div>

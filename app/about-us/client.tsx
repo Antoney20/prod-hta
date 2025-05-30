@@ -378,8 +378,8 @@ function MissionSection() {
               <div className="aspect-w-16 aspect-h-9">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1d8fc3]/10 z-10"></div>
                 <Image
-                  src="/images/mission-image.jpg" 
-                  alt="Health technology assessment team in discussion"
+                  src="/assets/hbtap-design.png" 
+                  alt="hbtap desugn"
                   width={600}
                   height={400}
                   layout="responsive"
@@ -387,13 +387,13 @@ function MissionSection() {
                 />
               </div>
               
-              <motion.div 
+              {/* <motion.div 
                 variants={itemVariants}
                 className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-gray-500 to-transparent p-6"
               >
                 <h3 className="text-black text-xl font-semibold">Guided by Evidence</h3>
                 <p className="text-black/90 text-sm">Our recommendations are based on rigorous scientific assessment</p>
-              </motion.div>
+              </motion.div> */}
             </motion.div>
           </motion.div>
 

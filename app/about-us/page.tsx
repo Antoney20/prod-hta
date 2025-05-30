@@ -9,14 +9,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'About Us |  Health Benefits and  Tariffs Advisory panel',
     description: 'The  Health Benefits and  Tariffs Advisory panelis dedicated to transparent, evidence-informed healthcare decision-making to advance Universal Health Coverage in Kenya.',
-    url: 'https://healthta.ke/about',
+    url: 'https://hbtap-chi.vercel.app/about-us',
     siteName: ' Health Benefits and  Tariffs Advisory panel',
     images: [
       {
-        url: '/images/about-og-image.jpg',
+        url: '/images/hbtap-design.png',
         width: 1200,
         height: 630,
-        alt: ' Health Benefits and  Tariffs Advisory panel team working on healthcare solutions',
+        alt: ' Health Benefits and  Tariffs Advisory panel design image',
       },
     ],
     type: 'website',

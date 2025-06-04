@@ -49,7 +49,7 @@ export default function Navbar() {
     
           <Link href="/" className="flex items-center space-x-2">
 <Image
-              src="/images/logo.jpg" 
+              src="/images/logo.png" 
               alt="hbtap" 
               height={24}
               width={100}

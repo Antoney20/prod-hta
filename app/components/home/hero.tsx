@@ -86,7 +86,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <Link href="/about">
+              <Link href="/about-us">
                 <Button className="bg-[#27aae1] hover:bg-black text-white px-8 py-3 rounded-lg text-base font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                   Learn More
                   <ArrowRight className="ml-2 w-4 h-4" />

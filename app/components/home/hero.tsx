@@ -8,10 +8,10 @@ import { ArrowRight } from "lucide-react"
 
 export default function HeroSection() {
   return (
-    <section className="relative pt-24 md:pt-32 pb-12 md:pb-20 bg-black overflow-hidden">
+    <section className="relative pt-24 md:pt-32 pb-12 md:pb-20 bg-[#86cefa] overflow-hidden">
 
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/50 to-transparent rounded-bl-full"></div>
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-gradient-to-b from-[#63C5DA]/90 to-transparent rounded-bl-full"></div>
         
 
         <div className="absolute bottom-0 left-0 w-1/2 h-1/2">
@@ -62,17 +62,17 @@ export default function HeroSection() {
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6">
-              <span className="text-[#27aae1] block">Towards advancing</span> 
+              <span className="text-black block">Towards advancing</span> 
               <span className="text-xl sm:text-2xl md:text-3xl lg:text-3xl font-bold text-white block mt-2 sm:ml-6">
                 Universal Health Coverage
               </span> 
-              <span className="text-lg sm:text-xl md:text-2xl lg:text-2xl font-bold text-[#27aae1] block mt-2 sm:ml-32">
+              <span className="text-lg sm:text-xl md:text-2xl lg:text-2xl font-bold text-black block mt-2 sm:ml-32">
                 in Kenya
               </span>
             </h1>
            
             <motion.p 
-              className="text-gray-300 text-base sm:text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed"
+              className="text-gray-800 text-base sm:text-lg md:text-xl mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}

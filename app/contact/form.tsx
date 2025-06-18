@@ -46,7 +46,7 @@ export default function ContactClient() {
     <main className="min-h-screen bg-white">
       <Navbar />
       <HeroSection />
-      <ContactFormSection/>
+      <ContactFormSection />
       <CTA/>
       <SubscribeSection 
         email={email}
@@ -97,6 +97,136 @@ function HeroSection() {
   )
 }
 
+// function ContactFormSection() {
+//   const [formData, setFormData] = useState({
+//     fullName: '',
+//     email: '',
+//     organization: '',
+//     subject: '',
+//     message: ''
+//   })
+
+//   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+//     setFormData({
+//       ...formData,
+//       [e.target.name]: e.target.value
+//     })
+//   }
+
+//   const handleSubmit = (e: React.FormEvent) => {
+//     e.preventDefault()
+//   }
+
+//   return (
+//     <section className="py-16 md:py-24">
+//       <div className="container mx-auto px-4 max-w-7xl">
+//         <div className="grid grid-cols-1 gap-12">
+       
+//           <motion.div 
+//             initial={{ opacity: 0, x: -30 }}
+//             whileInView={{ opacity: 1, x: 0 }}
+//             transition={{ duration: 0.5 }}
+//             viewport={{ once: true }}
+//             className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
+//           >
+//             <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Send Us a Message</h3>
+//             <p className="text-gray-600 mb-8">
+//               Fill out the form below and our team will respond as soon as possible.
+//             </p>
+            
+//             <form onSubmit={handleSubmit} className="space-y-6">
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                 <div>
+//                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+//                     Full Name *
+//                   </label>
+//                   <input
+//                     type="text"
+//                     id="fullName"
+//                     name="fullName"
+//                     value={formData.fullName}
+//                     onChange={handleChange}
+//                     required
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+//                     placeholder="Your name"
+//                   />
+//                 </div>
+//                 <div>
+//                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+//                     Email Address *
+//                   </label>
+//                   <input
+//                     type="email"
+//                     id="email"
+//                     name="email"
+//                     value={formData.email}
+//                     onChange={handleChange}
+//                     required
+//                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+//                     placeholder="Your email"
+//                   />
+//                 </div>
+//               </div>
+              
+//               <div>
+//                 <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-1">
+//                   Organization
+//                 </label>
+//                 <input
+//                   type="text"
+//                   id="organization"
+//                   name="organization"
+//                   value={formData.organization}
+//                   onChange={handleChange}
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+//                   placeholder="Your organization (optional)"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+//                   Subject *
+//                 </label>
+//                 <input
+//                   type="text"
+//                   id="subject"
+//                   name="subject"
+//                   value={formData.subject}
+//                   onChange={handleChange}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
+//                   placeholder="What can we help you with?"
+//                 />
+//               </div>
+              
+//               <div>
+//                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+//                   Message *
+//                 </label>
+//                 <textarea
+//                   id="message"
+//                   name="message"
+//                   value={formData.message}
+//                   onChange={handleChange}
+//                   rows={5}
+//                   required
+//                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition resize-none"
+//                   placeholder="Tell us more about your inquiry..."
+//                 ></textarea>
+//               </div>
+              
+//               <Button type="submit" className="w-full bg-[#1d8fc3] text-white py-3">
+//                 Send Message <ArrowRight className="ml-2 h-4 w-4" />
+//               </Button>
+//             </form>
+//           </motion.div>
+
+
+//         </div>
+//       </div>
+//     </section>
+//   )
+// }
 
 
 interface SubscribeSectionProps {

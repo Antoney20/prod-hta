@@ -36,7 +36,7 @@ const NewsCard = ({ news, index }: { news: typeof newsData.newsItems[0]; index: 
       viewport={{ once: true }}
       className="group bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all"
     >
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-60 overflow-hidden">
         <Image
           src={news.image}
           alt={news.title}
@@ -76,10 +76,12 @@ export default function NewsSection() {
       <div className="container mx-auto px-4 ">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">News, Updates & Stories</h2>
-          <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            Stay in the updated with the latest developments in healthcare assessment, policy updates, and our ongoing initiatives.
+          <p className="text-gray-900 text-lg max-w-3xl mx-auto">
+             Stay updated with the latest developments in healthcare assessment, policy updates, and our ongoing initiatives.
           </p>
         </div>
+
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 mb-12">
           {featuredNews.slice(-3).reverse().map((news, index) => (

@@ -1,19 +1,22 @@
 {
     "newsItems": [
+
+
+
       {
         "id": 1,
-        "title": "UoN to host Kenya’s Health Benefits & Tariffs Panel",
-        "excerpt": "University of Nairobi has been appointed to host the Health Benefits Package and Tariffs Advisory Panel, a significant step toward advancing evidence-based healthcare decision-making in Kenya.",
-        "content": "<p> University of Nairobi is hosting the Health Benefits Package and Tariffs Advisory Panel following its appointment by Kenya’s Cabinet Secretary for Health in February. The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/><p> This initiative will promote a transparent, evidence-informed approach to the operationalization of the newly launched SHA program while facilitating the institutionalization of health technology assessment in the country.  </p><br/><p> <p>By hosting the panel, CEMA will serve as a joint secretariat with the Ministry of Health and leverage its expertise in health economics, epidemiology, actuarial science, and health sciences to support decision-making and policy development in Kenya.</p><br/> <br/>",
+        "title": "Health CS Duale inaugurates HBTAP",
+        "excerpt": "Health Benefits & Tariffs Advisory Panel Gazettement",
+        "content": "<p> Kenya’s Health Cabinet Secretary, Aden Duale, inaugurated the Health Benefits and Tariffs Advisory Panel (HBTAP) in May, kick-starting the group’s efforts towards ensuring access to quality healthcare in the country. </p></br> <p>The HBTAP, according to Duale, will provide expert advice on the design and review of benefit packages and tariffs under the Social Health Insurance framework. The panel will deliver on its mandate through a process that is evidence-based, equitable, financially-sustainable, and aligned with national health priorities. </p><br/> <p>“This initiative marks a significant step in strengthening partnerships across government, academia, the private sector, and civil society. Such collaboration will ensure transparency, accountability, and broad stakeholder input—crucial ingredients for achieving affordable, high-quality healthcare for all Kenyans under the principle of “Leaving No One Behind,” said Duale.   </p><br/> <p>The Panel, hosted at the University of Nairobi (UoN), College of Health Sciences, will be augmented by a secretariat comprising Health Technology specialists based at Center for Epidemiological and Modelling Analysis (CEMA). </p> <br/> <p>Hosting the Panel at the UoN is part of the government’s plan to Institutionalize the Health Technology Assessment (HTA) process in Kenya and to ensure the institution’s contribution to academic and technical expertise that underpins high-quality, evidence-informed decision making. </p><br/>   <p>“To enhance the effectiveness of our Social Health Insurance system, we must adopt data-driven decision-making, prioritize cost-effective interventions, strengthen public-private partnerships, and leverage digital solutions to improve service delivery and policy evaluation,” Duale said. </p><br/>",
         "author": "Admin",
         "authorRole": "Health admin",
         "featured": true,
-        "date": "2025-31-02",
-        "category": "Announcements",
-        "image": "/assets/uon.jpg",
-        "tags": ["health policy", "HTA", "benefits package", "tariffs", "CEMA", "Kenya healthcare"]
+        "date": "2025-20-04",
+        "category": "Health",
+        "image": "/assets/unnamed.jpg",
+        "tags": ["HBTAP launch"]
       },
-
+     
             {
         "id": 2,
         "title": " Health Benefits & Tariffs Advisory Panel Gazetted",
@@ -26,7 +29,21 @@
         "category": "Health",
         "image": "/assets/test-image.jpg",
         "tags": ["health policy", "HTA",  "UoN", "Kenya healthcare"]
+      },
+ {
+        "id": 3,
+        "title": "UoN to host Kenya’s Health Benefits & Tariffs Panel",
+        "excerpt": "University of Nairobi has been appointed to host the Health Benefits Package and Tariffs Advisory Panel, a significant step toward advancing evidence-based healthcare decision-making in Kenya.",
+        "content": "<p> University of Nairobi is hosting the Health Benefits Package and Tariffs Advisory Panel following its appointment by Kenya’s Cabinet Secretary for Health in February. The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/><p> This initiative will promote a transparent, evidence-informed approach to the operationalization of the newly launched SHA program while facilitating the institutionalization of health technology assessment in the country.  </p><br/><p> <p>By hosting the panel, CEMA will serve as a joint secretariat with the Ministry of Health and leverage its expertise in health economics, epidemiology, actuarial science, and health sciences to support decision-making and policy development in Kenya.</p><br/> <br/>",
+        "author": "Admin",
+        "authorRole": "Health admin",
+        "featured": false,
+        "date": "2025-31-02",
+        "category": "Announcements",
+        "image": "/assets/uon.jpg",
+        "tags": ["health policy", "HTA", "benefits package", "tariffs", "CEMA", "Kenya healthcare"]
       }
+
 
     ]
   }

@@ -86,7 +86,7 @@ export default function ContactSection() {
                   </Link>
                   {' '}for general inquiries. To propose interventions,{' '}
                   <Link className='font-bold text-[#27aae1] hover:text-[#138788] transition-colors hover:underline' href='/interventions-form'>
-                    fill this form
+                    fill this form.
                   </Link>
                 </p>
                 

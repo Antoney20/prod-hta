@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     url: 'https://hta-chi.vercel.app/capacity-building',
     images: [
       {
-        url: '/og-capacity-building.jpg', // Replace with actual image if available
+        url: '/og-capacity-building.jpg',
         width: 1200,
         height: 630,
         alt: 'Capacity Building at Health Benefits and Tariffs Advisory Panel',

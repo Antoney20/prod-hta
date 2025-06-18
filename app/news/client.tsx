@@ -97,9 +97,9 @@ export default function NewsClient() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-2xl md:text-4xl font-bold mb-4">News & Updates</h1>
-            <p className="text-xl text-gray-700 max-w-3xl">
-              Stay informed about our ongoing process, findings, outcomes and upcoming events by the Health Benefits and Tariffs advisory Panel.
+            <h1 className="text-2xl md:text-4xl font-bold mb-4">News, Updates and Stories</h1>
+            <p className="text-xl text-gray-900 max-w-3xl">
+              Stay updated with the latest developments in healthcare assessment, policy updates, and our ongoing initiatives.
             </p>
           </motion.div>
         </div>

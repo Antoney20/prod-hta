@@ -169,7 +169,7 @@ const links = [
     label: 'Resources',
     subLinks: [
       { href: '/resources/stakeholders', label: 'Stakeholders' },
-      { href: '/resources/media-center', label: 'Media Center' },
+      { href: '/resources/media', label: 'Resources Media' },
     ],
   },
   { href: '/interventions-form', label: 'Interventions Proposal' },

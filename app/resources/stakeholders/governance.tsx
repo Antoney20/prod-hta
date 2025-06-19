@@ -18,8 +18,8 @@ import {
   Gavel,
   Package
 } from 'lucide-react'
-import Navbar from '../components/layouts/navbar'
-import Footer from '../components/layouts/footer'
+import Navbar from '../../components/layouts/navbar'
+import Footer from '../../components/layouts/footer'
 
 
 export default function GovernanceClient() {
@@ -187,7 +187,7 @@ export default function GovernanceClient() {
               <span className="text-[#27aae1]">Governance</span> of Health Technology Assessment
             </h1>
             <div className="w-24 h-1 bg-gradient-to-r from-[#63C5DA] to-[#27aae1] mx-auto mb-6"></div>
-            <p className="text-lg text-gray-700">
+            <p className="text-lg text-gray-900">
               Understanding the governance structure and stakeholder roles in Kenya's Health Technology Assessment process
             </p>
           </motion.div>
@@ -206,7 +206,7 @@ export default function GovernanceClient() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Stakeholder Roles 
             </h2>
-            <p className="text-gray-700 text-lg max-w-3xl mx-auto">
+            <p className="text-gray-900 text-2xl max-w-4xl mx-auto">
               Successful HTA implementation requires collaboration among various stakeholders, each playing a crucial role in the process.
             </p>
           </motion.div>
@@ -234,7 +234,7 @@ export default function GovernanceClient() {
                   {stakeholder.responsibilities.map((responsibility, idx) => (
                     <li key={idx} className="flex items-start">
                       <div className="flex-shrink-0 w-2 h-2 bg-[#63C5DA] rounded-full mt-2 mr-3"></div>
-                      <span className="text-gray-700">{responsibility}</span>
+                      <span className="text-gray-900 text-xl">{responsibility}</span>
                     </li>
                   ))}
                 </ul>

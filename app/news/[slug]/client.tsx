@@ -73,12 +73,12 @@ const NewsDetailClient = ({ newsItem }: NewsDetailClientProps) => {
             <div className="flex flex-wrap items-center text-white/90 gap-6 mb-8">
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2" />
-                <span>
+                {/* <span>
                   By <span className="font-medium text-white">{newsItem.author}</span>
                   {newsItem.authorRole && (
                     <span className="text-white/90">, {newsItem.authorRole}</span>
                   )}
-                </span>
+                </span> */}
               </div>
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2" />

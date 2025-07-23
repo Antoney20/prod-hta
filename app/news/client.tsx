@@ -134,12 +134,12 @@ export default function NewsClient() {
                   <h2 className="text-3xl font-bold text-gray-900 mb-4">{featuredNews.title}</h2>
                   <p className="text-gray-600 mb-6">{featuredNews.excerpt}</p>
                   <div className="flex justify-between items-center">
-                    <div className="text-sm text-gray-600">
+                    {/* <div className="text-sm text-gray-600">
                       By <span className="font-medium">{featuredNews.author}</span>
                       {featuredNews.authorRole && (
                         <span className="text-gray-500">, {featuredNews.authorRole}</span>
                       )}
-                    </div>
+                    </div> */}
                     <Link
                       href={`/news/${slugify(featuredNews.title)}`}
                       className="inline-flex items-center px-5 py-2.5 bg-[#27aae1] text-white rounded-lg hover:bg-[#63C5DA] transition-colors"

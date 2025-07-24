@@ -65,7 +65,7 @@ const memberImages: Record<string, string> = {
 
   // Secretariat Members
   "Francis Motiri, HSC": "/images/team/Mosiria.jpeg", 
-  "Christine Wambugu": "/images/team/Christine.jpg",
+  "Christine Wambugu": "",
   "Tabitha Okech": "/images/team/Dr. Tabitha Okech.JPG",
   "Patricia Nyokabi": "/images/team/Dr. Patricia Nyokabi.JPG",
   "Abdiaziz Abdikadir Ahmed": "/images/team/Abdiaziz-Ahmed.jpg"

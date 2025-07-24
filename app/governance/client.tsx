@@ -60,7 +60,7 @@ const memberImages: Record<string, string> = {
   "Gabriel Muswali": "/images/team/Gabriel.jpeg",
   "Mary Kigasia Amuyunzu-Nyamongo": "/images/team/Mary-Amuyunzu-Nyamongo.png",
   "Walter Oyamo Obita": "/images/team/Walter Oyamo.jpg",
-  "Valeria Makory": "/images/team/Dr Makory.jpeg",
+  "Valeria Makory": "/images/team/Christine.jpg",
    "Stephen Kaboro": "/images/team/Kaboro1.jpeg",
 
   // Secretariat Members

@@ -77,7 +77,7 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent, evidence-informed approaches to healthcare decision-making in Kenya.
+              The Benefits Package and Tariffs Advisory Panel is committed to promoting transparent, evidence-informed approaches to healthcare decision-making in Kenya.
             </motion.p>
 
             <motion.div 
@@ -116,7 +116,7 @@ export default function HeroSection() {
               
               <Image
                 src="/images/health-awareness.jpeg" 
-                alt="Healthcare professionals advancing Universal Health Coverage in Kenya"
+                alt="hero image"
                 fill
                 style={{ objectFit: "cover" }}
                 priority

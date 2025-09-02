@@ -18,7 +18,7 @@ function Page() {
       The relevant stakeholders including the Authority, policy makers, the academia, members of the public, health professional associations, civil society organizations involved in matters of health, the Kenya Medical Supplies Authority and the county governments may propose interventions for inclusion in the benefits packages under regulation.
     </p>
     <p className="font-medium text-base sm:text-lg lg:text-xl text-gray-800 mb-4 sm:mb-6 leading-relaxed">
-      The proposals will be received by the HBTAP secretariat through various channels including direct requests by the Panel to key stakeholders; scheduled stakeholder meetings or forums; or digital platforms including{' '}
+      The proposals will be received by the BPTAP secretariat through various channels including direct requests by the Panel to key stakeholders; scheduled stakeholder meetings or forums; or digital platforms including{' '}
       <Link href="mailto:hbtap@uonbi.ac.ke" className="text-[#27aae1] hover:text-[#1e8a99] transition-colors underline">
         hbtap@uonbi.ac.ke
       </Link>

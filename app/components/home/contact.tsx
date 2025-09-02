@@ -24,7 +24,7 @@ export default function ContactSection() {
             Get in <span className="text-[#020e3c]">Touch</span>
           </h2>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            The Health Benefits and Tariffs Advisory Panel is committed to promoting transparent and evidence-informed approaches to healthcare decision-making in kenya. We welcome inquiries from stakeholders.
+            The Benefits Package and Tariffs Advisory Panel is committed to promoting transparent and evidence-informed approaches to healthcare decision-making in kenya. We welcome inquiries from stakeholders.
           </p>
         </div>
       </div>

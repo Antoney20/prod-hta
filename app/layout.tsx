@@ -14,10 +14,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Health Benefits and Tariffs Advisory Panel| The University of Nairobi",
-    default: "Health Benefits and Tariffs Advisory Panel| Advancing Evidence-Based Healthcare | The University of Nairobi"
+    template: "%s | The Benefits Package and Tariffs Advisory Panel | The University of Nairobi",
+    default: "The Benefits Package and Tariffs Advisory Panel | Advancing Evidence-Based Healthcare | The University of Nairobi"
   },
-  description: "The official website for Health Benefits and Tariffs Advisory Panel, promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+  description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
   keywords: ["health technology assessment", "HTA Kenya", "evidence-based healthcare", "universal health coverage", "SHA program", "healthcare policy", "benefits package", "healthcare tariffs"],
   authors: [{ name: "Health Technology Assessment Panel" }],
   creator: "CEMA",
@@ -32,23 +32,23 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    title: "Health Benefits and Tariffs Advisory Panel| Advancing Evidence-Based Healthcare",
-    description: "The official website for Health Benefits and Tariffs Advisory Panel, promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+    title: "The Benefits Package and Tariffs Advisory Panel | Advancing Evidence-Based Healthcare",
+    description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
     url: "https://hta-chi.vercel.app",
-    siteName: "Health Benefits and Tariffs Advisory Panel",
+    siteName: "The Benefits Package and Tariffs Advisory Panel ",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Health Benefits and Tariffs Advisory Panel",
+        alt: "The Benefits Package and Tariffs Advisory Panel ",
       },
     ],
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Health Benefits and Tariffs Advisory Panel",
+    title: "The Benefits Package and Tariffs Advisory Panel ",
     description: "Promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
     images: ["/twitter-image.jpg"],
   },

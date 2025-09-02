@@ -183,7 +183,7 @@ function HeroSection() {
             variants={itemVariants} 
             className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6"
           >
-              The Health Benefits and Tariffs Advisory Panel
+              The Benefits Package and Tariffs Advisory Panel
           </motion.h1>
           
       
@@ -275,7 +275,7 @@ function About(){
               className="text-gray-700 mb-6"
               variants={fadeIn}
             >
-              The Health Benefits and Tariffs Advisory Panel (HBTAP) is an initiative to promote a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program.
+              The Benefits Package and Tariffs Advisory Panel (BPTAP) is an initiative to promote a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program.
             </motion.p>
             
             <motion.h4 
@@ -295,7 +295,7 @@ function About(){
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p>To review the Health Benefits and Tariffs Advisory Panel for the Social Health Authority (SHA) program</p>
+                <p>To review The Benefits Package and Tariffs Advisory Panel for the Social Health Authority (SHA) program</p>
               </motion.li>
               
               <motion.li 
@@ -379,7 +379,7 @@ function MissionSection() {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#63C5DA]/10 to-[#1d8fc3]/10 z-10"></div>
                 <Image
                   src="/assets/hbtap-design.png" 
-                  alt="hbtap desugn"
+                  alt="BPTAP desugn"
                   width={600}
                   height={400}
                   layout="responsive"

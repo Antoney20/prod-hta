@@ -72,14 +72,14 @@ export default function AboutSection() {
               className="text-2xl font-semibold mb-4 text-[#020e3c]"
               variants={fadeIn}
             >
-              The Health Benefits and Tariffs Advisory Panel
+              The The Benefits Package and Tariffs Advisory Panel
             </motion.h3>
 
             <motion.p 
               className="text-gray-700 mb-6"
               variants={fadeIn}
             >
-              The Health Benefits and Tariffs Advisory Panel (HBTAP) is an initiative dedicated to promoting a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program, while institutionalizing health technology assessment in Kenya.
+              The The Benefits Package and Tariffs Advisory Panel (HBTAP) is an initiative dedicated to promoting a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program, while institutionalizing health technology assessment in Kenya.
             </motion.p>
             
             <motion.h4 
@@ -99,7 +99,7 @@ export default function AboutSection() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p>To review the Health Benefits and Tariffs Advisory Panel for the Social Health Authority (SHA) program</p>
+                <p>To review the The Benefits Package and Tariffs Advisory Panel for the Social Health Authority (SHA) program</p>
               </motion.li>
               
               <motion.li 
@@ -148,7 +148,7 @@ export default function AboutSection() {
           variants={fadeIn}
         >
           <h3 className="text-2xl font-semibold mb-8 text-center">
-            Why <span className="text-[#020e3c]">Health Benefits and Tariffs Advisory Panel</span> Matters
+            Why <span className="text-[#020e3c]">The Benefits Package and Tariffs Advisory Panel</span> Matters
           </h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

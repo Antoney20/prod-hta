@@ -18,16 +18,16 @@ export const metadata: Metadata = {
     'Kenya healthcare FAQ'
   ],
   openGraph: {
-    title: 'FAQs | Health Benefits and Tariffs Advisory Panel',
+    title: 'FAQs | Benefits Package and Tariffs Advisory Panel',
     description: 'Get answers to frequently asked questions about HBPTAP, intervention proposals, benefit packages, and healthcare decision-making processes in Kenya.',
     url: 'https://hta-chi.vercel.app/faqs',
-    siteName: 'HBPTAP - Health Benefits and Tariffs Advisory Panel',
+    siteName: 'HBPTAP -  Benefits Package and Tariffs Advisory Panel',
     images: [
       {
         url: '/og-faqs.jpg',
         width: 1200,
         height: 630,
-        alt: 'HBPTAP Frequently Asked Questions',
+        alt: 'BPTAP Frequently Asked Questions',
       },
     ],
     locale: 'en_US',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'FAQs | Health Benefits and Tariffs Advisory Panel',
+    title: 'FAQs |  Benefits Package and Tariffs Advisory Panel',
     description: 'Get answers to frequently asked questions about HBPTAP, intervention proposals, and healthcare decision-making in Kenya.',
     images: ['/og-faqs.jpg'],
     creator: '@HBPTAP_Kenya',

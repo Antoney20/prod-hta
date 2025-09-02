@@ -41,7 +41,7 @@
 //               </div>
 //             </div> */}
 //             <p className="text-gray-300 text-base leading-relaxed mb-6">
-//               <b>The Health Benefits and Tariffs Advisory Panel</b><br />
+//               <b>The The Benefits Package and Tariffs Advisory Panel</b><br />
 //               <i>Towards advancing Universal Health Coverage</i><br />
             
 //             </p>
@@ -122,7 +122,7 @@
 //               <li className="flex items-start">
 //                 <MapPin size={20} className="text-[#63C5DA] mr-3 mt-1 flex-shrink-0" aria-hidden="true" />
 //                 <span className="text-gray-300 text-base">
-//                   Health Benefits and Tariffs Advisory Panel<br />
+//                   The Benefits Package and Tariffs Advisory Panel<br />
 //                   The University of Nairobi<br />
 //                   Nairobi, Kenya
 //                 </span>
@@ -193,7 +193,7 @@
 
 //         <div className="pt-4 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
 //           <div className="text-gray-300 text-base mb-4 md:mb-0">
-//             © 2025 Health Benefits and Tariffs Advisory Panel. All rights reserved.
+//             © 2025 The Benefits Package and Tariffs Advisory Panel. All rights reserved.
 //           </div>
        
 //             <span className="text-white mr-2"> The University of Nairobi</span> 
@@ -243,7 +243,7 @@ export default function Footer() {
             
             <div className="mb-6">
               <h3 className="text-xl font-bold text-white mb-2">
-                Health Benefits and Tariffs Advisory Panel
+                The Benefits Package and Tariffs Advisory Panel
               </h3>
               <p className="text-white text-lg italic leading-relaxed">
                 Towards advancing Universal Health Coverage
@@ -332,7 +332,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-white text-base leading-relaxed">
-                    Health Benefits and Tariffs Advisory Panel<br />
+                    The Benefits Package and Tariffs Advisory Panel<br />
                     <span className="">The University of Nairobi</span><br />
                     <span className="">Nairobi, Kenya</span>
                   </p>
@@ -424,7 +424,7 @@ export default function Footer() {
     
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className=" text-base">
-            © 2025 Health Benefits and Tariffs Advisory Panel. All rights reserved.
+            © 2025 The Benefits Package and Tariffs Advisory Panel. All rights reserved.
           </div>
           <div className="flex items-center space-x-3">
           

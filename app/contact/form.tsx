@@ -88,7 +88,7 @@ function HeroSection() {
             Get in Touch
           </h1>
           <p className="text-gray-700 text-lg max-w-3xl mx-auto">
-            Have questions about Health Benefits and Tariffs Advisory Panel? 
+            Have questions about the Benefits Package and Tariffs Advisory Panel? 
             We're here to help advance evidence-based healthcare decisions in Kenya.
           </p>
         </motion.div>

@@ -26,16 +26,16 @@ interface PanelMember {
 
 const panelMembers: PanelMember[] = [
   { name: "Walter G. Jaoko", title: "Prof.", role: "Chairperson" ,  from: "KAVI - UoN"},
-  { name: "Patrick Amoth", title: "Dr.", role: "Member", from : "MoH" },
+  { name: "Patrick Amoth", title: "Dr.", role: "Member", from : "Director General for Health" },
   { name: "Nehemiah Odera", title: "", role: "Member" ,  from :  "National Treasury"},
   { name: "Margaret Macharia", title: "", role: "Member",  from : "SHA" },
   { name: "Hajara El Busaidy", title: "Dr.", role: "Member", from : "Kwale County" },
-  { name: "Robert Rapando", title: "", role: "Member" , from: "Health Systems Specialist"},
-  { name: "Gabriel Muswali", title: "Dr.", role: "Member" , from : "Public Health Specialist" },
-  { name: "Mary Kigasia Amuyunzu-Nyamongo", title: "Dr.", role: "Member" , from : "HENNET"},
+  { name: "Robert Rapando", title: "", role: "Member" , from: "CoG (NEW)Georgina Bonnet Arroyo - DPHK EX-Officio"},
+  { name: "Gabriel Muswali", title: "Dr.", role: "Member" , from : "HENNET" },
+  { name: "Mary Kigasia Amuyunzu-Nyamongo", title: "Dr.", role: "Member" , from : "NCD Alliance"},
   { name: "Walter Oyamo Obita", title: "Dr.", role: "Member", from : "KHF" },
   { name: "Valeria Makory", title: "Dr.", role: "Member" , from :"MoH"},
-  { name: "Stephen Kaboro", title: "", role: "Member" , from :"SHA"}
+  { name: "Stephen Kaboro", title: "", role: "Member" , from :"MoH"}
 ]
 
 

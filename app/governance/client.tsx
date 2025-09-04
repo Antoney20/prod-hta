@@ -30,7 +30,8 @@ const panelMembers: PanelMember[] = [
   { name: "Nehemiah Odera", title: "", role: "Member" ,  from :  "National Treasury"},
   { name: "Margaret Macharia", title: "", role: "Member",  from : "SHA" },
   { name: "Hajara El Busaidy", title: "Dr.", role: "Member", from : "Kwale County" },
-  { name: "Robert Rapando", title: "", role: "Member" , from: "CoG (NEW)Georgina Bonnet Arroyo - DPHK EX-Officio"},
+  { name: "Robert Rapando", title: "", role: "Member" , from: "CoG "},
+  {name : "Georgina Bonnet Arroyo", title:"", role: "member", from :"DPHK EX-Officio" },
   { name: "Gabriel Muswali", title: "Dr.", role: "Member" , from : "HENNET" },
   { name: "Mary Kigasia Amuyunzu-Nyamongo", title: "Dr.", role: "Member" , from : "NCD Alliance"},
   { name: "Walter Oyamo Obita", title: "Dr.", role: "Member", from : "KHF" },
@@ -62,7 +63,7 @@ const memberImages: Record<string, string> = {
   "Walter Oyamo Obita": "/images/team/Walter Oyamo.jpg",
   "Valeria Makory": "/images/team/Christine.jpg",
    "Stephen Kaboro": "/images/team/Kaboro1.jpeg",
-
+  "Georgina Bonnet Arroyo": "",
   // Secretariat Members
   "Francis Motiri, HSC": "/images/team/Mosiria.jpeg", 
   "Christine Wambugu": "",

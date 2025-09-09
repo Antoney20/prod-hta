@@ -1,13 +1,45 @@
 {
     "newsItems": [
-   {
+ {
         "id": 1,
+        "title": "BPTAP Secretariat holds discussions on stakeholder and situational analysis for HTA institutionalisation in Kenya",
+        "excerpt": "BPTAP Secretariat holds discussions on stakeholder and situational analysis for HTA institutionalisation in Kenya.",
+        "content": "<p> Benefits Package Tariffs Advisory Package (BPTAP) secretariat mid July held a workshop on the stakeholder and situational analysis for Health Technology Assessment (HTA) institutionalisation in Kenya, bringing together HTA specialists, researchers, health professionals, and partners, amongst others, to take stock of progress and chart the way forward.</p><br/><p> Opening the discussions, Dr. Tabitha Okech, a BPTAP secretariat official, highlighted HTA as a critical tool for healthcare priority-setting.  </p><br/><p> <p>By systematically evaluating technologies such as medicines, medical devices, information systems, and organisational processes, HTA ensures that decisions are grounded in evidence, cost-effectiveness, and social relevance.</p><br/> <p> Kenya’s journey was traced from the integration of HTA into national policy in 2014, to its legislation in the 2017 Health Act, and the establishment of the first and current Benefit Package Panel. </p> <br/> <p> Despite these milestones, the meeting noted persistent challenges: fragmented decision-making, weak data systems, limited transparency, and over-reliance on donor-driven priorities. To address these gaps, discussions centred on four strategic pillars: strengthening the legal and governance framework, ensuring transparent decision-making structures, developing methodological standards, and investing in workforce capacity.</p> <br/> <p>The workshop also reviewed the research design guiding the ongoing situational analysis, which combines desk reviews, key informant interviews, focus group discussions, and surveys. This approach will not only assess existing capacity but also map stakeholders, identify training needs, and capture diverse perspectives from policy to service delivery levels. Presenters further emphasised ethical research practices, including informed consent, confidentiality, and inclusivity, as essential for building trust in the HTA process. </p> <br/> <p>A recurring theme was the importance of solidifying the role of the BPTAP, clarifying institutional responsibilities, and securing sustainable resources. Counties were identified as key players in the next phase, making their integration into HTA structures a top priority. </p> <br/> <p>As a way forward, the workshop called for finalising stakeholder mapping, completing a comprehensive capacity assessment, and developing an investment case that will help policymakers appreciate the value of HTA. Ultimately, the outputs from this process will include policy briefs, stakeholder engagement strategies, and a national HTA strategy anchored in strong governance frameworks, all aimed at advancing Kenya’s Universal Health Coverage goals. </p>",
+        "author": "Admin",
+        "authorRole": "Health admin",
+        "featured": false,
+        "date": "Aug 20, 2025",
+        "category": "Announcements",
+        "image": "/assets/analysis.png",
+        "tags": ["BPTAP Training"]
+      },
+
+
+ {
+        "id": 2,
+        "title": "UK’s NICE conducts advanced HTA training in Kenya",
+        "excerpt": "BPTAP, MoH, SHA, UoN-Cema teams were taken through various sessions including mock appraisal exercises",
+        "content": "<p> The UK’s Health Technology Assessment (HTA) Agency, the National Institute for Health and Care Excellence (NICE), in partnership with Kenya's Benefits Package and Tariffs Advisory Panel (BPTAP) secretariat, held a week-long advanced HTA training, in line with Kenya’s efforts to embed HTA into healthcare decision-making.</p><br/><p> OKenya aims to draw on NICE’s extensive experience in developing evidence-informed guidance that has enabled the National Health Service (NHS) to deliver high-quality, effective, and cost-efficient health and care.  </p><br/><p> <p> Speaking at the training, Richlove Mensah, UK's Director for Trade & Investment for Kenya and East Africa, reaffirmed the UK’s support for Kenya’s efforts to embed HTA, stressing that evidence appraisal is a cornerstone for stronger health systems. </p><br/> <p> Prof. Walter Jaoko, BPTAP Chairman, emphasized the privilege of learning from NICE's expertise. <br/> Participants, drawn from various institutions including the Ministry of Health, Social Health Authority, University of Nairobi - Center for Epidemiological Modelling and Analysis (CEMA-Africa) and  BPTAP members, also engaged in stakeholder mapping to assess influence and roles in the HTA ecosystem. </p> <br/> <p> The attendees were taken through various sessions including Kenya's benefits package, the HTA process in the country, NICE’s experience regarding policies and procedures for HTA, and appraisal process for reimbursement decisions.</p> <br/> <p> The attendees capped off their learning by taking part in a mock appraisal exercise on medical devices and AI diagnostic tests. The practical session gave participants first-hand experience with technology appraisal processes, building on earlier modules that covered various topics, including Kenya’s benefits package, HTA processes, and stakeholder mapping.</p> <br/> <p> Opening the training, Dr. Patrick Amoth, Director General for Health, underlined that HTA is central to Kenya’s health reforms: defining benefits, setting tariffs, and ensuring that every Kenyan can access healthcare without fear of financial ruin. </p> <br/> <p> “[The] training is more than technical. It equips you with the tools to make fair, transparent, and sustainable decisions. The benefits package you design and the tariffs you set will directly shape the future of healthcare in this country,” said Dr. Amoth. </p>",
+        "author": "Admin",
+        "authorRole": "Health admin",
+        "featured": true,
+        "date": "Aug 20, 2025",
+        "category": "Announcements",
+        "image": "/assets/uk-nice.jpg",
+        "tags": ["BPTAP Training"]
+      },
+
+
+
+
+   {
+        "id": 3,
         "title": "BPTAP members undergo intensive Health Technology Assessment training",
         "excerpt": "BPTAP members undergo intensive Health Technology Assessment training",
         "content": "<p>The Benefits Package and Tariffs Advisory Panel (BPTAP) members, along with a section of stakeholders, underwent training last week in Naivasha designed with the overall goal of equipping participants with the knowledge and skills necessary for applying Health Technology Assessment (HTA) methodologies in appraising scientific evidence to inform benefits and tariffs reimbursable under Kenya’s Social Health Insurance.</p></br> <p>Some of the areas covered during the training included the fundamentals of HTA, where members were taken through sessions to help them understand the epidemiological, economic, and social methodologies and processes used in healthcare decision-making. </p> </br> <p>Participants also learnt how to generate and appraise epidemiological and economic evidence to support HTA decisions. Additional topics included ethical and social considerations, decision-making frameworks, identifying implementation challenges, and developing strategies for sustainability and long-term success. The training also featured practical sessions to reinforce learning. </p> </br> <p>The training aimed to equip panel members with essential knowledge in preparation for the intensified phase of their work. </p> </br> <p> Gazetted in April, the panel is mandated to review and appraise HTA reports, economic evaluations, and other relevant evidence. They are responsible for conducting deliberations based on explicit appraisal criteria such as clinical effectiveness, cost-effectiveness, equity, and ethical considerations.</p> </br> <p>The panel is also tasked with prioritizing technologies and services for assessment when needed; recommending the inclusion or exclusion of technologies in benefits packages; and advising on tariff prices based on cost analyses and prevailing market rates. </p> </br> <p> Also, the panel is mandated to advise on methods and processes for health benefits and tariff decision-making. They are also expected to engage stakeholders when necessary, including through public consultations, and to document and disseminate decisions and rationales to promote transparency</p> </br> <p> The panel submits its recommendations to the Cabinet Secretary for Health. </p>",
          "author": "Admin",
         "authorRole": "Health admin",
-        "featured": true,
+        "featured": false,
         "date": "2025-18-06",
         "category": "Health",
         "image": "/assets/hbtap meeting.jpeg",
@@ -15,7 +47,7 @@
 
    },
       {
-        "id": 2,
+        "id": 4,
         "title": "Health CS Duale inaugurates BPTAP",
         "excerpt": " Benefits Package and Tariffs Advisory Panel Gazettement",
         "content": "<p> Kenya’s Health Cabinet Secretary, Aden Duale, inaugurated the  Benefits Package and Tariffs Advisory Panel (BPTAP) in May, kick-starting the group’s efforts towards ensuring access to quality healthcare in the country. </p></br> <p>The BPTAP, according to Duale, will provide expert advice on the design and review of benefit packages and tariffs under the Social Health Insurance framework. The panel will deliver on its mandate through a process that is evidence-based, equitable, financially-sustainable, and aligned with national health priorities. </p><br/> <p>“This initiative marks a significant step in strengthening partnerships across government, academia, the private sector, and civil society. Such collaboration will ensure transparency, accountability, and broad stakeholder input—crucial ingredients for achieving affordable, high-quality healthcare for all Kenyans under the principle of “Leaving No One Behind,” said Duale.   </p><br/> <p>The Panel, hosted at the University of Nairobi (UoN), College of Health Sciences, will be augmented by a secretariat comprising Health Technology specialists based at Center for Epidemiological and Modelling Analysis (CEMA). </p> <br/> <p>Hosting the Panel at the UoN is part of the government’s plan to Institutionalize the Health Technology Assessment (HTA) process in Kenya and to ensure the institution’s contribution to academic and technical expertise that underpins high-quality, evidence-informed decision making. </p><br/>   <p>“To enhance the effectiveness of our Social Health Insurance system, we must adopt data-driven decision-making, prioritize cost-effective interventions, strengthen public-private partnerships, and leverage digital solutions to improve service delivery and policy evaluation,” Duale said. </p><br/>",
@@ -29,20 +61,20 @@
       },
      
             {
-        "id": 3,
+        "id": 5,
         "title": " The Benefits Package and Tariffs Advisory Panel Gazetted",
         "excerpt": "  Benefits Package and Tariffs Advisory Panel Gazettement",
         "content": "<p> The  Benefits Package and Tariffs Advisory Panel has been gazetted following its appointment by the Ministry of Health, in February, to guide the Social Health Authority (SHA) on tarrifs and benefits.  </p><br/><p> <p>The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/> <br/>",
         "author": "Admin",
         "authorRole": "Health admin",
-        "featured": true,
+        "featured": false,
         "date": "2025-20-04",
         "category": "Health",
         "image": "/assets/test-image.jpg",
         "tags": ["health policy", "HTA",  "UoN", "Kenya healthcare"]
       },
  {
-        "id": 4,
+        "id": 6,
         "title": "UoN to host Kenya’s Benefits Package Tariffs Advisory Panel",
         "excerpt": "University of Nairobi has been appointed to host the  Benefits Package and Tariffs Advisory Panel, a significant step toward advancing evidence-based healthcare decision-making in Kenya.",
         "content": "<p> University of Nairobi is hosting the  Benefits Package and Tariffs Advisory Panel following its appointment by Kenya’s Cabinet Secretary for Health in February. The panel is tasked with reviewing the health benefits package, advising on fair pricing and tariffs for healthcare services, and monitoring the impact of the Social Health Authority (SHA) program to ensure continuous improvement.</p><br/><p> This initiative will promote a transparent, evidence-informed approach to the operationalization of the newly launched SHA program while facilitating the institutionalization of health technology assessment in the country.  </p><br/><p> <p>By hosting the panel, CEMA will serve as a joint secretariat with the Ministry of Health and leverage its expertise in health economics, epidemiology, actuarial science, and health sciences to support decision-making and policy development in Kenya.</p><br/> <br/>",

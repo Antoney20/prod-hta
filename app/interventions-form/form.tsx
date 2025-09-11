@@ -242,6 +242,7 @@ import React, { useState, ChangeEvent } from 'react';
 import { generatePDF } from '../services/pdfService';
 import type { FormErrors, FormData, EmailResponse } from '../services/types';
 import { sendEmailWithPDF } from '../services/emailService';
+import { ApiResponse, submitProposal } from '../api/interventions';
 
 const BenefitsForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
@@ -268,6 +269,9 @@ const BenefitsForm: React.FC = () => {
   const [formTouched, setFormTouched] = useState<boolean>(false);
   const [emailStatus, setEmailStatus] = useState<EmailResponse | null>(null);
 
+  const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
+
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
@@ -293,19 +297,7 @@ const BenefitsForm: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-  //   const { name, value } = e.target;
-  //   setFormData(prev => ({ ...prev, [name]: value }));
-  //   setFormTouched(true);
 
-  //   if (errors[name]) {
-  //     setErrors(prev => {
-  //       const updated = {...prev};
-  //       delete updated[name];
-  //       return updated;
-  //     });
-  //   }
-  // };
 
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
@@ -346,21 +338,23 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 
 
 
+
+
+
 // const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
 //   e.preventDefault();
   
 //   const isValid = validateForm();
-  
+ 
 //   if (isValid) {
 //     setIsSubmitting(true);
     
 //     try {
-      
 //       const pdfBlob = await generatePDF(formData);
     
 //       const emailSuccess = await sendEmailWithPDF(formData, pdfBlob, {
-//         recipient: process.env.NEXT_PUBLIC_EMAIL_RECIPIENT || 'test@cema.africa', 
-//         from: formData.email,
+//         recipient: formData.email, 
+//         from: formData.email, 
 //         subject: `Benefit Package Intervention Proposal - ${formData.name}`,
 //         body: `Please find attached the Benefit Package Intervention Proposal submitted by ${formData.name} from ${formData.organization}.
 
@@ -375,11 +369,13 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 // - Type: ${formData.interventionType}
 // - Beneficiary: ${formData.beneficiary}
 // - Date: ${formData.date}
+// ${formData.additionalInfo ? `- Additional Information: ${formData.additionalInfo}` : ''}
 
 // The complete details including justification and expected impact are provided in the attached PDF.
+// ${formData.uploadedDocument ? 'A supporting document has also been attached.' : ''}
 
 // This is an automatically generated email. Please do not reply to this message.`
-//       });
+//       }, formData.uploadedDocument);
       
 //       if (emailSuccess) {
 //         setEmailStatus({
@@ -395,8 +391,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 //         });
 //       }
 //     } catch (error) {
- 
-      
 //       setEmailStatus({
 //         success: false,
 //         message: 'There was an error processing your submission.',
@@ -407,7 +401,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 //       setFormTouched(false);
 //     }
 //   } else {
-    
 //     const firstErrorField = Object.keys(errors)[0];
 //     const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
 //     if (errorElement) {
@@ -417,74 +410,44 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 // };
 
 
-
-const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
-  e.preventDefault();
-  
-  const isValid = validateForm();
- 
-  if (isValid) {
-    setIsSubmitting(true);
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
+    e.preventDefault();
     
-    try {
-      const pdfBlob = await generatePDF(formData);
-    
-      const emailSuccess = await sendEmailWithPDF(formData, pdfBlob, {
-        recipient: formData.email, 
-        from: formData.email, 
-        subject: `Benefit Package Intervention Proposal - ${formData.name}`,
-        body: `Please find attached the Benefit Package Intervention Proposal submitted by ${formData.name} from ${formData.organization}.
-
-Form Details:
-- Name: ${formData.name}
-- Phone: ${formData.phone}
-- Email: ${formData.email}
-- Profession: ${formData.profession}
-- Organization: ${formData.organization}
-- County: ${formData.county}
-- Intervention: ${formData.interventionName}
-- Type: ${formData.interventionType}
-- Beneficiary: ${formData.beneficiary}
-- Date: ${formData.date}
-${formData.additionalInfo ? `- Additional Information: ${formData.additionalInfo}` : ''}
-
-The complete details including justification and expected impact are provided in the attached PDF.
-${formData.uploadedDocument ? 'A supporting document has also been attached.' : ''}
-
-This is an automatically generated email. Please do not reply to this message.`
-      }, formData.uploadedDocument);
+    const isValid = validateForm();
+   
+    if (isValid) {
+      setIsSubmitting(true);
       
-      if (emailSuccess) {
-        setEmailStatus({
-          success: true,
-          message: `Your proposal has been successfully submitted. Thank you for your response.`
-        });
-        setSubmitted(true);
-      } else {
-        setEmailStatus({
+      try {
+        const response = await submitProposal(formData);
+        setApiResponse(response);
+        
+        if (response.success) {
+          setSubmitted(true);
+          // Optional: Store submission ID in localStorage for tracking
+          if (response.submission_id) {
+            localStorage.setItem('lastSubmissionId', response.submission_id);
+          }
+        }
+      } catch (error) {
+        setApiResponse({
           success: false,
-          message: 'Form submitted but there was an issue sending the email. Please try again or contact support.',
-          error: 'Email service error'
+          message: 'An unexpected error occurred. Please try again.',
+          error: error instanceof Error ? error.message : 'Unknown error'
         });
+      } finally {
+        setIsSubmitting(false);
+        setFormTouched(false);
       }
-    } catch (error) {
-      setEmailStatus({
-        success: false,
-        message: 'There was an error processing your submission.',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    } finally {
-      setIsSubmitting(false);
-      setFormTouched(false);
+    } else {
+      const firstErrorField = Object.keys(errors)[0];
+      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
-  } else {
-    const firstErrorField = Object.keys(errors)[0];
-    const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
-    if (errorElement) {
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
-};
+  };
+
 
   if (submitted) {
     return (

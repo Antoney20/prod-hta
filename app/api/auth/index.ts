@@ -18,36 +18,48 @@ interface DecodedToken {
   [key: string]: any;
 }
 
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  user?: {
-    id: string;
-    username: string;
-    email: string;
-    first_name?: string;
-    last_name?: string;
-    is_active: boolean;
-  };
-  tokens?: {
-    access: string;
-    refresh: string;
-  };
+export interface Member {
+  id: number | null;
+  position: string | null;
+  organization: string | null;
+  phone_number: string | null;
+  notes: string | null;
+  created_at: string | null;
+  is_profile_complete: boolean;
 }
 
 export interface User {
   id: string;
   username: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
+  first_name?: string | null;
+  last_name?: string | null;
   is_active: boolean;
+  groups: string[];
+  user_permissions: string[];
+  country: string | null;
+  is_staff: boolean;
+  is_superuser: boolean;
+  is_email_verified: boolean;
+  status: string;
+  is_blocked: boolean;
+  last_login: string;
+  member: Member;
 }
 
 export interface UserProfile extends User {
   profile_image?: string;
-  last_login?: string;
   date_joined?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  user?: User;
+  tokens?: {
+    access: string;
+    refresh: string;
+  };
 }
 
 // In-memory token storage as primary source
@@ -188,7 +200,13 @@ const refreshAccessToken = async (): Promise<string | null> => {
 export const fetchCurrentUser = async (): Promise<UserProfile | null> => {
   try {
     const response = await api.get('/v1/auth/user/me/');
-    return response.data;
+    
+    // Handle the response structure: {success: true, data: {...}, message: "..."}
+    if (response.data.success && response.data.data) {
+      return response.data.data as UserProfile;
+    }
+    
+    return response.data as UserProfile;
   } catch (error) {
     console.error('Failed to fetch current user:', error);
     return null;
@@ -235,7 +253,7 @@ export const logout = async (): Promise<void> => {
     
     if (typeof window !== 'undefined') {
       // Use router.push if using Next.js router, otherwise use window.location
-      window.location.href = '/v1/auth/login';
+      window.location.href = '/auth/login';
     }
   }
 };
@@ -272,8 +290,8 @@ api.interceptors.request.use(
       
       if (!token) {
         // Only redirect if we're in browser and not already on login page
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/v1/auth/login')) {
-          window.location.href = '/v1/auth/login';
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
         }
         return Promise.reject(new Error('Authentication failed'));
       }
@@ -306,8 +324,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } else {
         clearTokens();
-        if (typeof window !== 'undefined' && !window.location.pathname.includes('/v1/auth/login')) {
-          window.location.href = '/v1/auth/login';
+        if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
         }
       }
     }

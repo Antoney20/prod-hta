@@ -3,17 +3,18 @@
 import { ReactNode, useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { isAuthenticated, checkAndRefreshAuth, fetchCurrentUser, UserProfile } from '@/app/api/auth'
-
 import { toast } from 'react-toastify'
 import { useAuthContext } from './auth'
 
 export const globalUserStore = {
   userData: null as UserProfile | null,
   isLoaded: false,
+  isInitialized: false, // Track if we've done initial load
   
   setUserData: function(data: UserProfile | null) {
     this.userData = data
     this.isLoaded = true
+    this.isInitialized = true
     
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('global-user-update', { 
@@ -25,6 +26,7 @@ export const globalUserStore = {
   clearUserData: function() {
     this.userData = null
     this.isLoaded = false
+    this.isInitialized = true // We've still been initialized, just no user data
     
     // Dispatch event for other components to listen
     if (typeof window !== 'undefined') {
@@ -40,6 +42,10 @@ export const globalUserStore = {
   
   isUserLoaded: function(): boolean {
     return this.isLoaded
+  },
+
+  isStoreInitialized: function(): boolean {
+    return this.isInitialized
   }
 }
 
@@ -59,14 +65,14 @@ export default function AuthGuard({
   const router = useRouter()
   const pathname = usePathname()
   const { setUser } = useAuthContext()
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Start with false
   const [authorized, setAuthorized] = useState(false)
 
   const defaultLoadingComponent = (
     <div className="flex h-screen items-center justify-center bg-gray-50">
       <div className="flex flex-col items-center space-y-4">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-        <p className="text-gray-600 text-sm">Loading...</p>
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#27aae1] border-t-transparent"></div>
+        <p className="text-gray-600 text-sm">Initializing HBTAP Communications Hub...</p>
       </div>
     </div>
   )
@@ -74,7 +80,10 @@ export default function AuthGuard({
   useEffect(() => {
     async function checkAuthentication() {
       try {
-        setLoading(true)
+        // Only show loading if we haven't been initialized yet
+        if (!globalUserStore.isStoreInitialized()) {
+          setLoading(true)
+        }
         
         const isPublicPath = publicRoutes.some((route) => {
           if (route === "/" && pathname === "/") return true
@@ -85,7 +94,6 @@ export default function AuthGuard({
         // If on a public path, allow access
         if (isPublicPath) {
           setAuthorized(true)
-          setLoading(false)
           
           // Still try to load user data if authenticated (for navbar, etc.)
           if (isAuthenticated() && !globalUserStore.isUserLoaded()) {
@@ -94,12 +102,25 @@ export default function AuthGuard({
               if (userData) {
                 globalUserStore.setUserData(userData)
                 setUser(userData)
+              } else {
+                globalUserStore.clearUserData()
               }
             } catch (error) {
               console.error('Error fetching user data on public route:', error)
+              globalUserStore.clearUserData()
               // Don't show error toast on public routes
             }
+          } else if (!isAuthenticated()) {
+            // User is not authenticated on public route
+            globalUserStore.clearUserData()
+            setUser(null)
+          } else if (globalUserStore.isUserLoaded()) {
+            // User data already loaded, sync with context
+            const userData = globalUserStore.getUserData()
+            setUser(userData)
           }
+          
+          setLoading(false)
           return
         }
         
@@ -111,6 +132,7 @@ export default function AuthGuard({
           globalUserStore.clearUserData()
           setUser(null)
           setAuthorized(false)
+          setLoading(false)
           router.push(redirectTo)
           return
         }
@@ -133,11 +155,13 @@ export default function AuthGuard({
               router.push(redirectTo)
             }
           } catch (error) {
-
-            toast.error('Unexpected error occurred')
+            console.error('Error fetching user data:', error)
+            toast.error('Failed to load user information')
             
             globalUserStore.clearUserData()
             setUser(null)
+            setAuthorized(false)
+            router.push(redirectTo)
           }
         } else {
           // User data already loaded, sync with context
@@ -148,6 +172,7 @@ export default function AuthGuard({
         }
         
       } catch (error) {
+        console.error('Auth check error:', error)
         globalUserStore.clearUserData()
         setUser(null)
         setAuthorized(false)
@@ -197,18 +222,25 @@ export default function AuthGuard({
       }
     }
 
-    window.addEventListener('auth-change', handleAuthChange)
-    window.addEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+    // Only add listeners if we're in the browser
+    if (typeof window !== 'undefined') {
+      window.addEventListener('auth-change', handleAuthChange)
+      window.addEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+    }
     
     return () => {
-      window.removeEventListener('auth-change', handleAuthChange)
-      window.removeEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('auth-change', handleAuthChange)
+        window.removeEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+      }
     }
   }, [pathname, publicRoutes, router, redirectTo, setUser])
 
-  if (loading) {
+  // Only show loading for initial app load, not for subsequent navigation
+  if (loading && !globalUserStore.isStoreInitialized()) {
     return loadingComponent || defaultLoadingComponent
   }
+
   return authorized ? <>{children}</> : null
 }
 
@@ -220,16 +252,21 @@ export function useGlobalUser() {
       setUserData(event.detail.userData)
     }
 
-    window.addEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+    }
     
     return () => {
-      window.removeEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('global-user-update', handleGlobalUserUpdate as EventListener)
+      }
     }
   }, [])
 
   return {
     user: userData,
     isLoaded: globalUserStore.isUserLoaded(),
+    isInitialized: globalUserStore.isStoreInitialized(),
     setUser: (user: UserProfile | null) => {
       globalUserStore.setUserData(user)
     },

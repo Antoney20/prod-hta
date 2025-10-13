@@ -359,7 +359,7 @@ export default function AuthGuard({
     <div className="flex h-screen items-center justify-center bg-gray-50">
       <div className="flex flex-col items-center space-y-4">
         <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#27aae1] border-t-transparent"></div>
-        <p className="text-gray-600 text-sm">Initializing HBTAP Communications Hub...</p>
+        <p className="text-gray-600 text-sm">Initializing App.</p>
       </div>
     </div>
   )
@@ -390,7 +390,6 @@ export default function AuthGuard({
                 globalUserStore.clearUserData()
               }
             } catch (error) {
-              console.error('Error fetching user data on public route:', error)
               globalUserStore.clearUserData()
             }
           } else if (!isAuthenticated()) {
@@ -431,7 +430,6 @@ export default function AuthGuard({
               router.push(redirectTo)
             }
           } catch (error) {
-            console.error('Error fetching user data:', error)
             toast.error('Failed to load user information')
             
             globalUserStore.clearUserData()

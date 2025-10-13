@@ -511,7 +511,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Top Reviewers */}
-        <div className="bg-white border border-gray-200 rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow">
+        {/* <div className="bg-white border border-gray-200 rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <Users size={18} className="md:w-5 md:h-5" style={{ color: '#27aae1' }} />
@@ -533,7 +533,7 @@ const DashboardPage = () => {
               </div>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

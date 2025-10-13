@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import {
   Archive,
-  Bell,
   Calendar,
   ChevronDown,
   ChevronRight,
@@ -11,33 +10,36 @@ import {
   FolderOpen,
   HelpCircle,
   Home,
-  MessageSquare,
   PlusCircle,
   Settings,
   BarChart3,
   Users,
-  Vote,
-  Search,
-  Megaphone,
-  BookOpen,
   CheckSquare,
-  MessageCircle,
   Lightbulb,
   UserCheck,
+  Mail,
+  BookOpen,
+  Video,
+  Newspaper,
+  Grid,
   TrendingUp,
-  Mail
+  Gavel,
+  MessageSquare,
+  Target,
+  LayoutDashboard
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+
+import { UserProfile } from "@/app/api/auth";
 
 interface AsideProps {
   isOpen: boolean;
   onToggle: () => void;
-  user?: any;
+  user?: UserProfile | null;
 }
 
 interface NavItem {
@@ -61,35 +63,91 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
     );
   };
 
-  // Navigation structure based on HBTAP Communications Hub requirements
   const navigationItems: NavItem[] = [
     {
       title: "Dashboard",
-      href: "/coordinators",
+      href: "/portal",
       icon: <Home className="h-5 w-5" />,
     },
+{
+  title: "Interventions Tracker",
+  icon: <BarChart3 className="h-5 w-5" />,
+  children: [
+    { 
+      title: "Dashboard", 
+      href: "/portal/interventions", 
+      icon: <LayoutDashboard className="h-4 w-4" /> 
+    },
+    { 
+      title: "Submitted Proposals", 
+      href: "/portal/interventions/all-proposals", 
+      icon: <FileText className="h-4 w-4" /> 
+    },
+    { 
+      title: "Assign Categories", 
+      href: "/portal/interventions/categorization", 
+      icon: <Target className="h-4 w-4" /> 
+    },
+    { 
+      title: "Assign Reviewers", 
+      href: "/portal/interventions/assignment", 
+      icon: <Users className="h-4 w-4" /> 
+    },
+    { 
+      title: "Assigned to Me", 
+      href: "/portal/interventions/assigned-to-me", 
+      icon: <UserCheck className="h-4 w-4" /> 
+    },
+    { 
+      title: "Review Progress", 
+      href: "/portal/interventions/review", 
+      icon: <MessageSquare className="h-4 w-4" /> 
+    },
+    { 
+      title: "Decision Rationale", 
+      href: "/portal/interventions/decision-rationale", 
+      icon: <Gavel className="h-4 w-4" /> 
+    },
+    { 
+      title: "Implementation Status", 
+      href: "/portal/interventions/implementation", 
+      icon: <TrendingUp className="h-4 w-4" /> 
+    },
+    { 
+      title: "Reports & Analytics", 
+      href: "/portal/interventions/reports", 
+      icon: <BarChart3 className="h-4 w-4" /> 
+    }
+  ]
+},
+
     {
       title: "Records",
       icon: <Archive className="h-5 w-5" />,
       children: [
         { 
+          title: "All Records", 
+          href: "/portal/records", 
+          icon: <FileText className="h-4 w-4" /> 
+        },
+        { 
           title: "Meeting Minutes", 
-          href: "/coordinators/records/minutes", 
+          href: "/portal/records/minutes", 
           icon: <FileText className="h-4 w-4" /> 
         },
         { 
           title: "Official Communications", 
-          href: "/coordinators/records/communications", 
+          href: "/portal/records/official-comms", 
           icon: <Mail className="h-4 w-4" /> 
         },
         { 
           title: "Resolutions & Decisions", 
-          href: "/coordinators/records/resolutions", 
+          href: "/portal/records/decisions", 
           icon: <CheckSquare className="h-4 w-4" /> 
         },
         { 
           title: "Attendance Registers", 
-          href: "/coordinators/records/attendance", 
+          href: "/portal/records/attendance", 
           icon: <UserCheck className="h-4 w-4" /> 
         },
       ]
@@ -97,24 +155,27 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
     {
       title: "Calendar & Events",
       icon: <Calendar className="h-5 w-5" />,
-      badge: 3,
+
       children: [
         { 
-          title: "Upcoming Events", 
-          href: "/coordinators/events/upcoming", 
+          title: "All events", 
+          href: "/portal/events", 
           icon: <Calendar className="h-4 w-4" />,
-          badge: 2
+        },
+        { 
+          title: "Upcoming Events", 
+          href: "/portal/events/upcoming", 
+          icon: <Calendar className="h-4 w-4" />,
         },
         { 
           title: "Past Events", 
-          href: "/coordinators/events/past", 
+          href: "/portal/events/past", 
           icon: <Archive className="h-4 w-4" /> 
         },
         { 
           title: "Training Sessions", 
-          href: "/coordinators/events/training", 
+          href: "/portal/events/training", 
           icon: <BookOpen className="h-4 w-4" />,
-          badge: 1
         },
       ]
     },
@@ -123,111 +184,79 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
       icon: <FolderOpen className="h-5 w-5" />,
       children: [
         { 
-          title: "SHA Guidelines", 
-          href: "/coordinators/resources/guidelines", 
+          title: "All resources ", 
+          href: "/portal/resources", 
+          icon: <FileText className="h-4 w-4" /> 
+        },
+        { 
+          title: "SHA Guidelines ", 
+          href: "/portal/resources/guidelines", 
           icon: <FileText className="h-4 w-4" /> 
         },
         { 
           title: "Panel Mandate", 
-          href: "/coordinators/resources/mandate", 
+          href: "/portal/resources/panel-mandate", 
           icon: <FileText className="h-4 w-4" /> 
         },
         { 
           title: "Templates", 
-          href: "/coordinators/resources/templates", 
+          href: "/portal/resources/templates", 
           icon: <FileText className="h-4 w-4" /> 
         },
         { 
           title: "SOPs & Policies", 
-          href: "/coordinators/resources/policies", 
+          href: "/portal/resources/policy", 
           icon: <FileText className="h-4 w-4" /> 
         },
       ]
     },
-    // {
-    //   title: "Announcements",
-    //   href: "/coordinators/announcements",
-    //   icon: <Megaphone className="h-5 w-5" />,
-    //   badge: 5,
-    // },
     {
       title: "Member Directory",
-      href: "/coordinators/members",
+      href: "/portal/members",
       icon: <Users className="h-5 w-5" />,
     },
-    // {
-    //   title: "Discussion Forum",
-    //   icon: <MessageSquare className="h-5 w-5" />,
-    //   badge: 12,
-    //   children: [
-    //     { 
-    //       title: "General Discussion", 
-    //       href: "/coordinators/forum/general", 
-    //       icon: <MessageCircle className="h-4 w-4" />,
-    //       badge: 8
-    //     },
-    //     { 
-    //       title: "Policy Discussions", 
-    //       href: "/coordinators/forum/policy", 
-    //       icon: <MessageCircle className="h-4 w-4" />,
-    //       badge: 4
-    //     },
-    //     { 
-    //       title: "Polls & Votes", 
-    //       href: "/coordinators/forum/polls", 
-    //       icon: <Vote className="h-4 w-4" /> 
-    //     },
-    //   ]
-    // },
     {
       title: "Task Management",
       icon: <CheckSquare className="h-5 w-5" />,
-      badge: 7,
+   
       children: [
         { 
           title: "Task Tracker", 
-          href: "/coordinators/tasks/tracker", 
+          href: "/portal/tasks", 
           icon: <CheckSquare className="h-4 w-4" />,
-          badge: 5
-        },
-        { 
-          title: "My Assignments", 
-          href: "/coordinators/tasks/my-tasks", 
-          icon: <UserCheck className="h-4 w-4" />,
-          badge: 2
-        },
-        { 
-          title: "Progress Reports", 
-          href: "/coordinators/tasks/progress", 
-          icon: <TrendingUp className="h-4 w-4" /> 
+    
         },
       ]
     },
+
     {
-      title: "Interventions Tracker",
-      icon: <BarChart3 className="h-5 w-5" />,
-      badge: 3,
+      title: "Content Management",
+      icon: <FileText className="h-5 w-5" />,
       children: [
         { 
-          title: "Proposal Dashboard", 
-          href: "/coordinators/interventions/dashboard", 
-          icon: <BarChart3 className="h-4 w-4" /> 
+          title: "Overview", 
+          href: "/portal/content", 
+          icon: <Grid className="h-4 w-4" /> 
         },
         { 
-          title: "Submit Proposal", 
-          href: "/coordinators/interventions/submit", 
-          icon: <PlusCircle className="h-4 w-4" /> 
+          title: "FAQs", 
+          href: "/portal/content/faqs", 
+          icon: <HelpCircle className="h-4 w-4" /> 
         },
         { 
-          title: "Review & Status", 
-          href: "/coordinators/interventions/review", 
-          icon: <CheckSquare className="h-4 w-4" />,
-          badge: 3
+          title: "News Articles", 
+          href: "/portal/content/news", 
+          icon: <Newspaper className="h-4 w-4" /> 
         },
         { 
-          title: "Implementation Status", 
-          href: "/coordinators/interventions/implementation", 
-          icon: <TrendingUp className="h-4 w-4" /> 
+          title: "Governance", 
+          href: "/portal/content/team", 
+          icon: <Users className="h-4 w-4" /> 
+        },
+        { 
+          title: "Media Resources", 
+          href: "/portal/content/media", 
+          icon: <Video className="h-4 w-4" /> 
         },
       ]
     },
@@ -236,29 +265,90 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
   const bottomNavigationItems: NavItem[] = [
     {
       title: "FAQ & Onboarding",
-      href: "/coordinators/faq",
+      href: "/portal/on-boarding",
       icon: <HelpCircle className="h-5 w-5" />,
     },
     {
       title: "Feedback Box",
-      href: "/coordinators/feedback",
+      href: "/portal/feedback",
       icon: <Lightbulb className="h-5 w-5" />,
     },
     {
       title: "Settings",
-      href: "/coordinators/settings",
+      href: "/portal/settings",
       icon: <Settings className="h-5 w-5" />,
     },
   ];
 
+  // Get user's full name
+  const getUserFullName = () => {
+    const firstName = user?.first_name || user?.member?.user?.first_name;
+    const lastName = user?.last_name || user?.member?.user?.last_name;
+    
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    }
+    if (firstName) {
+      return firstName;
+    }
+    return user?.username || 'HBTAP Member';
+  };
+
+  // Get user's email
+  const getUserEmail = () => {
+    return user?.email || user?.member?.user?.email || '';
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    const firstName = user?.first_name || user?.member?.user?.first_name;
+    const lastName = user?.last_name || user?.member?.user?.last_name;
+    const username = user?.username;
+    const email = user?.email || user?.member?.user?.email;
+
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (firstName) {
+      return firstName[0].toUpperCase();
+    }
+    if (username) {
+      return username[0].toUpperCase();
+    }
+    if (email) {
+      return email[0].toUpperCase();
+    }
+    return 'M';
+  };
+
+  // Get user role
+  const getUserRole = () => {
+    if (user?.is_superuser) return 'Super Admin';
+    if (user?.is_staff) return 'Staff';
+    return user?.member?.position || 'Member';
+  };
+
+  const fullName = getUserFullName();
+  const userEmail = getUserEmail();
+  const userInitials = getUserInitials();
+  const userRole = getUserRole();
+
   const filterByRole = (items: NavItem[]): NavItem[] => {
+    const currentUserRole = getUserRole();
     return items.filter(item => {
-      if (!item.roles || !user?.role) return true;
-      return item.roles.includes(user.role);
+      if (!item.roles) return true;
+      return item.roles.includes(currentUserRole);
     });
   };
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
+  const isActive = (href: string) => {
+    // For exact path matching
+    if (pathname === href) return true;
+    
+    if (href === '/portal' && pathname !== '/portal') return false;
+    
+    return false;
+  };
 
   const renderNavItem = (item: NavItem, level: number = 0) => {
     const hasChildren = item.children && item.children.length > 0;
@@ -271,11 +361,11 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
           <Link
             href={item.href}
             className={cn(
-              "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
-              level > 0 ? "ml-4 pl-8" : "",
+              "flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
+              level > 0 ? "ml-4 mr-2 pl-4" : "mr-6",
               itemActive 
                 ? "bg-[#27aae1] text-white shadow-md" 
-                : "text-gray-700 hover:bg-gray-100 hover:text-[#27aae1]"
+                : "text-gray-700 bg-gray-100 hover:text-[#27aae1]"
             )}
           >
             <span className="flex-shrink-0">{item.icon}</span>
@@ -301,7 +391,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
             onClick={() => hasChildren && toggleExpanded(item.title)}
             className={cn(
               "w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 text-gray-700 hover:bg-gray-100 hover:text-[#27aae1]",
-              level > 0 ? "ml-4 pl-8" : ""
+              level > 0 ? " pl-8" : "mr-6"
             )}
           >
             <span className="flex-shrink-0">{item.icon}</span>
@@ -347,15 +437,14 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
 
       <aside
         className={cn(
-          "fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-50 flex flex-col",
-          isOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full lg:w-16 lg:translate-x-0"
+          "fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white transition-all duration-300 ease-in-out z-50 flex flex-col overflow-hidden",
+          isOpen ? "w-64 translate-x-0 border-r-1 " : "w-0 -translate-x-full border-none lg:w-16 lg:translate-x-0 lg:border-r-2 "
         )}
       >
         <div className="flex-1 overflow-y-auto py-4 px-3">
           <div className="space-y-1">
             {filterByRole(navigationItems).map(item => renderNavItem(item))}
           </div>
-
 
           <Separator className="my-4" />
 
@@ -369,15 +458,15 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-full bg-[#27aae1]/20 flex items-center justify-center flex-shrink-0">
                 <span className="text-xs font-semibold text-[#27aae1]">
-                  {user.first_name?.[0] || user.email?.[0] || 'M'}
+                  {userInitials}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {user.first_name ? `${user.first_name} ${user.last_name}` : 'HBTAP Member'}
+                  {fullName}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {user.role || 'Member'}
+                  {userRole}
                 </p>
               </div>
             </div>

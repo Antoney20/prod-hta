@@ -145,6 +145,7 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* Remember me and Forgot password */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -160,7 +161,7 @@ export default function LoginPage() {
 
               <div className="text-sm">
                 <a
-                  href="#"
+                  href="/auth/forgot-password"
                   className="font-medium text-[#27aae1] hover:text-[#fe7105] transition-colors duration-200"
                 >
                   Forgot your password?
@@ -168,7 +169,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -188,6 +189,7 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Divider */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -199,6 +201,7 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Register Link */}
           <div className="mt-6 text-center">
             <a
               href="/auth/register"
@@ -208,6 +211,8 @@ export default function LoginPage() {
             </a>
           </div>
         </div>
+
+        {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
             By signing in, you agree to our{' '}

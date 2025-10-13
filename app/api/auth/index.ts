@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const API_URL = process.env.API_URL || API_BASE_URL;
 
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -47,10 +48,54 @@ export interface User {
   member: Member;
 }
 
+
+
+export interface Member {
+  id: number | null;
+  position: string | null;
+  organization: string | null;
+  phone_number: string | null;
+  notes: string | null;
+  created_at: string | null;
+  is_profile_complete: boolean;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    profile_image: string | null;
+    country: string | null;
+    status: string;
+    is_email_verified: boolean;
+  };
+}
+
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active: boolean;
+  groups: string[];
+  user_permissions: string[];
+  country: string | null;
+  is_staff: boolean;
+  is_superuser: boolean;
+  is_email_verified: boolean;
+  status: string;
+  is_blocked: boolean;
+  last_login: string;
+  member: Member;
+}
+
 export interface UserProfile extends User {
   profile_image?: string;
   date_joined?: string;
+  member: Member;
 }
+
 
 export interface AuthResponse {
   success: boolean;
@@ -60,6 +105,26 @@ export interface AuthResponse {
     access: string;
     refresh: string;
   };
+  errors?: any;
+}
+
+// ==================== REGISTRATION TYPES ====================
+export interface RegisterUserData {
+  username: string;
+  email: string;
+  password: string;
+  password_confirm: string;
+  first_name: string;
+  last_name: string;
+  country: string;
+  profile_image?: File | null;
+}
+
+export interface RegisterMemberData {
+  position: string;
+  organization: string;
+  phone_number: string;
+  notes: string;
 }
 
 // In-memory token storage as primary source
@@ -190,7 +255,6 @@ const refreshAccessToken = async (): Promise<string | null> => {
     }
     return null;
   } catch (error) {
-    console.error('Token refresh failed:', error);
     clearTokens();
     return null;
   }
@@ -201,7 +265,6 @@ export const fetchCurrentUser = async (): Promise<UserProfile | null> => {
   try {
     const response = await api.get('/v1/auth/user/me/');
     
-    // Handle the response structure: {success: true, data: {...}, message: "..."}
     if (response.data.success && response.data.data) {
       return response.data.data as UserProfile;
     }
@@ -237,6 +300,132 @@ export const login = async (usernameOrEmail: string, password: string): Promise<
   }
 };
 
+// ==================== REGISTRATION FUNCTIONS (NEW) ====================
+
+
+/**
+ * Register new user with combined user + member data
+ */
+export const registerUser = async (
+  userData: RegisterUserData,
+  memberData?: RegisterMemberData,
+  profileImage?: File | null
+): Promise<AuthResponse> => {
+  try {
+    const combinedData = memberData ? { ...userData, ...memberData } : userData;
+
+    const formData = new FormData();
+    
+    Object.entries(combinedData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') { 
+        formData.append(key, String(value));
+      }
+    });
+    
+    if (profileImage instanceof File) {
+      formData.append('profile_image', profileImage);
+    }
+
+    const response = await api.post('/v1/auth/register/', formData, {
+      headers: {
+        'Content-Type': undefined, 
+      },
+    });
+
+    const data = response.data as AuthResponse;
+
+    if (data.success && data.tokens) {
+      setTokens(data.tokens.access, data.tokens.refresh);
+    }
+
+    return data;
+  } catch (error: any) {
+
+    if (error?.response?.status === 400) {
+      return {
+        success: false,
+        message: 'Validation failed',
+        errors: error.response.data.errors || error.response.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: error?.response?.data?.message || 'Registration failed. Please try again.',
+      errors: error?.response?.data?.errors,
+    };
+  }
+};
+
+/**
+ * Complete member profile after registration
+ */
+export const completeMemberProfile = async (data: RegisterMemberData): Promise<AuthResponse> => {
+  try {
+    const response = await api.post('/v2/users/profile/complete/', data);
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || 'Failed to complete profile',
+      errors: error?.response?.data?.errors,
+    };
+  }
+};
+
+/**
+ * Request password reset - sends email with reset link
+ */
+export const requestPasswordReset = async (emailOrUsername: string) => {
+  try {
+    const response = await api.post('/v1/auth/password-reset/', {
+      email_or_username: emailOrUsername
+    });
+
+    return {
+      success: true,
+      message: response.data.message
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || 'Failed to send reset email. Please try again.'
+    };
+  }
+};
+
+/**
+ * Confirm password reset with token
+ */
+export const confirmPasswordReset = async (
+  uid: string,
+  token: string,
+  newPassword: string,
+  confirmPassword: string
+) => {
+  try {
+    const response = await api.post('/v1/auth/password-reset/confirm/', {
+      uid,
+      token,
+      new_password: newPassword,
+      confirm_password: confirmPassword
+    });
+
+    return {
+      success: true,
+      message: response.data.message
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || 'Failed to reset password. Please try again.'
+    };
+  }
+};
+
+
+
+
 export const logout = async (): Promise<void> => {
   try {
     const token = getAccessToken();
@@ -247,7 +436,6 @@ export const logout = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('Logout error:', error);
-    // Continue with cleanup even if server request fails
   } finally {
     clearTokens();
     
@@ -289,7 +477,6 @@ api.interceptors.request.use(
       token = await refreshAccessToken();
       
       if (!token) {
-        // Only redirect if we're in browser and not already on login page
         if (typeof window !== 'undefined' && !window.location.pathname.includes('/auth/login')) {
           window.location.href = '/auth/login';
         }
@@ -357,6 +544,21 @@ export const useAuth = () => {
     
     return data;
   };
+
+  // Enhanced register for React components
+  const reactRegister = async (
+    userData: RegisterUserData,
+    memberData?: RegisterMemberData
+  ): Promise<AuthResponse> => {
+    const data = await registerUser(userData, memberData);
+    syncTokensToState();
+    
+    if (data.success && data.user) {
+      setUser(data.user);
+    }
+    
+    return data;
+  };
   
   // Enhanced logout for React components
   const reactLogout = async (): Promise<void> => {
@@ -415,6 +617,7 @@ export const useAuth = () => {
     isAuthenticated: !!accessToken && isTokenValid(accessToken),
     isLoading,
     login: reactLogin,
+    register: reactRegister,
     logout: reactLogout,
     refreshAuth: async (): Promise<boolean> => {
       const newToken = await refreshAccessToken();
@@ -438,3 +641,23 @@ export const useAuth = () => {
 };
 
 export default api;
+
+export const getAccessTokenForWebSocket = (): string | null => {
+  if (memoryAccessToken && isTokenValid(memoryAccessToken)) {
+    return memoryAccessToken;
+  }
+  
+  const cookieToken = getCookie('access_token_backup');
+  if (cookieToken && isTokenValid(cookieToken)) {
+    memoryAccessToken = cookieToken;
+    return cookieToken;
+  }
+  
+  // Clean up invalid token
+  if (cookieToken) {
+    removeCookie('access_token_backup');
+  }
+  memoryAccessToken = null;
+  
+  return null;
+};

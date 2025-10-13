@@ -312,12 +312,7 @@ export default function Footer() {
                   News & Updates
                 </Link>
               </li>
-              <li>
-                <Link href="/media-center" className="text-white hover:font-bold transition-all duration-300 flex items-center group text-base">
-                  <ArrowUpRight size={14} className="mr-3 text-[#27aae1] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
-                  Media Center
-                </Link>
-              </li>
+             
             </ul>
           </div>
 
@@ -389,13 +384,14 @@ export default function Footer() {
                   />
                   <button
                     type="submit"
+                    aria-label={isSubmitting ? "Submitting form" : "Send form"}
                     className="bg-gradient-to-r from-[#27aae1] to-[#1e8a99] hover:from-[#1e8a99] hover:to-[#27aae1] px-6 py-3 text-white transition-all duration-300 flex items-center justify-center disabled:opacity-50 hover:shadow-lg"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
                     ) : (
-                      <Send size={18} />
+                      <Send size={18}  aria-hidden="true" />
                     )}
                   </button>
                 </div>

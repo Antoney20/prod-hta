@@ -190,35 +190,31 @@ export default function CoordinatorsLayout({ children }: { children: React.React
           isSidebarOpen={isSidebarOpen} 
           onSidebarToggle={handleSidebarToggle} 
         />
-        
+
         <div className="flex flex-1 pt-16">
           <Aside 
             isOpen={isSidebarOpen} 
             onToggle={handleSidebarToggle} 
             user={user}
           />
-          
-          <main 
+
+          <main
             className={cn(
               "flex-1 transition-all duration-300 ease-in-out overflow-x-hidden",
-              "lg:ml-0",
               isSidebarOpen && "lg:ml-64",
               "w-full"
             )}
           >
-            <div className="min-h-full bg-white">
-              <div className="p-4 sm:p-6 lg:p-8">
-                <div className="mx-auto max-w-7xl">
-                  {children}
-                </div>
-              </div>
+            <div className="min-h-full bg-white px-0 py-4 lg:px-4 xl:px-6">
+
+              {children}
             </div>
           </main>
         </div>
-        
+
         <ToastContainer
           position="top-right"
-          autoClose={5000}
+          autoClose={4000}
           hideProgressBar={false}
           newestOnTop
           closeOnClick
@@ -231,5 +227,6 @@ export default function CoordinatorsLayout({ children }: { children: React.React
         />
       </div>
     </AuthGuard>
+
   );
 }

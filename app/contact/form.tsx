@@ -1,45 +1,75 @@
 'use client'
 
 import React, { useState } from 'react'
-import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { 
-  ArrowRight, 
-  ExternalLink, 
-  Mail, 
-  MapPin, 
-  Phone, 
-  Twitter, 
-  Linkedin, 
-  Youtube,
-  Send,
-  CheckCircle
-} from 'lucide-react'
+import { Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
 import CTA from '../components/home/cta'
 import ContactFormSection from './contactF'
+import { subscribeToNewsletter } from '../api/newsletter'
 
 
 export default function ContactClient() {
   const [email, setEmail] = useState('')
   const [isSubscribing, setIsSubscribing] = useState(false)
-  const [subscriptionMessage, setSubscriptionMessage] = useState('')
+  const [subscriptionStatus, setSubscriptionStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' })
 
-  const handleSubscribe = (e: { preventDefault: () => void }) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubscribing(true)
     
-    setTimeout(() => {
-      setIsSubscribing(false)
-      setSubscriptionMessage('Thank you for subscribing to our newsletter!')
-      setEmail('')
+    if (!email.trim()) {
+      setSubscriptionStatus({
+        type: 'error',
+        message: 'Please enter a valid email address.'
+      })
+      return
+    }
+    
+    setIsSubscribing(true)
+    setSubscriptionStatus({ type: null, message: '' })
+    
+    try {
+      const result = await subscribeToNewsletter({ email })
+      
+      if (result.success) {
+        setSubscriptionStatus({
+          type: 'success',
+          message: result.message
+        })
+        setEmail('')
+        
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          setSubscriptionStatus({ type: null, message: '' })
+        }, 5000)
+      } else {
+        setSubscriptionStatus({
+          type: 'error',
+          message: result.message
+        })
+        
+        // Clear error after 5 seconds
+        setTimeout(() => {
+          setSubscriptionStatus({ type: null, message: '' })
+        }, 5000)
+      }
+    } catch (error) {
+      setSubscriptionStatus({
+        type: 'error',
+        message: 'An unexpected error occurred. Please try again.'
+      })
       
       setTimeout(() => {
-        setSubscriptionMessage('')
+        setSubscriptionStatus({ type: null, message: '' })
       }, 5000)
-    }, 1000)
+    } finally {
+      setIsSubscribing(false)
+    }
   }
 
   return (
@@ -52,7 +82,7 @@ export default function ContactClient() {
         email={email}
         setEmail={setEmail}
         isSubscribing={isSubscribing}
-        subscriptionMessage={subscriptionMessage}
+        subscriptionStatus={subscriptionStatus}
         handleSubscribe={handleSubscribe}
       />
       <Footer />
@@ -97,147 +127,24 @@ function HeroSection() {
   )
 }
 
-// function ContactFormSection() {
-//   const [formData, setFormData] = useState({
-//     fullName: '',
-//     email: '',
-//     organization: '',
-//     subject: '',
-//     message: ''
-//   })
-
-//   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-//     setFormData({
-//       ...formData,
-//       [e.target.name]: e.target.value
-//     })
-//   }
-
-//   const handleSubmit = (e: React.FormEvent) => {
-//     e.preventDefault()
-//   }
-
-//   return (
-//     <section className="py-16 md:py-24">
-//       <div className="container mx-auto px-4 max-w-7xl">
-//         <div className="grid grid-cols-1 gap-12">
-       
-//           <motion.div 
-//             initial={{ opacity: 0, x: -30 }}
-//             whileInView={{ opacity: 1, x: 0 }}
-//             transition={{ duration: 0.5 }}
-//             viewport={{ once: true }}
-//             className="bg-white p-8 rounded-xl shadow-lg border border-gray-100"
-//           >
-//             <h3 className="text-2xl font-bold mb-6 text-[#020e3c]">Send Us a Message</h3>
-//             <p className="text-gray-600 mb-8">
-//               Fill out the form below and our team will respond as soon as possible.
-//             </p>
-            
-//             <form onSubmit={handleSubmit} className="space-y-6">
-//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-//                 <div>
-//                   <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-//                     Full Name *
-//                   </label>
-//                   <input
-//                     type="text"
-//                     id="fullName"
-//                     name="fullName"
-//                     value={formData.fullName}
-//                     onChange={handleChange}
-//                     required
-//                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
-//                     placeholder="Your name"
-//                   />
-//                 </div>
-//                 <div>
-//                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-//                     Email Address *
-//                   </label>
-//                   <input
-//                     type="email"
-//                     id="email"
-//                     name="email"
-//                     value={formData.email}
-//                     onChange={handleChange}
-//                     required
-//                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
-//                     placeholder="Your email"
-//                   />
-//                 </div>
-//               </div>
-              
-//               <div>
-//                 <label htmlFor="organization" className="block text-sm font-medium text-gray-700 mb-1">
-//                   Organization
-//                 </label>
-//                 <input
-//                   type="text"
-//                   id="organization"
-//                   name="organization"
-//                   value={formData.organization}
-//                   onChange={handleChange}
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
-//                   placeholder="Your organization (optional)"
-//                 />
-//               </div>
-              
-//               <div>
-//                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-//                   Subject *
-//                 </label>
-//                 <input
-//                   type="text"
-//                   id="subject"
-//                   name="subject"
-//                   value={formData.subject}
-//                   onChange={handleChange}
-//                   required
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition"
-//                   placeholder="What can we help you with?"
-//                 />
-//               </div>
-              
-//               <div>
-//                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-//                   Message *
-//                 </label>
-//                 <textarea
-//                   id="message"
-//                   name="message"
-//                   value={formData.message}
-//                   onChange={handleChange}
-//                   rows={5}
-//                   required
-//                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#1338BE] focus:border-[#1338BE] outline-none transition resize-none"
-//                   placeholder="Tell us more about your inquiry..."
-//                 ></textarea>
-//               </div>
-              
-//               <Button type="submit" className="w-full bg-[#1d8fc3] text-white py-3">
-//                 Send Message <ArrowRight className="ml-2 h-4 w-4" />
-//               </Button>
-//             </form>
-//           </motion.div>
-
-
-//         </div>
-//       </div>
-//     </section>
-//   )
-// }
-
-
 interface SubscribeSectionProps {
   email: string
   setEmail: (email: string) => void
   isSubscribing: boolean
-  subscriptionMessage: string
+  subscriptionStatus: {
+    type: 'success' | 'error' | null;
+    message: string;
+  }
   handleSubscribe: (e: React.FormEvent) => void
 }
 
-function SubscribeSection({ email, setEmail, isSubscribing, subscriptionMessage, handleSubscribe }: SubscribeSectionProps) {
+function SubscribeSection({ 
+  email, 
+  setEmail, 
+  isSubscribing, 
+  subscriptionStatus, 
+  handleSubscribe 
+}: SubscribeSectionProps) {
   return (
     <section className="py-16 md:py-24 bg-[#63C5DA] text-black">
       <div className="container mx-auto px-4 max-w-4xl text-center">
@@ -256,15 +163,19 @@ function SubscribeSection({ email, setEmail, isSubscribing, subscriptionMessage,
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               required
-              className="flex-1 px-4 py-3 border  border-[#020e3c] rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
+              disabled={isSubscribing}
+              className="flex-1 px-4 py-3 border border-[#020e3c] rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-white disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
             <Button 
               type="submit" 
               disabled={isSubscribing}
-              className="bg-white text-[#020e3c] hover:bg-gray-100 px-10 py-6 mt-1 rounded-md font-semibold"
+              className="bg-white text-[#020e3c] hover:bg-gray-100 px-10 py-6 mt-1 rounded-md font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
               {isSubscribing ? (
-                <>Subscribing...</>
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#020e3c] mr-2"></div>
+                  Subscribing...
+                </>
               ) : (
                 <>
                   Subscribe <Send className="ml-2 h-6 w-6" />
@@ -273,14 +184,22 @@ function SubscribeSection({ email, setEmail, isSubscribing, subscriptionMessage,
             </Button>
           </div>
           
-          {subscriptionMessage && (
+          {subscriptionStatus.type && (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-4 flex items-center justify-center text-green-400"
+              className={`mt-4 p-3 rounded-md flex items-center justify-center ${
+                subscriptionStatus.type === 'success'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}
             >
-              <CheckCircle className="h-5 w-5 mr-2" />
-              {subscriptionMessage}
+              {subscriptionStatus.type === 'success' ? (
+                <CheckCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+              ) : (
+                <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+              )}
+              <span>{subscriptionStatus.message}</span>
             </motion.div>
           )}
         </form>

@@ -413,12 +413,12 @@ export default function TeamClient() {
         {/* Panel Members Section */}
         <section id="panel-members" className="py-20 md:py-28">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionHeader
+            {/* <SectionHeader
               icon={Users}
               label="Leadership Circle"
               title="Benefits Package and Tariffs Advisory Panel"
               count={panelMembers.length}
-            />
+            /> */}
 
             {loading ? (
               <LoadingSkeleton count={8} />
@@ -485,13 +485,13 @@ export default function TeamClient() {
         {/* Secretariat Section */}
         <section className="py-20 md:py-28 bg-gradient-to-b from-white to-gray-50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <SectionHeader
+            {/* <SectionHeader
               icon={Building2}
               label="Support Network"
               title="Joint Secretariat"
-              subtitle={`${secretariatMembers.length} seasoned professionals delivering seamless technical and administrative excellence`}
-              count={secretariatMembers.length}
-            />
+              // subtitle={`${secretariatMembers.length} seasoned professionals delivering seamless technical and administrative excellence`}
+              // count={secretariatMembers.length}
+            /> */}
 
             {loading ? (
               <LoadingSkeleton count={6} />
@@ -503,7 +503,6 @@ export default function TeamClient() {
               </div>
             )}
 
-            {/* Secretariat Mandate - Always Visible */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}

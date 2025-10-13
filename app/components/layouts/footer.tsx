@@ -202,33 +202,303 @@
 //       </div>
 //     </footer>
 //   )
+// // }
+
+// 'use client'
+
+// import { ArrowUpRight, Linkedin, Mail, MapPin, Phone, Twitter, Send, Youtube } from 'lucide-react'
+// import Link from 'next/link'
+// import { useState } from 'react'
+// import Image from 'next/image'
+
+// export default function Footer() {
+//   const [email, setEmail] = useState('')
+//   const [isSubmitting, setIsSubmitting] = useState(false)
+//   const [subscriptionMessage, setSubscriptionMessage] = useState('')
+
+//   const handleSubscribe = (e: { preventDefault: () => void }) => {
+//     e.preventDefault()
+//     setIsSubmitting(true)
+    
+//     setTimeout(() => {
+//       setIsSubmitting(false)
+//       setSubscriptionMessage('Thank you for subscribing to our newsletter!')
+//       setEmail('')
+      
+//       setTimeout(() => {
+//         setSubscriptionMessage('')
+//       }, 5000)
+//     }, 1000)
+//   }
+
+//   return (
+//     <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white pt-16 pb-8 relative overflow-hidden" aria-labelledby="footer-heading">
+    
+//       <h2 id="footer-heading" className="sr-only">Footer</h2>
+//       <div className="container mx-auto px-4 base:px-6 lg:px-8 relative">
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-12 border-b border-slate-700/50">
+
+//           <div className="lg:col-span-3 mb-10 lg:mb-0">
+           
+            
+//             <div className="mb-6">
+//               <h3 className="text-xl font-bold text-white mb-2">
+//                 The Benefits Package and Tariffs Advisory Panel
+//               </h3>
+//               <p className="text-white text-lg italic leading-relaxed">
+//                 Towards advancing Universal Health Coverage
+//               </p>
+//             </div>
+            
+//             <div className="flex space-x-4">
+//               <a
+//                 href="#"
+//                 target="_blank"
+//                 rel="noopener noreferrer"
+//                 className="w-10 h-10 bg-slate-700/50 hover:bg-[#27aae1] rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg"
+//                 aria-label="Follow on Twitter"
+//               >
+//                 <Twitter size={18} />
+//               </a> 
+//               <a
+//                 href="#"
+//                 target="_blank"
+//                 rel="noopener noreferrer"
+//                 className="w-10 h-10 bg-slate-700/50 hover:bg-[#27aae1] rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg"
+//                 aria-label="Connect on LinkedIn"
+//               >
+//                 <Linkedin size={18} />
+//               </a>
+//               <a
+//                 href="#"
+//                 target="_blank"
+//                 rel="noopener noreferrer"
+//                 className="w-10 h-10 bg-slate-700/50 hover:bg-[#27aae1] rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg"
+//                 aria-label="Follow on YouTube"
+//               >
+//                 <Youtube size={18} />
+//               </a>
+//             </div>
+//           </div>
+
+        
+//           <div className="lg:col-span-3 mb-8 lg:mb-0">
+//             <h3 className="text-lg font-semibold mb-6 text-white flex items-center">
+              
+//               Quick Links
+//             </h3>
+//             <ul className="space-y-3" aria-label="Quick navigation links">
+//               <li>
+//                 <Link href="/about-us" className="text-white hover:font-bold transition-all duration-300 flex items-center group text-base">
+//                   <ArrowUpRight size={14} className="mr-3 text-[#27aae1] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+//                   About Us
+//                 </Link>
+//               </li>
+//               <li>
+//                 <Link href="/governance" className="text-white hover:font-bold transition-all duration-300 flex items-center group text-base">
+//                   <ArrowUpRight size={14} className="mr-3 text-[#27aae1] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+//                   Governance
+//                 </Link>
+//               </li>
+//               <li>
+//                 <Link href="/resources" className="text-white hover:font-bold transition-all duration-300 flex items-center group text-base">
+//                   <ArrowUpRight size={14} className="mr-3 text-[#27aae1] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+//                   Resources
+//                 </Link>
+//               </li>
+//               <li>
+//                 <Link href="/news" className="text-white hover:font-bold transition-all duration-300 flex items-center group text-base">
+//                   <ArrowUpRight size={14} className="mr-3 text-[#27aae1] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+//                   News & Updates
+//                 </Link>
+//               </li>
+             
+//             </ul>
+//           </div>
+
+//           <div className="lg:col-span-3 mb-8 lg:mb-0">
+//             <h3 className="text-lg font-semibold mb-6 text-white flex items-center">
+//               Contact Us
+//             </h3>
+//             <ul className="space-y-4" aria-label="Contact information">
+//               <li className="flex items-start group">
+//                 <div className="w-8 h-8 bg-slate-700/50 rounded-lg flex items-center justify-center mr-3 mt-0.5 group-hover:bg-[#27aae1]/20 transition-colors">
+//                   <MapPin size={16} className="text-[#27aae1]" />
+//                 </div>
+//                 <div>
+//                   <p className="text-white text-base leading-relaxed">
+//                     The Benefits Package and Tariffs Advisory Panel<br />
+//                     <span className="">The University of Nairobi</span><br />
+//                     <span className="">Nairobi, Kenya</span>
+//                   </p>
+//                 </div>
+//               </li>
+//               <li className="flex items-center group">
+//                 <div className="w-8 h-8 bg-slate-700/50 rounded-lg flex items-center justify-center mr-3 group-hover:bg-[#27aae1]/20 transition-colors">
+//                   <Mail size={16} className="text-[#27aae1]" />
+//                 </div>
+//                 <a href="mailto:hbtap@uonbi.ac.ke" className="text-white text-base hover:font-bold transition-colors duration-300">
+//                   hbtap@uonbi.ac.ke
+//                 </a>
+//               </li>
+//               <li className="flex items-center group">
+//                 <div className="w-8 h-8 bg-slate-700/50 rounded-lg flex items-center justify-center mr-3 group-hover:bg-[#27aae1]/20 transition-colors">
+//                   <Phone size={16} className="text-[#27aae1]" />
+//                 </div>
+//                 <span className="text-base">
+//                   Coming soon
+//                 </span>
+//               </li>
+//             </ul>
+//             <div className="mt-6">
+//               <Link href="/contact" className="inline-flex items-center text-[#27aae1] hover:font-bold transition-colors duration-300 text-base group">
+//                 <ArrowUpRight size={14} className="mr-2 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+//                 Have questions? Reach out to us
+//               </Link>
+//             </div>
+//           </div>
+
+//           <div className="lg:col-span-3">
+//             <h3 className="text-lg font-semibold mb-6 text-white flex items-center">
+             
+//               Newsletter
+//             </h3>
+//             <p className="text-white text-base mb-6 leading-relaxed">
+//               Stay updated with the latest news, updates, and events from our health initiatives.
+//             </p>
+            
+//             <form onSubmit={handleSubscribe} className="space-y-4">
+//               <div className="relative">
+//                 <label htmlFor="email-address" className="sr-only">Email address</label>
+//                 <div className="flex rounded-xl overflow-hidden shadow-lg">
+//                   <input
+//                     id="email-address"
+//                     name="email"
+//                     type="email"
+//                     autoComplete="email"
+//                     required
+//                     className="flex-1 bg-slate-700/50 border-0 py-3 px-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#27aae1] focus:outline-none backdrop-blur-base"
+//                     placeholder="Enter your email"
+//                     value={email}
+//                     onChange={(e) => setEmail(e.target.value)}
+//                   />
+//                   <button
+//                     type="submit"
+//                     aria-label={isSubmitting ? "Submitting form" : "Send form"}
+//                     className="bg-gradient-to-r from-[#27aae1] to-[#1e8a99] hover:from-[#1e8a99] hover:to-[#27aae1] px-6 py-3 text-white transition-all duration-300 flex items-center justify-center disabled:opacity-50 hover:shadow-lg"
+//                     disabled={isSubmitting}
+//                   >
+//                     {isSubmitting ? (
+//                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
+//                     ) : (
+//                       <Send size={18}  aria-hidden="true" />
+//                     )}
+//                   </button>
+//                 </div>
+//               </div>
+              
+//               {subscriptionMessage && (
+//                 <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+//                   <p className="text-green-300 text-base">{subscriptionMessage}</p>
+//                 </div>
+//               )}
+              
+//               <p className=" text-md leading-relaxed">
+//                 You will receive regular updates about our work and can unsubscribe at any time by clicking the unsubscribe link in each email, or by contacting{' '}
+//                 <a href="mailto:hbtap@uonbi.ac.ke" className="text-[#27aae1] hover:font-bold underline">
+//                   hbtap@uonbi.ac.ke
+//                 </a>.
+//                 {/* . For more information see our{' '}
+//                 <Link href="/privacy-policy" className="text-[#27aae1] hover:font-bold underline">
+//                   privacy policy
+//                 </Link>. */}
+//               </p>
+//             </form>
+//           </div>
+//         </div>
+
+    
+//         <div className="pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+//           <div className=" text-base">
+//             © 2025 The Benefits Package and Tariffs Advisory Panel. All rights reserved.
+//           </div>
+//           <div className="flex items-center space-x-3">
+          
+//             <span className="text-white text-base font-medium">The University of Nairobi</span>
+//           </div>
+//         </div>
+//       </div>
+//     </footer>
+//   )
 // }
 
 'use client'
 
-import { ArrowUpRight, Linkedin, Mail, MapPin, Phone, Twitter, Send, Youtube } from 'lucide-react'
+import { subscribeToNewsletter } from '@/app/api/newsletter'
+import { ArrowUpRight, Linkedin, Mail, MapPin, Phone, Twitter, Send, Youtube, CheckCircle, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import Image from 'next/image'
+
 
 export default function Footer() {
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [subscriptionMessage, setSubscriptionMessage] = useState('')
+  const [subscriptionStatus, setSubscriptionStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' })
 
-  const handleSubscribe = (e: { preventDefault: () => void }) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsSubmitting(true)
     
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSubscriptionMessage('Thank you for subscribing to our newsletter!')
-      setEmail('')
+    if (!email.trim()) {
+      setSubscriptionStatus({
+        type: 'error',
+        message: 'Please enter a valid email address.'
+      })
+      return
+    }
+    
+    setIsSubmitting(true)
+    setSubscriptionStatus({ type: null, message: '' })
+    
+    try {
+      const result = await subscribeToNewsletter({ email })
+      
+      if (result.success) {
+        setSubscriptionStatus({
+          type: 'success',
+          message: result.message
+        })
+        setEmail('')
+        
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          setSubscriptionStatus({ type: null, message: '' })
+        }, 5000)
+      } else {
+        setSubscriptionStatus({
+          type: 'error',
+          message: result.message
+        })
+        
+        // Clear error after 5 seconds
+        setTimeout(() => {
+          setSubscriptionStatus({ type: null, message: '' })
+        }, 5000)
+      }
+    } catch (error) {
+      setSubscriptionStatus({
+        type: 'error',
+        message: 'An unexpected error occurred. Please try again.'
+      })
       
       setTimeout(() => {
-        setSubscriptionMessage('')
+        setSubscriptionStatus({ type: null, message: '' })
       }, 5000)
-    }, 1000)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -239,8 +509,6 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-12 border-b border-slate-700/50">
 
           <div className="lg:col-span-3 mb-10 lg:mb-0">
-           
-            
             <div className="mb-6">
               <h3 className="text-xl font-bold text-white mb-2">
                 The Benefits Package and Tariffs Advisory Panel
@@ -281,10 +549,8 @@ export default function Footer() {
             </div>
           </div>
 
-        
           <div className="lg:col-span-3 mb-8 lg:mb-0">
             <h3 className="text-lg font-semibold mb-6 text-white flex items-center">
-              
               Quick Links
             </h3>
             <ul className="space-y-3" aria-label="Quick navigation links">
@@ -312,7 +578,6 @@ export default function Footer() {
                   News & Updates
                 </Link>
               </li>
-             
             </ul>
           </div>
 
@@ -360,7 +625,6 @@ export default function Footer() {
 
           <div className="lg:col-span-3">
             <h3 className="text-lg font-semibold mb-6 text-white flex items-center">
-             
               Newsletter
             </h3>
             <p className="text-white text-base mb-6 leading-relaxed">
@@ -377,7 +641,8 @@ export default function Footer() {
                     type="email"
                     autoComplete="email"
                     required
-                    className="flex-1 bg-slate-700/50 border-0 py-3 px-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#27aae1] focus:outline-none backdrop-blur-base"
+                    disabled={isSubmitting}
+                    className="flex-1 bg-slate-700/50 border-0 py-3 px-4 text-white placeholder-slate-400 focus:ring-2 focus:ring-[#27aae1] focus:outline-none backdrop-blur-base disabled:bg-slate-700/30 disabled:cursor-not-allowed"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -391,39 +656,46 @@ export default function Footer() {
                     {isSubmitting ? (
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-hidden="true"></div>
                     ) : (
-                      <Send size={18}  aria-hidden="true" />
+                      <Send size={18} aria-hidden="true" />
                     )}
                   </button>
                 </div>
               </div>
               
-              {subscriptionMessage && (
-                <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                  <p className="text-green-300 text-base">{subscriptionMessage}</p>
+              {subscriptionStatus.type && (
+                <div className={`p-3 rounded-lg border flex items-start ${
+                  subscriptionStatus.type === 'success'
+                    ? 'bg-green-500/20 border-green-500/30'
+                    : 'bg-red-500/20 border-red-500/30'
+                }`}>
+                  {subscriptionStatus.type === 'success' ? (
+                    <CheckCircle size={18} className="text-green-300 mr-2 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle size={18} className="text-red-300 mr-2 flex-shrink-0 mt-0.5" />
+                  )}
+                  <p className={`text-base ${
+                    subscriptionStatus.type === 'success' ? 'text-green-300' : 'text-red-300'
+                  }`}>
+                    {subscriptionStatus.message}
+                  </p>
                 </div>
               )}
               
-              <p className=" text-md leading-relaxed">
+              <p className="text-md leading-relaxed">
                 You will receive regular updates about our work and can unsubscribe at any time by clicking the unsubscribe link in each email, or by contacting{' '}
                 <a href="mailto:hbtap@uonbi.ac.ke" className="text-[#27aae1] hover:font-bold underline">
                   hbtap@uonbi.ac.ke
                 </a>.
-                {/* . For more information see our{' '}
-                <Link href="/privacy-policy" className="text-[#27aae1] hover:font-bold underline">
-                  privacy policy
-                </Link>. */}
               </p>
             </form>
           </div>
         </div>
 
-    
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <div className=" text-base">
+          <div className="text-base">
             © 2025 The Benefits Package and Tariffs Advisory Panel. All rights reserved.
           </div>
           <div className="flex items-center space-x-3">
-          
             <span className="text-white text-base font-medium">The University of Nairobi</span>
           </div>
         </div>

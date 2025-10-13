@@ -225,7 +225,7 @@ Submitted on: ${new Date().toLocaleDateString('en-KE', {
             
             <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0;">
               <p style="color: #2c5aa0; font-weight: bold; margin-bottom: 5px;">Best regards,</p>
-              <p style="color: #333; font-weight: bold;">Health Benefits and Tariffs Advisory Panel Team</p>
+              <p style="color: #333; font-weight: bold;">Benefits Package  and Tariffs Advisory Panel Team</p>
             </div>
             
             <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-top: 30px; font-size: 12px; color: #666;">

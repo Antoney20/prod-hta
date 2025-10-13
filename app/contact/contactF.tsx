@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
-
-
 import { Button } from '@/components/ui/button';
-import { sendContactEmail, validateContactForm, ContactFormData } from '../services/contactEmail';
+
+import type { ContactFormData } from '@/types/contact';
+import { submitContactForm, validateContactForm } from '../api/contact';
 
 function ContactFormSection() {
   const [formData, setFormData] = useState<ContactFormData>({
@@ -38,6 +38,16 @@ function ContactFormSection() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      fullName: '',
+      email: '',
+      organization: '',
+      subject: '',
+      message: ''
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -52,7 +62,7 @@ function ContactFormSection() {
     setSubmitStatus({ type: null, message: '' });
     
     try {
-      const result = await sendContactEmail(formData);
+      const result = await submitContactForm(formData);
       
       if (result.success) {
         setSubmitStatus({
@@ -60,24 +70,34 @@ function ContactFormSection() {
           message: result.message
         });
        
-        setFormData({
-          fullName: '',
-          email: '',
-          organization: '',
-          subject: '',
-          message: ''
-        });
+        // Reset form immediately on success
+        resetForm();
+        
+
+        setTimeout(() => {
+          setSubmitStatus({ type: null, message: '' });
+        }, 5000);
       } else {
         setSubmitStatus({
           type: 'error',
           message: result.message
         });
+        
+        // Clear error message after 5 seconds
+        setTimeout(() => {
+          setSubmitStatus({ type: null, message: '' });
+        }, 5000);
       }
     } catch (error) {
       setSubmitStatus({
         type: 'error',
         message: 'An unexpected error occurred. Please try again.'
       });
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setSubmitStatus({ type: null, message: '' });
+      }, 5000);
     } finally {
       setIsSubmitting(false);
     }

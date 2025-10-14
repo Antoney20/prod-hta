@@ -2,8 +2,21 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Newspaper, Users, Video } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import {
+  FileText,
+  Newspaper,
+  Users,
+  Video,
+  Mail,
+  Bell
+} from 'lucide-react';
 
 interface ContentCard {
   title: string;
@@ -45,6 +58,20 @@ const ContentPage: React.FC = () => {
       icon: <Video className="h-8 w-8" />,
       href: '/portal/content/media',
       color: 'text-orange-600'
+    },
+    {
+      title: 'Contact Messages',
+      description: 'View and respond to user contact form messages',
+      icon: <Mail className="h-8 w-8" />,
+      href: '/portal/content/contact-messages',
+      color: 'text-red-600'
+    },
+    {
+      title: 'Subscriptions',
+      description: 'Manage user email subscriptions and preferences',
+      icon: <Bell className="h-8 w-8" />,
+      href: '/portal/content/subscriptions',
+      color: 'text-teal-600'
     }
   ];
 
@@ -52,12 +79,12 @@ const ContentPage: React.FC = () => {
     <div className="lg:p-6 p-0 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Content Management</h1>
-        <p className="text-gray-600 mt-2">Manage all your website content in one place</p>
+        {/* <p className="text-gray-600 mt-2">Manage all your website content in one place</p> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {contentCards.map((card) => (
-          <Card 
+          <Card
             key={card.title}
             className="hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => router.push(card.href)}

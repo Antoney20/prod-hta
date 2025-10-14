@@ -26,7 +26,8 @@ import {
   Gavel,
   MessageSquare,
   Target,
-  LayoutDashboard
+  LayoutDashboard,
+  Bell
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -228,38 +229,48 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
         },
       ]
     },
-
-    {
-      title: "Content Management",
-      icon: <FileText className="h-5 w-5" />,
-      children: [
-        { 
-          title: "Overview", 
-          href: "/portal/content", 
-          icon: <Grid className="h-4 w-4" /> 
-        },
-        { 
-          title: "FAQs", 
-          href: "/portal/content/faqs", 
-          icon: <HelpCircle className="h-4 w-4" /> 
-        },
-        { 
-          title: "News Articles", 
-          href: "/portal/content/news", 
-          icon: <Newspaper className="h-4 w-4" /> 
-        },
-        { 
-          title: "Governance", 
-          href: "/portal/content/team", 
-          icon: <Users className="h-4 w-4" /> 
-        },
-        { 
-          title: "Media Resources", 
-          href: "/portal/content/media", 
-          icon: <Video className="h-4 w-4" /> 
-        },
-      ]
+{
+  title: "Content Management",
+  icon: <FileText className="h-5 w-5" />,
+  children: [
+    { 
+      title: "Overview", 
+      href: "/portal/content", 
+      icon: <Grid className="h-4 w-4" /> 
     },
+    { 
+      title: "FAQs", 
+      href: "/portal/content/faqs", 
+      icon: <HelpCircle className="h-4 w-4" /> 
+    },
+    { 
+      title: "News Articles", 
+      href: "/portal/content/news", 
+      icon: <Newspaper className="h-4 w-4" /> 
+    },
+    { 
+      title: "Governance", 
+      href: "/portal/content/team", 
+      icon: <Users className="h-4 w-4" /> 
+    },
+    { 
+      title: "Media Resources", 
+      href: "/portal/content/media", 
+      icon: <Video className="h-4 w-4" /> 
+    },
+    { 
+      title: "Contact Messages", 
+      href: "/portal/content/contact-messages", 
+      icon: <Mail className="h-4 w-4" /> 
+    },
+    { 
+      title: "Subscriptions", 
+      href: "/portal/content/subscriptions", 
+      icon: <Bell className="h-4 w-4" /> 
+    },
+  ]
+}
+
   ];
 
   const bottomNavigationItems: NavItem[] = [

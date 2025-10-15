@@ -468,10 +468,10 @@ export default function TeamClient() {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1, duration: 0.5 }}
-                      className="flex items-start gap-4 bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-md border border-blue-200/50 hover:shadow-lg transition-shadow"
+                      className="flex items-start gap-2 bg-white/80 backdrop-blur-sm p-5 rounded-2xl shadow-md border border-blue-200/50 hover:shadow-lg transition-shadow"
                     >
-                      <div className="flex-shrink-0 w-10 h-10 text-white rounded-xl flex items-center justify-center font-bold text-lg">
-                        {item.num}
+                      <div className="flex-shrink-0 hidden w-8 h-6 text-black rounded-xl lg:flex items-center justify-center font-bold text-lg">
+                        {item.num}.
                       </div>
                       <p className="text-gray-700 leading-relaxed flex-1">{item.text}</p>
                     </motion.div>

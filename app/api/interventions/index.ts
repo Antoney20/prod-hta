@@ -67,7 +67,6 @@ export const submitProposal = async (formData: FormData): Promise<ApiResponse> =
           error: error.response.data?.error || error.message
         };
       } else if (error.request) {
-        // Network error
         return {
           success: false,
           message: 'Network error. Please check your connection and try again.',
@@ -87,7 +86,7 @@ export const submitProposal = async (formData: FormData): Promise<ApiResponse> =
 export const checkSubmissionStatus = async (submissionId: string): Promise<SubmissionStatus | null> => {
   try {
     const response = await axios.get(
-      `${API_BASE_URL}/intervention-proposal/`,
+      `${API_BASE_URL}/v1/intervention-proposal/`,
       {
         params: { submission_id: submissionId },
         timeout: 10000,
@@ -104,7 +103,7 @@ export const checkSubmissionStatus = async (submissionId: string): Promise<Submi
 export const checkMultipleSubmissions = async (submissionIds: string[]): Promise<SubmissionStatus[]> => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}/check-multiple-submissions/`,
+      `${API_BASE_URL}/v1/check-multiple-submissions/`,
       { submission_ids: submissionIds },
       {
         timeout: 10000,

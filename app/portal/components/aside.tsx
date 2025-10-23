@@ -274,13 +274,9 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
   ];
 
   const bottomNavigationItems: NavItem[] = [
+
     {
-      title: "FAQ & Onboarding",
-      href: "/portal/on-boarding",
-      icon: <HelpCircle className="h-5 w-5" />,
-    },
-    {
-      title: "Feedback Box",
+      title: "Feedback Box (Grievances)",
       href: "/portal/feedback",
       icon: <Lightbulb className="h-5 w-5" />,
     },
@@ -288,6 +284,11 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
       title: "Settings",
       href: "/portal/settings",
       icon: <Settings className="h-5 w-5" />,
+    },
+        {
+      title: "Onboarding Guide",
+      href: "/portal/on-boarding",
+      icon: <HelpCircle className="h-5 w-5" />,
     },
   ];
 
@@ -302,7 +303,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
     if (firstName) {
       return firstName;
     }
-    return user?.username || 'HBTAP Member';
+    return user?.username || 'BPTAP Member';
   };
 
   // Get user's email

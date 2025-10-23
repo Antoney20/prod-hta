@@ -292,7 +292,7 @@ const FAQOnboardingPage = () => {
         <div className="container mx-auto px-0 xl:px-4 py-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">Help Center</h1>
-            <p className="text-gray-600 text-lg">Everything you need to know about using HBTAP Communications Hub</p>
+            <p className="text-gray-600 text-lg">Everything you need to know about using BPTAP Communications Hub</p>
           </div>
 
           <div className="flex justify-center gap-3 mb-6">
@@ -320,11 +320,11 @@ const FAQOnboardingPage = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
+      <div className="container mx-auto px-4 md:px-6 py-8">
         {activeTab === 'onboarding' ? (
           <div className="space-y-6">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-blue-900 mb-2">Welcome to HBTAP!</h2>
+              <h2 className="text-xl font-bold text-blue-900 mb-2">Welcome to BPTAP!</h2>
               <p className="text-blue-800">Follow these 6 simple steps to get started and make the most of the platform. Each step takes just a few minutes!</p>
             </div>
 

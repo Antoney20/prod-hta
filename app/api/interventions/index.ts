@@ -45,13 +45,13 @@ export const submitProposal = async (formData: FormData): Promise<ApiResponse> =
     }
 
     const response = await axios.post(
-      `${API_BASE_URL}/intervention-proposal/`,
+      `${API_BASE_URL}/v1/intervention-proposal/`,
       submitData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 30000, // 30 second timeout
+        timeout: 30000, 
       }
     );
 
@@ -61,7 +61,6 @@ export const submitProposal = async (formData: FormData): Promise<ApiResponse> =
     
     if (axios.isAxiosError(error)) {
       if (error.response) {
-        // Server responded with error status
         return {
           success: false,
           message: error.response.data?.message || 'Server error occurred',

@@ -6,6 +6,7 @@ export interface FeedbackSubmission {
 export interface Feedback {
   id: string;
   subject: string | null;
+  type: string;
   message: string;
   status: 'new' | 'reviewing' | 'resolved' | 'closed';
   admin_response: string | null;

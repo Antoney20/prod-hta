@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, Loader2, CheckCircle, AlertCircle, Search, Filter, X, Plus, Eye, MessageCircleMore, Clock, CheckCheck, XCircle } from 'lucide-react';
+import { MessageSquare, Send, Loader2, CheckCircle, AlertCircle, Search, Filter, X, Plus, Eye, MessageCircleMore, Clock, CheckCheck, XCircle, Download } from 'lucide-react';
 import { Feedback, FeedbackSubmission } from '@/types/dashboard/feedback';
 import { getAllFeedback, submitFeedback, updateFeedbackStatus } from '@/app/api/dashboard/feedback';
 import { toast } from 'react-toastify';
@@ -37,6 +37,38 @@ const FeedbackDashboard = () => {
       feedback.reference_number?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+
+  // Export to CSV function
+  const exportToCSV = () => {
+    if (filteredFeedbacks.length === 0) {
+      toast.warning('No data to export');
+      return;
+    }
+
+    const headers = ['Reference ID', 'Type', 'Subject', 'Message', 'Status', 'Date'];
+    const csvRows = [
+      headers.join(','),
+      ...filteredFeedbacks.map(feedback => [
+        `"${feedback.reference_number || ''}"`,
+        `"${getGrievanceTypeDisplay(feedback.type)}"`,
+        `"${feedback.subject || ''}"`,
+        `"${feedback.message || ''}"`,
+        `"${feedback.status || ''}"`,
+        `"${new Date(feedback.created_at).toLocaleDateString()}"`
+      ].join(','))
+    ];
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `feedbacks-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleStatusChange = async (id: string, newStatus: 'new' | 'reviewing' | 'resolved' | 'closed') => {
     try {
@@ -100,6 +132,14 @@ const FeedbackDashboard = () => {
                 className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900"
               />
             </div>
+            <button
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              disabled={loading}
+            >
+              <Download size={18} />
+              Export CSV
+            </button>
             <div className="flex gap-2 flex-wrap">
               {['all', 'new', 'reviewing', 'resolved', 'closed'].map(status => (
                 <button
@@ -135,6 +175,7 @@ const FeedbackDashboard = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Reference ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Type</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Subject</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Message</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">Status</th>
@@ -148,6 +189,12 @@ const FeedbackDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="font-mono text-sm font-medium" style={{ color: '#27aae1' }}>
                           {feedback.reference_number}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" 
+                          style={{ backgroundColor: getGrievanceTypeColor(feedback.type).bg, color: getGrievanceTypeColor(feedback.type).text }}>
+                          {getGrievanceTypeDisplay(feedback.type)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -173,20 +220,14 @@ const FeedbackDashboard = () => {
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {new Date(feedback.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
+                        {new Date(feedback.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
                           onClick={() => setSelectedFeedback(feedback)}
-                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                          style={{ color: '#27aae1' }}
-                          title="View details"
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                         >
-                          <Eye size={18} />
+                          View
                         </button>
                       </td>
                     </tr>
@@ -198,9 +239,9 @@ const FeedbackDashboard = () => {
         </div>
       </div>
 
-      {/* Submit Feedback Popup */}
+      {/* Modals */}
       {showSubmitForm && (
-        <SubmitFeedbackPopup
+        <FeedbackSubmitModal
           onClose={() => setShowSubmitForm(false)}
           onSuccess={() => {
             setShowSubmitForm(false);
@@ -209,7 +250,6 @@ const FeedbackDashboard = () => {
         />
       )}
 
-      {/* View Details Modal */}
       {selectedFeedback && (
         <FeedbackDetailsModal
           feedback={selectedFeedback}
@@ -220,26 +260,63 @@ const FeedbackDashboard = () => {
   );
 };
 
-// Submit Feedback Popup Component
-const SubmitFeedbackPopup = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
-  const [loading, setLoading] = useState(false);
+// Helper functions
+const getGrievanceTypeDisplay = (type: string) => {
+  const types: { [key: string]: string } = {
+    'appraisal_complaints': 'Appraisal',
+    'claims_benefits': 'Claims & Benefits',
+    'healthcare_disputes': 'Healthcare',
+    'data_membership': 'Data & Membership',
+    'service_quality': 'Service Quality',
+    'general': 'General'
+  };
+  return types[type] || 'General';
+};
+
+const getGrievanceTypeColor = (type: string) => {
+  const colors: { [key: string]: { bg: string; text: string } } = {
+    'appraisal_complaints': { bg: '#f3e8ff', text: '#6b21a8' },
+    'claims_benefits': { bg: '#fed7aa', text: '#92400e' },
+    'healthcare_disputes': { bg: '#fee2e2', text: '#991b1b' },
+    'data_membership': { bg: '#cffafe', text: '#164e63' },
+    'service_quality': { bg: '#e0e7ff', text: '#3730a3' },
+    'general': { bg: '#f3f4f6', text: '#374151' }
+  };
+  return colors[type] || colors['general'];
+};
+
+// Feedback Submit Modal
+interface FeedbackSubmitModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const FeedbackSubmitModal = ({ onClose, onSuccess }: FeedbackSubmitModalProps) => {
   const [success, setSuccess] = useState(false);
-  const [formData, setFormData] = useState<FeedbackSubmission>({ subject: '', message: '' });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ message?: string; submit?: string }>({});
+  const [formData, setFormData] = useState({
+    type: 'general',
+    subject: '',
+    message: '',
+  });
 
   const handleSubmit = async () => {
+    setErrors({});
+
     if (!formData.message.trim()) {
-      setErrors({ message: 'Please enter your feedback' });
+      setErrors({ message: 'Feedback message is required' });
       return;
     }
 
     try {
       setLoading(true);
-      setErrors({});
       await submitFeedback(formData);
       setSuccess(true);
       setTimeout(() => {
         onSuccess();
+        setFormData({ type: 'general', subject: '', message: '' });
+        setSuccess(false);
       }, 2000);
     } catch (error: any) {
       setErrors({ submit: error.message || 'Failed to submit feedback' });
@@ -286,6 +363,25 @@ const SubmitFeedbackPopup = ({ onClose, onSuccess }: { onClose: () => void; onSu
                 <p className="text-sm text-gray-700">
                   💡 Your feedback is anonymous and helps us improve our platform
                 </p>
+              </div>
+
+              {/* Grievance Type Selection */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Feedback Type <span style={{ color: '#27aae1' }}>*</span>
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-blue-100"
+                >
+                  <option value="general">General Feedback</option>
+                  <option value="appraisal_complaints">Appraisal Process Complaints</option>
+                  <option value="claims_benefits">Claims and Benefits Complaints</option>
+                  <option value="healthcare_disputes">Disputes with Healthcare Providers</option>
+                  <option value="data_membership">Data and Membership Issues</option>
+                  <option value="service_quality">Service Quality and Access Issues</option>
+                </select>
               </div>
 
               <div>
@@ -379,6 +475,17 @@ const FeedbackDetailsModal = ({ feedback, onClose }: { feedback: Feedback; onClo
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="space-y-6">
+            {/* Grievance Type */}
+            <div>
+              <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Feedback Type</label>
+              <div className="mt-2">
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium" 
+                  style={{ backgroundColor: getGrievanceTypeColor(feedback.type).bg, color: getGrievanceTypeColor(feedback.type).text }}>
+                  {getGrievanceTypeDisplay(feedback.type)}
+                </span>
+              </div>
+            </div>
+
             <div>
               <label className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Subject</label>
               <p className="text-lg font-semibold text-gray-900 mt-1">{feedback.subject || 'No subject provided'}</p>

@@ -66,9 +66,9 @@ const RegisterForm = () => {
 
       const response = await registerUser(userData, memberData, profileImage);
 
-      if (response.success && response.tokens) {
-        showToast('success', 'Registration successful! Welcome aboard!');
-        setTimeout(() => router.push('/portal'), 1500);
+      if (response.success) {
+        showToast('success', 'Registration successful! Please wait for verification and check your email.');
+        setTimeout(() => router.push('/auth/login'), 1500);
       } else {
         if (response.errors) {
           const errorMap: Record<string, string> = {};
@@ -217,7 +217,7 @@ const RegisterForm = () => {
                     className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500'
                     }`}
-                    placeholder="john.doe@example.com"
+                    placeholder="Your Email"
                   />
                 </div>
                 {errors.email && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.email}</p>}
@@ -234,7 +234,7 @@ const RegisterForm = () => {
                     className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                       errors.username ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500'
                     }`}
-                    placeholder="johndoe"
+                    placeholder="Username.."
                   />
                 </div>
                 {errors.username && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.username}</p>}

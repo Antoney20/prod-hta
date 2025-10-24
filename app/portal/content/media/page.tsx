@@ -20,7 +20,7 @@ const INITIAL_FORM: CreateMediaResourceData = {
   description: "",
   category: "general",
   type: "",
-  url: "",
+  url: "", // URL is now optional - empty string is allowed
   featured: false,
   hide_resource: false,
   date: ""
@@ -33,7 +33,7 @@ const RESOURCE_CATEGORIES = [
   { value: 'research', label: 'Research', icon: FileText },
   { value: 'policy', label: 'Policy', icon: FileText },
   { value: 'Reports', label: 'Reports', icon: FileText },
-  { value: 'Tariffs', label: 'tariffs', icon: FaFileAlt},
+  { value: 'Tariffs', label: 'Tariffs', icon: FaFileAlt},
   { value: 'Facilities', label: 'Facilities', icon: File },
   { value: 'Other', label: 'Other', icon: File },
   
@@ -120,7 +120,12 @@ const MediaResourcesPage: React.FC = () => {
   const handleCreate = async () => {
     try {
       setLoading(true);
-      const newResource = await createMediaResource(formData);
+      // Don't send URL if it's empty
+      const dataToSend = { ...formData };
+      if (!dataToSend.url || dataToSend.url.trim() === '') {
+        delete dataToSend.url;
+      }
+      const newResource = await createMediaResource(dataToSend);
       setResources(prev => [newResource, ...prev]);
       setFormData(INITIAL_FORM);
       setIsCreateOpen(false);
@@ -150,7 +155,12 @@ const MediaResourcesPage: React.FC = () => {
     if (!selectedResource) return;
     try {
       setLoading(true);
-      const updated = await updateMediaResource(selectedResource.id, formData);
+      // Don't send URL if it's empty
+      const dataToSend = { ...formData };
+      if (!dataToSend.url || dataToSend.url.trim() === '') {
+        delete dataToSend.url;
+      }
+      const updated = await updateMediaResource(selectedResource.id, dataToSend);
       setResources(prev => prev.map(r => r.id === selectedResource.id ? updated : r));
       setIsEditOpen(false);
       setSelectedResource(null);
@@ -216,20 +226,14 @@ const MediaResourcesPage: React.FC = () => {
           <Label>Category *</Label>
           <Select value={formData.category} onValueChange={(value) => updateFormData('category', value)}>
             <SelectTrigger>
-              <SelectValue placeholder="Select category" />
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {RESOURCE_CATEGORIES.map(cat => {
-                const Icon = cat.icon;
-                return (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-4 w-4" />
-                      {cat.label}
-                    </div>
-                  </SelectItem>
-                );
-              })}
+              {RESOURCE_CATEGORIES.map(cat => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -241,108 +245,108 @@ const MediaResourcesPage: React.FC = () => {
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
             <SelectContent>
-              {RESOURCE_TYPES.map(type => {
-                const Icon = type.icon;
-                return (
-                  <SelectItem key={type.value} value={type.value}>
-                    <div className="flex items-center gap-2">
-                      <Icon className="h-4 w-4" />
-                      {type.label}
-                    </div>
-                  </SelectItem>
-                );
-              })}
+              {RESOURCE_TYPES.map(type => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div>
-        <Label>URL *</Label>
+        <Label>URL (Optional)</Label>
         <Input 
-          type="url"
           value={formData.url} 
           onChange={(e) => updateFormData('url', e.target.value)} 
-          placeholder="https://example.com/resource"
+          placeholder="https://example.com/resource (leave empty if not applicable)"
+          type="url"
         />
         <p className="text-xs text-gray-500 mt-1">
-          Link to the external resource (YouTube, Google Drive, etc.)
-        </p>
-      </div>
-      
-      <div>
-        <Label>Date / Period</Label>
-        <Input 
-          value={formData.date} 
-          onChange={(e) => updateFormData('date', e.target.value)} 
-          placeholder="e.g., January 2024, Q4 2023, Updated Monthly"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Can be a specific date, period, or update frequency
+          Add a link to an external resource. This field is optional.
         </p>
       </div>
 
-      <div className="space-y-3">
-        <div className="flex items-center space-x-2">
+      <div>
+        <Label>Date/Period</Label>
+        <Input 
+          value={formData.date} 
+          onChange={(e) => updateFormData('date', e.target.value)} 
+          placeholder="e.g., 2024, Q1 2024, Jan 2024"
+        />
+      </div>
+
+      <div className="space-y-3 border-t pt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label>Featured Resource</Label>
+            <p className="text-xs text-gray-500">Highlight this resource</p>
+          </div>
           <Switch 
             checked={formData.featured} 
-            onCheckedChange={(checked) => updateFormData('featured', checked)} 
+            onCheckedChange={(checked) => updateFormData('featured', checked)}
           />
-          <Label>Feature this resource</Label>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <Label>Hide Resource</Label>
+            <p className="text-xs text-gray-500">Hide from public view</p>
+          </div>
           <Switch 
             checked={formData.hide_resource} 
-            onCheckedChange={(checked) => updateFormData('hide_resource', checked)} 
+            onCheckedChange={(checked) => updateFormData('hide_resource', checked)}
           />
-          <Label>Hide resource</Label>
         </div>
       </div>
-      
-      <div className="flex justify-end gap-3 pt-4">
-        <Button variant="outline" onClick={() => { 
-          isEdit ? setIsEditOpen(false) : setIsCreateOpen(false); 
-          resetForm(); 
-        }}>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            resetForm();
+            isEdit ? setIsEditOpen(false) : setIsCreateOpen(false);
+          }}
+        >
           Cancel
         </Button>
         <Button 
           onClick={isEdit ? handleUpdate : handleCreate} 
-          disabled={!formData.title || !formData.url || loading}
+          disabled={!formData.title || loading}
         >
           {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-          {isEdit ? 'Update' : 'Create'}
+          {isEdit ? 'Update' : 'Create'} Resource
         </Button>
       </div>
     </div>
   );
 
+  if (loading && resources.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-600 p-4">
+        {error}
+      </div>
+    );
+  }
+
   return (
-    <div className="lg:p-6 p-0 space-y-6">
-      {loading && (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin mr-2" />
-          <span>Loading resources...</span>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Media Resources</h1>
-          <p className="text-gray-600 mt-2">Manage and organize your media content</p>
-        </div>
-        
+        <h1 className="text-3xl font-bold">Media Resources</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#27aae1] hover:bg-[#1e90c7]">
-              <Plus className="h-4 w-4 mr-2" />Add Resource
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Resource
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

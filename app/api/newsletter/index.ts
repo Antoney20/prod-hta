@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { NewsletterSubscriptionData, NewsletterResponse } from '@/types/newsletter';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = '/api';
 /**
  * Subscribe to newsletter
  */

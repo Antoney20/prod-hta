@@ -1,7 +1,8 @@
 import axios from 'axios';
 import type { ContactFormData, ContactSubmissionResponse, ContactValidationResult } from '@/types/contact';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = '/api';
 
 /**
  * Validate contact form data

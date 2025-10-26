@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { FormData } from '@/types/form';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = '/api';
 
 export interface ApiResponse {
   success: boolean;

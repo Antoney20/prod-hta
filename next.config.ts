@@ -7,11 +7,21 @@
 // export default nextConfig;
 
 
+// /** @type {import('next').NextConfig} */
+// const nextConfig = {
+//   images: {
+//     domains: ['127.0.0.1'],
+//   },
+// };
+
+// export default nextConfig;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['127.0.0.1'],
+    domains: ['127.0.0.1', 'localhost', 'bptap.health.go.ke'],
   },
 };
 
 export default nextConfig;
+

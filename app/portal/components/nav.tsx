@@ -133,8 +133,8 @@ const Navbar = ({ isSidebarOpen, onSidebarToggle }: NavbarProps) => {
 
             <div className="flex-shrink-0 flex items-center">
               <div className="hidden sm:block ml-3">
-                <span className="text-[#27aae1] font-semibold text-lg">HBTAP</span>
-                <span className="text-gray-600 text-xs block">Communications Hub</span>
+                <span className="text-[#27aae1] font-semibold text-lg">BPTAP</span>
+                <span className="text-gray-600 text-xs block">ADMIN Hub</span>
               </div>
             </div>
           </div>

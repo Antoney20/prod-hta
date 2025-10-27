@@ -271,6 +271,7 @@
 //   )
 // }
 
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -281,6 +282,8 @@ import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
 import { Governance } from '@/types/dashboard/content'
 import { getGovernanceMembers } from '../api/dashboard/content'
+import { getImageSrc } from '@/lib/image'
+
 
 export default function TeamClient() {
   const [panelMembers, setPanelMembers] = useState<Governance[]>([])
@@ -315,7 +318,10 @@ export default function TeamClient() {
     return parts.join(' ')
   }
 
+  
+
   const MemberCard = ({ member, index }: { member: Governance; index: number }) => {
+    const imageSrc = getImageSrc(member.image)
     return (
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -325,9 +331,10 @@ export default function TeamClient() {
         className="group flex flex-col items-center p-4 rounded-2xl bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 hover:border-blue-200"
       >
         <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 lg:w-44 lg:h-44 mb-4 rounded-full overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 ring-2 ring-transparent group-hover:ring-blue-200">
-          {member.image ? (
+          {imageSrc ? (
+            
             <Image
-              src={member.image}
+             src={imageSrc}
               alt={`${member.name}, ${member.role}`}
               fill
               sizes="(max-width: 640px) 128px, (max-width: 768px) 144px, (max-width: 1024px) 160px, 176px"

@@ -276,8 +276,6 @@ import Footer from '@/app/components/layouts/footer'
 import { getNews } from '@/app/api/dashboard/content'
 import { News } from '@/types/dashboard/content'
 import { slugify } from '@/lib/utils'
-import { getImageSrc } from '@/lib/image'
-
 
 const NewsDetailClient = () => {
   const params = useParams()
@@ -416,27 +414,23 @@ const newsItem = allNews.find((item: News) => {
         </div>
       </section>
       
-      {newsItem.image && (() => {
-  const mainImageSrc = getImageSrc(newsItem.image);  // EDIT: Extract to narrow type
-  if (!mainImageSrc) return null;
-  return (
-    <motion.div 
-      className="container mx-auto relative h-64 md:h-96 lg:h-[500px] w-full"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.2 }}
-    >
-      <Image
-        src={mainImageSrc}  
-        alt={newsItem.title}
-        fill
-        className="object-cover"
-        priority
-        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1200px"
-      />
-    </motion.div>
-  );
-})()}
+      {newsItem.image && (
+        <motion.div 
+          className=" container  mx-auto relative h-64 md:h-96 lg:h-[500px] w-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Image
+            src={newsItem.image}
+            alt={newsItem.title}
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 90vw, 1200px"
+          />
+        </motion.div>
+      )}
       
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
@@ -531,20 +525,16 @@ const newsItem = allNews.find((item: News) => {
                       transition={{ delay: index * 0.1 }}
                       className="flex items-start"
                     >
-                     {item.image && (() => {
-                        const thumbSrc = getImageSrc(item.image);  
-                        if (!thumbSrc) return null;
-                        return (
-                          <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
-                            <Image
-                              src={thumbSrc} 
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        );
-                      })()}
+                      {item.image && (
+                        <div className="relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0">
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
                       <div className={item.image ? "ml-4" : ""}>
                         <span className="text-xs text-gray-500 block mb-1">
                           {new Date(item.date).toLocaleDateString('en-US', {

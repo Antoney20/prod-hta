@@ -260,7 +260,6 @@ import Image from 'next/image'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { slugify } from '@/lib/utils'
-import { getImageSrc } from '@/lib/image'
 
 import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
@@ -426,7 +425,7 @@ export default function NewsClient() {
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 <div className="relative h-64 lg:h-full">
                   <Image
-                    src={getImageSrc(featuredNews.image) || '/placeholder.jpg'}
+                    src={featuredNews.image || '/placeholder.jpg'}
                     alt={featuredNews.title}
                     fill
                     className="object-cover"
@@ -524,7 +523,7 @@ export default function NewsClient() {
                 >
                   <div className="relative h-48 overflow-hidden">
                     <Image
-                      src={getImageSrc(news.image) || '/placeholder.jpg'}
+                      src={news.image || '/placeholder.jpg'}
                       alt={news.title}
                       fill
                       className="object-cover transition-transform group-hover:scale-105 duration-300"

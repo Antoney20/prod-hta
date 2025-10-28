@@ -3,10 +3,63 @@
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import Link from "next/link"
-import { motion } from "framer-motion"
-import { ArrowRight } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+
+const heroImages = [
+  // {
+  //   src: "/images/health-awareness.jpeg",
+  //   alt: "Health awareness and universal health coverage initiatives in Kenya",
+  //   title: "Health Awareness"
+  // },
+  {
+    src: "/images/nice-training.jpg",
+    alt: "Advanced Health Technology Assessment training by NICE",
+    title: "Advanced HTA Training by NICE"
+  },
+  {
+    src: "/images/hta-training.jpeg",
+    alt: "Health Technology Assessment training workshop for healthcare professionals",
+    title: "HTA Training"
+  }
+]
 
 export default function HeroSection() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
+
+  useEffect(() => {
+    if (!isAutoPlaying) return
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      )
+    }, 5000) // Change image every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [isAutoPlaying])
+
+  const goToPrevious = () => {
+    setIsAutoPlaying(false)
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === 0 ? heroImages.length - 1 : prevIndex - 1
+    )
+  }
+
+  const goToNext = () => {
+    setIsAutoPlaying(false)
+    setCurrentImageIndex((prevIndex) => 
+      prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+    )
+  }
+
+  const goToSlide = (index: number) => {
+    setIsAutoPlaying(false)
+    setCurrentImageIndex(index)
+  }
+
   return (
     <section className="relative pt-24 md:pt-32 pb-12 md:pb-20 bg-[#86cefa] overflow-hidden">
 
@@ -88,7 +141,7 @@ export default function HeroSection() {
             >
               <Link href="/about-us">
                 <Button className="bg-[#27aae1] hover:bg-black text-white px-8 py-3 rounded-lg text-base font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Learn More
+                  Learn More About BPTAP
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </Link>
@@ -107,21 +160,71 @@ export default function HeroSection() {
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.7, delay: 0.3, ease: "easeOut" }}
           >
-            <div className="relative h-64 md:h-96 lg:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative h-64 md:h-96 lg:h-[500px] w-full rounded-2xl overflow-hidden shadow-2xl group">
         
               <div className="absolute inset-0 bg-gradient-to-br from-[#27aae1]/10 via-transparent to-[#63C5DA]/20 z-10"></div>
             
               <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-[#63C5DA] rounded-tl-2xl z-20"></div>
               <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-[#27aae1] rounded-br-2xl z-20"></div>
               
-              <Image
-                src="/images/health-awareness.jpeg" 
-                alt="hero image"
-                fill
-                style={{ objectFit: "cover" }}
-                priority
-                className="z-0 transition-transform duration-700 hover:scale-105"
-              />
+              {/* Image Slider */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentImageIndex}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="absolute inset-0 z-0"
+                >
+                  <Image
+                    src={heroImages[currentImageIndex].src}
+                    alt={heroImages[currentImageIndex].alt}
+                    fill
+                    style={{ objectFit: "cover" }}
+                    priority={currentImageIndex === 0}
+                    className="transition-transform duration-700 hover:scale-105"
+                  />
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Navigation Arrows */}
+              <button
+                onClick={goToPrevious}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white/80 hover:bg-white text-[#27aae1] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              
+              <button
+                onClick={goToNext}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white/80 hover:bg-white text-[#27aae1] p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                aria-label="Next image"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+
+              {/* Dot Indicators */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+                {heroImages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSlide(index)}
+                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                      index === currentImageIndex 
+                        ? 'bg-white w-8' 
+                        : 'bg-white/50 hover:bg-white/75'
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Image Title Overlay */}
+              <div className="absolute bottom-16 left-4 right-4 z-30 bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
+                <p className="text-sm font-medium">{heroImages[currentImageIndex].title}</p>
+              </div>
             </div>
           </motion.div>
         </div>

@@ -45,9 +45,9 @@ function Page() {
           </div>
 
           {/* Content Cards */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <div className="grid md:grid-cols-2 lg:gap-6 gap-2 mb-12">
             {/* Who Can Submit */}
-            <div className="/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:/15 transition-all duration-300">
+            <div className="/10 backdrop-blur-sm rounded-2xl p-2 lg:p-8 border border-white/20 hover:/15 transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-[#27aae1] rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +62,7 @@ function Page() {
             </div>
 
             {/* How to Submit */}
-            <div className="/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:/15 transition-all duration-300">
+            <div className="/10 backdrop-blur-sm rounded-2xl lg:p-8 p-2 border border-white/20 hover:/15 transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-[#f7931e] rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">

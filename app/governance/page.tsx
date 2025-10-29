@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Our Team | The Benefits Package and Tariffs Advisory Panel',
     description: 'Meet the dedicated experts of the Benefits Package and Tariffs Advisory Panel (HBPTAP) working to advance evidence-based healthcare decision-making in Kenya.',
-    url: 'https://hta-chi.vercel.app/team',
+    url: 'https://bptap.health.go.ke/team',
     images: [
       {
         url: '/og-team.jpg',
@@ -18,6 +18,14 @@ export const metadata: Metadata = {
       },
     ],
   },
+    robots: {
+    index: true,
+    follow: true,
+  },
+    verification: {
+    google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
+  },
+  category: "Healthcare",
 }
 
 export default function TeamPage() {

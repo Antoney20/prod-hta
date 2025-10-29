@@ -17,12 +17,12 @@ export const metadata: Metadata = {
     template: "%s | The Benefits Package and Tariffs Advisory Panel | The University of Nairobi",
     default: "The Benefits Package and Tariffs Advisory Panel | Advancing Evidence-Based Healthcare | The University of Nairobi"
   },
-  description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+  description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage in Kenya.",
   keywords: ["health technology assessment", "HTA Kenya", "evidence-based healthcare", "universal health coverage", "SHA program", "healthcare policy", "benefits package", "healthcare tariffs"],
   authors: [{ name: "Health Technology Assessment Panel" }],
   creator: "CEMA",
   publisher: "CEMA",
-  metadataBase: new URL("https://hta-chi.vercel.app"),
+  metadataBase: new URL("https://bptap.health.go.ke"),
   alternates: {
     canonical: "/",
   },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     type: "website",
     title: "The Benefits Package and Tariffs Advisory Panel | Advancing Evidence-Based Healthcare",
     description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
-    url: "https://hta-chi.vercel.app",
+    url: "https://bptap.health.go.ke",
     siteName: "The Benefits Package and Tariffs Advisory Panel ",
     images: [
       {
@@ -53,10 +53,12 @@ export const metadata: Metadata = {
     images: ["/twitter-image.jpg"],
   },
   verification: {
-   
+    google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
   },
   category: "Healthcare",
 };
+
+{/* <meta name="google-site-verification" content="D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw" /> */}
 
 export default function RootLayout({
   children,

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Contact Us | Health Technology Assessment Kenya',
     description: 'Get in touch with the  Benefits Package and Tariffs Advisory Panel for inquiries about our work in advancing evidence-based healthcare in Kenya.',
-    url: 'https://hta-chi.vercel.app/contact',
+    url: 'https://bptap.health.go.ke/contact',
     siteName: ' Benefits Package and Tariffs Advisory Panel',
     images: [
       {
@@ -21,6 +21,14 @@ export const metadata: Metadata = {
     ],
     type: 'website',
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+    verification: {
+    google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
+  },
+  category: "Healthcare",
 }
 
 export default function ContactPage() {

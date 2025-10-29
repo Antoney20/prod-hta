@@ -3,18 +3,18 @@ import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
 
 export const metadata: Metadata = {
-  title: 'Capacity Building | Health Benefits and Tariffs Advisory Panel',
-  description: 'Explore our capacity building initiatives at the Health Benefits and Tariffs Advisory Panel (HBTAP), aimed at strengthening Kenya\'s healthcare decision-making through training, mentorship, and stakeholder engagement.',
+  title: 'Capacity Building | Benefits Package and Tariffs Advisory Panel',
+  description: 'Explore our capacity building initiatives at the Benefits Package and Tariffs Advisory Panel (HBTAP), aimed at strengthening Kenya\'s healthcare decision-making through training, mentorship, and stakeholder engagement.',
   openGraph: {
-    title: 'Capacity Building | Health Benefits and Tariffs Advisory Panel',
+    title: 'Capacity Building | Benefits Package and Tariffs Advisory Panel',
     description: 'Learn about HBTAP\'s capacity building efforts focused on developing technical expertise, enhancing evidence-informed policymaking, and supporting sustainable health system reforms in Kenya.',
-    url: 'https://hta-chi.vercel.app/capacity-building',
+    url: 'https://bptap.health.go.ke/capacity-building',
     images: [
       {
         url: '/og-capacity-building.jpg',
         width: 1200,
         height: 630,
-        alt: 'Capacity Building at Health Benefits and Tariffs Advisory Panel',
+        alt: 'Capacity Building at  Benefits Package and Tariffs Advisory Panel',
       },
     ],
   },

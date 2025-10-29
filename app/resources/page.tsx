@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Governance | Health Technology Assessment | BPTAP',
     description: 'Explore the governance structure and stakeholder roles within the Health Technology Assessment (HTA) process in Kenya, supporting Universal Health Coverage (UHC) through evidence-based decision-making.',
-    url: 'https://hta-chi.vercel.app/governance',
-    siteName: 'Health Technology Assessment Panel',
+    url: 'https://bptap.health.go.ke/governance',
+    siteName: 'BPTAP',
     images: [
       {
         url: '/images/governance-og-image.jpg',
@@ -21,6 +21,14 @@ export const metadata: Metadata = {
     ],
     type: 'website',
   },
+    robots: {
+    index: true,
+    follow: true,
+  },
+    verification: {
+    google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
+  },
+  category: "Healthcare",
 }
 
 export default function GovernancePage() {

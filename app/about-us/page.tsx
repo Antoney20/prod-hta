@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   keywords: 'Health Technology Assessment, HTA, Kenya healthcare, Benefits Package, Tariffs Advisory Panel, Universal Health Coverage, evidence-based healthcare',
   openGraph: {
     title: 'About Us | The Benefits Package and Tariffs Advisory Panel',
-    description: 'The Benefits Package and Tariffs Advisory Panelis dedicated to transparent, evidence-informed healthcare decision-making to advance Universal Health Coverage in Kenya.',
-    url: 'https://hbtap-chi.vercel.app/about-us',
+    description: 'The Benefits Package and Tariffs Advisory Panel is dedicated to transparent, evidence-informed healthcare decision-making to advance Universal Health Coverage in Kenya.',
+    url: 'https://bptap.health.go.ke/about-us',
     siteName: ' The Benefits Package and Tariffs Advisory Panel',
     images: [
       {
@@ -21,6 +21,14 @@ export const metadata: Metadata = {
     ],
     type: 'website',
   },
+ robots: {
+    index: true,
+    follow: true,
+  },
+    verification: {
+    google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
+  },
+  category: "Healthcare",
 }
 
 export default function AboutPage() {

@@ -9,11 +9,21 @@ export const metadata: Metadata = {
   title: 'Interventions Proposal | Health Benefits Package',
   description: 'Submit proposals for interventions to be included in health benefits packages. Stakeholders including healthcare professionals, policy makers, and civil society organizations can contribute.',
   keywords: 'health interventions, benefits package, healthcare proposals, stakeholder engagement, health policy',
+  metadataBase: new URL("https://bptap.health.go.ke/interventions-form"),
   openGraph: {
     title: 'Interventions Proposal | Health Benefits Package',
     description: 'Submit proposals for interventions to be included in health benefits packages.',
     type: 'website',
+    url: 'https://bptap.health.go.ke/interventions-form',
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+    verification: {
+    google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
+  },
+  category: "Healthcare",
 };
 
 function Page() {

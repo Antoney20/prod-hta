@@ -582,7 +582,7 @@ export default function AssignmentClient() {
                   <TableHead className="w-[140px]">Reference</TableHead>
                   <TableHead className="w-[160px]">Name</TableHead>
                   <TableHead className="w-[120px]">County</TableHead>
-                  <TableHead className="w-[220px]">Intervention Name</TableHead>
+                  <TableHead className="max-w-[420px]">Intervention Name</TableHead>
                   <TableHead className="w-[180px]">Thematic Area</TableHead>
                   <TableHead className="w-[110px]">Submitted</TableHead>
                   <TableHead className="w-[180px]">Assigned Reviewers</TableHead>
@@ -636,7 +636,7 @@ export default function AssignmentClient() {
                         </Badge>
                       </TableCell>
                       
-                      <TableCell className="text-sm">
+                      <TableCell className="text-sm line-clamp-3">
                         {tracker.proposal.intervention_name || (
                           <span className="text-gray-400">Not specified</span>
                         )}
@@ -715,7 +715,7 @@ export default function AssignmentClient() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/portal/interventions/reviewers/${tracker.id}`)}
+                          
                           className="w-full text-xs whitespace-nowrap"
                         >
                           <UserPlus className="h-3 w-3 mr-1" />
@@ -749,6 +749,7 @@ export default function AssignmentClient() {
                       <SelectItem value="30">30</SelectItem>
                       <SelectItem value="50">50</SelectItem>
                       <SelectItem value="100">100</SelectItem>
+                       <SelectItem value="200">200</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

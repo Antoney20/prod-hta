@@ -577,7 +577,7 @@ function AllInterventionsPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date Submitted
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-4 max-w-[420px] py-3  text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Intervention Name
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -637,8 +637,8 @@ function AllInterventionsPage() {
                       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(proposal.date).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm text-gray-900">
+                      <td className="px-4 py-4 min-w-[300px]">
+                        <div className="text-sm line-clamp-4 min-w-[300px] text-gray-900">
                           {proposal.intervention_name || 'N/A'}
                         </div>
                       </td>

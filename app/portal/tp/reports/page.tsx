@@ -11,9 +11,11 @@ import { ScoringReport, InterventionReport } from "@/types/new/scoring";
 import { getScoringReport } from "@/app/api/new/scoring";
 import { ScoreList } from "./list";
 import { SortOrder, ReportFilters } from "./filters";
-import { exportScoringReportCSV } from "./utils";
+
 import { ReportTable } from "./table";
 import { InterventionDetailDialog } from "./dialogue";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { exportAllDataCSV, exportAverageDataCSV } from "./utils";
 
 const BRAND = "#27aae1";
 
@@ -103,16 +105,16 @@ export default function ScoringReportPage() {
     return items;
   }, [allInterventions, sortOrder, categoryFilter, search]);
 
-  const handleExport = () => {
-    if (!report || !filtered.length) return;
-    // Pass a synthetic report with only the filtered interventions
-    const filteredReport: ScoringReport = {
-      ...report,
-      by_category: [{ category: "export", interventions: filtered }],
-    };
-    exportScoringReportCSV(filteredReport);
-    toast.success(`Exported ${filtered.length} intervention${filtered.length !== 1 ? "s" : ""} to CSV.`);
-  };
+  // const handleExport = () => {
+  //   if (!report || !filtered.length) return;
+  //   // Pass a synthetic report with only the filtered interventions
+  //   const filteredReport: ScoringReport = {
+  //     ...report,
+  //     by_category: [{ category: "export", interventions: filtered }],
+  //   };
+  //   exportScoringReportCSV(filteredReport);
+  //   toast.success(`Exported ${filtered.length} intervention${filtered.length !== 1 ? "s" : ""} to CSV.`);
+  // };
 
   return (
     <TooltipProvider>
@@ -147,21 +149,40 @@ export default function ScoringReportPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-              disabled={!report || initialLoading || filtered.length === 0}
-              className="gap-1.5"
-            >
-              <Download className="h-4 w-4" />
-              Export CSV
-              {filtered.length > 0 && report && (
-                <span className="ml-1 text-[10px] font-medium text-slate-400 tabular-nums">
-                  ({filtered.length})
-                </span>
-              )}
-            </Button>
+            <DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button
+      variant="outline"
+      size="sm"
+      disabled={!report || initialLoading || filtered.length === 0}
+      className="gap-1.5"
+    >
+      <Download className="h-4 w-4" />
+      Export CSV
+      {filtered.length > 0 && report && (
+        <span className="ml-1 text-[10px] font-medium text-slate-400 tabular-nums">
+          ({filtered.length})
+        </span>
+      )}
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="end">
+    <DropdownMenuItem onClick={() => {
+      if (!report || !filtered.length) return;
+      exportAllDataCSV({ ...report, by_category: [{ category: "export", interventions: filtered }] });
+      toast.success(`Exported ${filtered.length} interventions (all data).`);
+    }}>
+      All Data
+    </DropdownMenuItem>
+    <DropdownMenuItem onClick={() => {
+      if (!report || !filtered.length) return;
+      exportAverageDataCSV({ ...report, by_category: [{ category: "export", interventions: filtered }] });
+      toast.success(`Exported ${filtered.length} interventions (averages).`);
+    }}>
+      Average Data
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
             <Button
               variant="outline"
               size="icon"

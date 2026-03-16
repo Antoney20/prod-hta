@@ -53,7 +53,19 @@ function criteriaTotal(item: InterventionReport, criteriaName: string): number {
   }, 0);
 }
 
-
+/** Average a single criteria across ALL reviewers for one intervention */
+function criteriaAvg(item: InterventionReport, criteriaName: string): number {
+  const scorers = item.reviewers.filter((r) => {
+    const cs = r.criteria_scores.find((c) => c.criteria_name === criteriaName);
+    return (cs?.score_value ?? 0) > 0;
+  });
+  if (!scorers.length) return 0;
+  const total = scorers.reduce((sum, r) => {
+    const cs = r.criteria_scores.find((c) => c.criteria_name === criteriaName);
+    return sum + (cs?.score_value ?? 0);
+  }, 0);
+  return Math.round((total / scorers.length) * 10) / 10;
+}
 
 function CategoryPills({ categories }: { categories: string[] }) {
   if (!categories?.length)
@@ -198,16 +210,7 @@ export function ReportTable({ items }: ReportTableProps) {
                 </TableHead>
               ))}
 
-              {/* Grand total */}
-              <TableHead className="w-20 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-l border-slate-200 bg-slate-100 whitespace-nowrap">
-                <span className="flex items-center justify-center gap-1">
-                  Total
-                  <Tooltip>
-                    <TooltipTrigger><Info className="h-3 w-3 text-slate-300" /></TooltipTrigger>
-                    <TooltipContent>Sum of all criteria scores across all reviewers</TooltipContent>
-                  </Tooltip>
-                </span>
-              </TableHead>
+            
             </TableRow>
           </TableHeader>
 
@@ -263,18 +266,18 @@ export function ReportTable({ items }: ReportTableProps) {
                     </TableCell>
 
                     {/* Per-criteria totals */}
-                    {allCriteria.map((name) => (
+                    {/* {allCriteria.map((name) => (
                       <TableCell key={name} className="text-center align-middle py-3 border-l border-slate-100 bg-sky-50/20 px-3">
                         <ScoreCell value={criteriaTotal(item, name)} />
                       </TableCell>
+                    ))} */}
+                    {allCriteria.map((name) => (
+                      <TableCell key={name} className="text-center align-middle py-3 border-l border-slate-100 bg-sky-50/20 px-3">
+                        <ScoreCell value={criteriaAvg(item, name)} />
+                      </TableCell>
                     ))}
 
-                    {/* Grand total */}
-                    <TableCell className="text-center align-middle py-3 border-l border-slate-200 bg-slate-50">
-                      <span className="text-sm font-bold text-slate-900 tabular-nums">
-                        {item.total_score}
-                      </span>
-                    </TableCell>
+                    
                   </TableRow>
                 );
               })

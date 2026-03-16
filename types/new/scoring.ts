@@ -1,55 +1,51 @@
-export interface UserScoringStatus {
+
+export interface CriteriaScore {
+  criteria_name: string;
+  score_value: number;          // 0 if this reviewer hasn't scored this criteria yet
+}
+
+// ── Per-reviewer status within an intervention ────────────────────────────────
+
+export interface ReviewerStatus {
   user_id: number;
   full_name: string;
   email: string;
-  scored: boolean;
-  score_count: number;
-  user_total_score: number;
+  scored: boolean;              // true if they've scored at least one criteria
+  score_count: number;          // number of criteria scored
+  total_score: number;          // sum of their score_values for this intervention
+  criteria_scores: CriteriaScore[];  // one entry per unique criteria (0 if unscored)
 }
 
-export interface InterventionScoreReport {
+// ── Per-intervention report ───────────────────────────────────────────────────
+
+export interface InterventionReport {
   intervention_id: string;
   reference_number: string;
   intervention_name: string;
   intervention_type: string | null;
   system_categories: string[];
-  max_possible_score: number;
-  criteria_scored: number;
-  criteria_total: number;
-  is_fully_scored: boolean;
-  reviewer_statuses: UserScoringStatus[];
-  overall_total_score: number;
+  total_score: number;          // sum of ALL score_values from ALL reviewers
+  criteria_scored: number;      // unique criteria scored by any reviewer
+  criteria_total: number;       // total unique criteria available (from SelectionTool)
+  reviewers: ReviewerStatus[];
+  unscored_reviewers: ReviewerStatus[];  // reviewers who haven't scored this intervention
 }
 
-export interface ScoringReportResult {
+// ── Category grouping ─────────────────────────────────────────────────────────
+
+export interface CategoryGroup {
+  category: string;             // "Uncategorized" for interventions with no category
+  interventions: InterventionReport[];
+}
+
+// ── Top-level report ──────────────────────────────────────────────────────────
+
+export interface ScoringReport {
   success: boolean;
   message: string;
   total_interventions: number;
-  fully_scored: number;
-  partially_scored: number;
-  not_scored: number;
+  not_scored: number;           // interventions with zero scores from any reviewer
   total_reviewers: number;
-  interventions: InterventionScoreReport[];
+  by_category: CategoryGroup[];
   error?: string | null;
-}
-
-export interface EnrichedInterventionScore {
-  id: string;
-  score: {
-    tool_id: string;
-    scoring_mechanism: string;
-    score_value: number;
-    criteria_label: string;
-  };
-  comment: string;
-  created_at: string;
-  updated_at: string;
-
-  reviewer: number;
-  intervention: string;
-  criteria: string;
-  reviewer_name: string;
-  reviewer_email: string;
-  intervention_name: string;
-  intervention_reference: string;
 }

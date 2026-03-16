@@ -20,7 +20,7 @@ export type TabId = "interventions" | "system-categorisation";
 
 const TABS: { id: TabId; label: string; upcoming?: boolean }[] = [
   { id: "interventions", label: "Interventions submitted" },
-  { id: "system-categorisation", label: "System categorisation", upcoming: true },
+  { id: "system-categorisation", label: "Status Update", upcoming: true },
 ];
 
 

@@ -8,7 +8,7 @@ const ROLE_HIERARCHY: UserRole[] = [
   'user',
   'swg',
   'content_manager',
-  'secretariate',
+  'secretariat',
   'admin'
 ]
 
@@ -150,7 +150,7 @@ export function AdminOnly({ children, silent }: { children: ReactNode; silent?: 
 
 export function SecretariateAndAbove({ children, silent }: { children: ReactNode; silent?: boolean }) {
   return (
-    <RoleGuard minimumRole="secretariate" silent={silent}>
+    <RoleGuard minimumRole="secretariat" silent={silent}>
       {children}
     </RoleGuard>
   )

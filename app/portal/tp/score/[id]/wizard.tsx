@@ -120,7 +120,6 @@ export function ScoringWizard({
     [groups]
   );
   const draftedCount = Object.keys(drafts).length;
-  const pct = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
   const allScored = draftedCount === groups.length;
 
   const savedByToolId = useMemo(() => {
@@ -223,14 +222,14 @@ export function ScoringWizard({
             </div>
           </div>
 
-          <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+          {/* <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
                 pct >= 70 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-400" : "bg-red-400"
               }`}
               style={{ width: `${pct}%` }}
             />
-          </div>
+          </div> */}
 
           <div className="flex items-center gap-1.5 flex-wrap">
             {filtered.map((g, i) => {
@@ -429,7 +428,7 @@ export function ScoringWizard({
                 You are about to submit <strong>{draftedCount} scores</strong> for this intervention.
               </span>
               <span className="block bg-slate-50 border rounded-md px-3 py-2 text-slate-700">
-                Total: <strong>{totalScore}/{maxScore}</strong> · <strong>{pct}%</strong>
+                Total: <strong>{totalScore}/{maxScore}</strong> 
               </span>
               <span className="block text-slate-400 text-xs">
                 Scores cannot be changed after submission.

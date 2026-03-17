@@ -247,7 +247,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
 
   const getRoleLabel = (): string => {
     if (role === 'admin')           return 'Admin';
-    if (role === 'secretariate')    return 'Secretariate';
+    if (role === 'secretariat')    return 'Secretariate';
     if (role === 'content_manager') return 'Content Manager';
     if (role === 'swg')             return 'SWG Member';
     return 'Member';

@@ -49,3 +49,13 @@ export interface ScoringReport {
   by_category: CategoryGroup[];
   error?: string | null;
 }
+
+export interface ScoringReportResult {
+  success: boolean;
+  message: string;
+  total_interventions: number;
+  not_scored: number;           // interventions with zero scores from any reviewer
+  total_reviewers: number;
+  by_category: CategoryGroup[];
+  error?: string | null;
+}

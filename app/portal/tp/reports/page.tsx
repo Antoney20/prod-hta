@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils";
 
 import { ScoringReport, InterventionReport } from "@/types/new/scoring";
 import { getScoringReport } from "@/app/api/new/scoring";
-import { ScoreList } from "./list";
+// import { ScoreList } from "./list";
 import { SortOrder, ReportFilters } from "./filters";
 
 import { ReportTable } from "./table";
-import { InterventionDetailDialog } from "./dialogue";
+// import { InterventionDetailDialog } from "./dialogue";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { exportAllDataCSV, exportAverageDataCSV } from "./utils";
 
@@ -233,18 +233,18 @@ export default function ScoringReportPage() {
               CSV export includes per-reviewer scores for each criteria.
             </p>
 
-            <div className="border-t border-slate-200 pt-6">
+            {/* <div className="border-t border-slate-200 pt-6">
               <ScoreList />
-            </div>
+            </div> */}
           </div>
         )}
       </div>
-
+{/* 
       <InterventionDetailDialog
         item={selectedItem}
         open={!!selectedItem}
         onClose={() => setSelectedItem(null)}
-      />
+      /> */}
 
       <style jsx global>{`
         @keyframes swipe {

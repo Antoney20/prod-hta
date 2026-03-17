@@ -249,7 +249,7 @@ export default function TrackerDetailPage() {
             {tracker.county && (
               <span className="flex items-center gap-1.5 text-xs text-slate-500">
                 <MapPin className="h-3 w-3 text-gray-800" />
-                {tracker.county}
+               ----
               </span>
             )}
             <span className="flex items-center gap-1.5 text-xs text-slate-500">

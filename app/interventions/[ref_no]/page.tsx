@@ -21,6 +21,28 @@ function formatDate(dateStr: string): string {
 }
 
 
+// function DetailRow({
+//   label,
+//   value,
+//   wide = false,
+// }: {
+//   label: string;
+//   value: React.ReactNode;
+//   wide?: boolean;
+// }) {
+//   return (
+//     <div
+//       className={`py-4 border-b border-gray-200 ${
+//         wide ? "sm:col-span-2" : ""
+//       } sm:grid sm:grid-cols-3 sm:gap-4`}
+//     >
+//       <dt className="text-sm font-bold text-gray-700 mb-1 sm:mb-0">{label}</dt>
+//       <dd className="text-sm text-gray-900 sm:col-span-2">{value ?? "—"}</dd>
+//     </div>
+//   );
+// }
+
+
 function DetailRow({
   label,
   value,
@@ -30,14 +52,27 @@ function DetailRow({
   value: React.ReactNode;
   wide?: boolean;
 }) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    (typeof value === "string" && value.trim() === "")
+  ) {
+    return null;
+  }
+
   return (
     <div
       className={`py-4 border-b border-gray-200 ${
         wide ? "sm:col-span-2" : ""
       } sm:grid sm:grid-cols-3 sm:gap-4`}
     >
-      <dt className="text-sm font-bold text-gray-700 mb-1 sm:mb-0">{label}</dt>
-      <dd className="text-sm text-gray-900 sm:col-span-2">{value ?? "—"}</dd>
+      <dt className="text-sm font-bold text-gray-700 mb-1 sm:mb-0">
+        {label}
+      </dt>
+      <dd className="text-sm text-gray-900 sm:col-span-2">
+        {value}
+      </dd>
     </div>
   );
 }

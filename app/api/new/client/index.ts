@@ -151,15 +151,27 @@ export const getInterventionScoreDetail = async (id: string): Promise<Interventi
   }
 };
 
+// export const createInterventionScore = async (
+//   body: Pick<InterventionScore, "intervention" | "criteria" | "score" | "comment">
+// ): Promise<InterventionScore | null> => {
+//   try {
+//     const res = await api.post<InterventionScore>("/v3/intervention-scores/", body);
+//     return res.data;
+//   } catch {
+//     return null;
+//   }
+// };
+
+
+
 export const createInterventionScore = async (
-  body: Pick<InterventionScore, "intervention" | "criteria" | "score" | "comment">
-): Promise<InterventionScore | null> => {
-  try {
-    const res = await api.post<InterventionScore>("/v3/intervention-scores/", body);
-    return res.data;
-  } catch {
-    return null;
-  }
+  scores: Pick<InterventionScore, "intervention" | "criteria" | "score" | "comment">[]
+): Promise<InterventionScore[]> => {
+  const res = await api.post<InterventionScore[]>(
+    "/v3/intervention-scores/bulk/",
+    { scores }
+  );
+  return res.data;
 };
 
 export const updateInterventionScore = async (

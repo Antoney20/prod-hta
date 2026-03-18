@@ -192,16 +192,17 @@ export function ScoringWizard({
     setConfirmOpen(true);
   };
 
+
   const handleConfirmSubmit = async () => {
-    setConfirmOpen(false);
-    try {
-      await onSubmitAll();
-      localStorage.removeItem(STORAGE_KEY);
-      groups.forEach(g => onDraftChange(g.criteria, null));
-    } catch (err) {
-      console.error("Submission failed — drafts preserved", err);
-    }
-  };
+  setConfirmOpen(false);
+  try {
+    await onSubmitAll();
+    localStorage.removeItem(STORAGE_KEY);
+    groups.forEach(g => onDraftChange(g.criteria, null));
+  } catch (err) {
+    console.error("Submission failed — drafts preserved", err);
+  }
+};
 
   if (!current) {
     return (

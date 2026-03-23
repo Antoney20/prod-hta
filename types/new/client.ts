@@ -28,6 +28,7 @@ export interface InterventionProposal {
   is_public: boolean;
   documents: Document[];
   user?: User | null;
+  rescore_open : boolean;
 }
 
 
@@ -86,3 +87,29 @@ export interface InterventionScoreDetail extends Omit<InterventionScore, "review
   reviewer: Pick<User, "id" | "username" | "email">;
   criteria: SelectionTool;
 }
+
+ 
+/** Patch payload — same shape for both a normal update and a rescore */
+export type ScorePatchPayload = Partial<Pick<InterventionScore, "score" | "comment">>;
+ 
+/** Single item inside a bulk-rescore call */
+export type BulkRescoreItem = ScorePatchPayload & { criteria: string };
+ 
+/** Full bulk-rescore request body */
+export interface BulkRescorePayload {
+  intervention: string;
+  scores: BulkRescoreItem[];
+}
+ 
+/**
+ * Extra fields the backend stamps on InterventionScore after a rescore.
+ * Extend InterventionScore with this when reading scores back from the API.
+ */
+export interface RescoreMetadata {
+  is_rescored: boolean;
+  rescored_by: string | null; // reviewer's user id
+}
+ 
+/** Score as returned by the API — includes rescore tracking */
+export type InterventionScoreResponse = InterventionScore & RescoreMetadata;
+ 

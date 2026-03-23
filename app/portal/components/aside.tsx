@@ -145,7 +145,8 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
         { title: "System Categories",  href: "/portal/config/system-category", icon: <Layers className="h-4 w-4" /> },
         
                 { title: "Assign System Categories",  href: "/portal/config/assign",   icon: <Layers className="h-4 w-4" /> },
-        { title: "Criteria Information",  href: "/portal/config/criteria-information", icon: <BookText className="h-4 w-4" /> }
+        { title: "Criteria Information",  href: "/portal/config/criteria-information", icon: <BookText className="h-4 w-4" /> },
+        // { title: "Open Rescoring",  href: "/portal/config/open-rescoring", icon:  <SlidersHorizontal  className="h-4 w-4" /> }
       ],
     },
     

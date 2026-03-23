@@ -28,10 +28,12 @@ import { getCriteriaInfoByIntervention } from "@/app/api/new/criteria-info";
 
 import { ScoringWizard } from "./wizard";
 import { ActiveCriteriaPanel, BasicInfoPanel, NoCriteriaPanel } from "./details";
+import { useGlobalUser } from "@/app/context/guard";
 
 export default function InterventionScoringPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user, isInitialized } = useGlobalUser();
 
   const [proposal, setProposal] = useState<SubmittedProposal | null>(null);
   const [tools, setTools] = useState<SelectionTool[]>([]);
@@ -103,40 +105,15 @@ export default function InterventionScoringPage() {
     };
   }, [hasUnsavedDrafts]);
 
-
-// const handleSubmitAll = async () => {
-//   setSubmitting(true);
-//   try {
-//     const payload = Object.values(drafts).map((d) => ({
-//       intervention: id,
-//       criteria: d.tool_id,
-//       score: {
-//         tool_id: d.tool_id,
-//         scoring_mechanism: d.scoring_mechanism,
-//         score_value: d.score_value,
-//         criteria_label: d.criteriaGroupLabel,
-//       },
-//       comment: d.comment,
-//     }));
-
-//     const result = await createInterventionScore(payload);
-
-//     if (result) {
-//       toast.success(`${result.length} scores submitted successfully.`);
-//       setDrafts({});
-//       localStorage.removeItem(STORAGE_KEY);
-//       await load();
-//     } else {
-//       toast.error("Submission failed — no scores were saved. Please try again.");
-//     }
-//   } finally {
-//     setSubmitting(false);
-//   }
-// };
-
-
+  const canScore = isInitialized
+    ? user?.role === "admin" || user?.role === "swg"
+    : null;
 
 const handleSubmitAll = async () => {
+  if (!canScore) {
+    toast.error("Your role does not allow scoring. Please contact an admin.");
+    return;
+  }
   setSubmitting(true);
   try {
     const payload = Object.values(drafts).map((d) => ({

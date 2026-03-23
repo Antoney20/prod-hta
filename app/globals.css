@@ -136,7 +136,7 @@
 
   body {
     @apply bg-white text-gray-900;
-    font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Source Serif 4', ui-serif, Georgia, serif;
     /* fluid base: 15px @ 375px — 17px @ 1920px */
     font-size: clamp(0.97rem, 0.90rem + 0.28vw, 1.0625rem);
     line-height: 1.7;

@@ -5,8 +5,9 @@ import { CriteriaInformation, CriteriaInformationPayload, InterventionSearchResu
 import { InterventionSystemCategory } from "@/types/new/client";
 import { searchInterventions } from "@/app/api/new/search";
 import { getInterventionCategories } from "@/app/api/new/client";
-import { createCriteriaInfo, updateCriteriaInfo } from "@/app/api/new/criteria-info";
+import { createCriteriaInfo, updateCriteriaInfo, getAllCriteriaInfo } from "@/app/api/new/criteria-info";
 import { sanitizeHtml } from "./clean";
+import { toast } from "react-toastify";
 
 
 type BODType = "DALY" | "QALY" | "PREVALENCE" | "INCIDENCE";
@@ -57,6 +58,30 @@ const EMPTY_FORM: FormState = {
   title: null,
 };
 
+function getDraftKey(editId?: string) {
+  return editId ? `criteria_draft_edit_${editId}` : "criteria_draft_new";
+}
+
+function saveDraft(form: FormState, editId?: string) {
+  try {
+    localStorage.setItem(getDraftKey(editId), JSON.stringify(form));
+  } catch { /* storage full / unavailable — silently ignore */ }
+}
+
+function loadDraft(editId?: string): FormState | null {
+  try {
+    const raw = localStorage.getItem(getDraftKey(editId));
+    return raw ? (JSON.parse(raw) as FormState) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearDraft(editId?: string) {
+  try {
+    localStorage.removeItem(getDraftKey(editId));
+  } catch { /* ignore */ }
+}
 
 interface RichEditorProps {
   value: string;
@@ -87,30 +112,20 @@ function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
     onChange(ref.current?.innerHTML ?? "");
   };
 
-  /**
-   * On paste: prefer plain text when pasting from Word/external sources,
-   * but if HTML is available, sanitize it first to strip MSO junk.
-   * Preserves bold, italic, underline, lists, links.
-   */
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-
     const html = e.clipboardData.getData("text/html");
     const plain = e.clipboardData.getData("text/plain");
-
     if (html) {
-      // Sanitize HTML paste — removes Word XML, scripts, event handlers, etc.
       const clean = sanitizeHtml(html);
       document.execCommand("insertHTML", false, clean);
     } else if (plain) {
-      // Plain text paste — insert as-is (execCommand escapes it safely)
       document.execCommand("insertText", false, plain);
     }
   };
 
   return (
     <div style={{ border: "1px solid #d1d5db", borderRadius: 6, overflow: "hidden", background: "#fff" }}>
-      {/* Toolbar */}
       <div style={{ display: "flex", gap: 2, padding: "6px 8px", borderBottom: "1px solid #e5e7eb", background: "#f9fafb", flexWrap: "wrap" }}>
         {[
           { cmd: "bold",      icon: "B", style: { fontWeight: 700 } },
@@ -140,8 +155,6 @@ function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
           Link
         </button>
       </div>
-
-      {/* Editable area */}
       <div
         ref={ref}
         contentEditable
@@ -156,14 +169,16 @@ function RichEditor({ value, onChange, placeholder }: RichEditorProps) {
   );
 }
 
+// ── Intervention search ──────────────────────────────────────────────────────
 
 interface InterventionSearchInputProps {
   value: InterventionSearchResult | null;
-  onChange: (result: InterventionSearchResult) => void;
+  onChange: (result: InterventionSearchResult) => Promise<void>;
   disabled?: boolean;
+  checking?: boolean;
 }
 
-function InterventionSearchInput({ value, onChange, disabled }: InterventionSearchInputProps) {
+function InterventionSearchInput({ value, onChange, disabled, checking }: InterventionSearchInputProps) {
   const [query, setQuery] = useState(value ? `${value.reference_number} — ${value.intervention_name}` : "");
   const [results, setResults] = useState<InterventionSearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -184,11 +199,19 @@ function InterventionSearchInput({ value, onChange, disabled }: InterventionSear
     }, 350);
   };
 
-  const select = (r: InterventionSearchResult) => {
-    onChange(r);
-    setQuery(`${r.reference_number} — ${r.intervention_name}`);
+  const select = async (r: InterventionSearchResult) => {
     setOpen(false);
+    await onChange(r);
+    // Only update the query text if onChange didn't block (duplicate check passes)
+    // The parent sets selectedIntervention only on success, so we sync from the value prop
   };
+
+  // Keep query text in sync with value prop (handles blocked/rejected selections)
+  useEffect(() => {
+    if (value) {
+      setQuery(`${value.reference_number} — ${value.intervention_name}`);
+    }
+  }, [value]);
 
   return (
     <div style={{ position: "relative" }}>
@@ -204,9 +227,9 @@ function InterventionSearchInput({ value, onChange, disabled }: InterventionSear
             outline: "none", boxSizing: "border-box",
           }}
         />
-        {loading && (
+        {(loading || checking) && (
           <div style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)" }}>
-            <div style={{ width: 14, height: 14, border: "2px solid #e5e7eb", borderTopColor: "#1d4ed8", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+            <div style={{ width: 14, height: 14, border: "2px solid #e5e7eb", borderTopColor: checking ? "#f59e0b" : "#1d4ed8", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
           </div>
         )}
       </div>
@@ -223,7 +246,7 @@ function InterventionSearchInput({ value, onChange, disabled }: InterventionSear
               onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}>
               <div style={{ fontSize: 13, fontWeight: 600, color: "#1d4ed8" }}>{r.reference_number}</div>
               <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{r.intervention_name}</div>
-              {r.county && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 1 }}>{r.county} · {r.intervention_type}</div>}
+              {r.intervention_type && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 1 }}>{r.intervention_type}</div>}
             </div>
           ))}
         </div>
@@ -232,6 +255,8 @@ function InterventionSearchInput({ value, onChange, disabled }: InterventionSear
     </div>
   );
 }
+
+// ── Small helpers ────────────────────────────────────────────────────────────
 
 function SectionTitle({ label, description, required, badge }: { label: string; description?: string; required?: boolean; badge?: React.ReactNode }) {
   return (
@@ -273,13 +298,13 @@ function SubmitBanner({ state, onDismiss }: { state: SubmitState; onDismiss?: ()
 }
 
 // ── HTML field keys that need sanitization before save ────────────────────────
+
 const HTML_FIELD_KEYS = new Set<keyof FormState>([
   "brief_info", "clinical_effectiveness", "burden_of_disease", "population",
   "equity", "cost_effectiveness", "budget_impact_affordability",
   "feasibility_of_implementation", "catastrophic_health_expenditure",
   "access_to_healthcare", "congruence_with_health_priorities", "additional_info",
 ]);
-
 
 function sanitizeFormPayload(form: FormState): FormState {
   const result = { ...form };
@@ -292,23 +317,74 @@ function sanitizeFormPayload(form: FormState): FormState {
   return result;
 }
 
+function formIsEmpty(form: FormState): boolean {
+  if (form.intervention) return false;
+  for (const key of HTML_FIELD_KEYS) {
+    const v = form[key];
+    if (v && typeof v === "string" && v.trim()) return false;
+  }
+  return true;
+}
+
+// ── Public API ───────────────────────────────────────────────────────────────
+
 export interface CriteriaFormProps {
   initial?: CriteriaInformation | null;
   onSuccess: () => void;
+  /**
+   * Called when the form wants to close itself (cancel button / × button).
+   * The parent is responsible for actually unmounting the form; this callback
+   * only fires after the parent has confirmed it's OK to close.
+   */
   onCancel: () => void;
+  /**
+   * Ref the parent can use to ask "does this form have unsaved changes?".
+   * The parent calls `hasChangesRef.current()` before closing the modal.
+   */
+  hasChangesRef?: React.MutableRefObject<() => boolean>;
 }
 
-export function CriteriaForm({ initial, onSuccess, onCancel }: CriteriaFormProps) {
+export function CriteriaForm({ initial, onSuccess, onCancel, hasChangesRef }: CriteriaFormProps) {
   const isEdit = !!initial;
+  const editId = initial?.id;
 
+  // ── initialise form — prefer a saved draft ───────────────────────────────
   const [form, setForm] = useState<FormState>(() => {
+    const draft = loadDraft(editId);
+    if (draft) return draft;
     if (!initial) return EMPTY_FORM;
     return { ...initial, bod_type: (initial.bod_type as BODType) ?? null };
   });
+
   const [selectedIntervention, setSelectedIntervention] = useState<InterventionSearchResult | null>(null);
   const [categories, setCategories] = useState<InterventionSystemCategory[]>([]);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false);
 
+  // ── expose hasChanges to parent ──────────────────────────────────────────
+  const initialFormRef = useRef<FormState>(
+    initial ? { ...initial, bod_type: (initial.bod_type as BODType) ?? null } : EMPTY_FORM
+  );
+
+  const hasChanges = useCallback((): boolean => {
+    if (formIsEmpty(form)) return false;
+    return JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
+  }, [form]);
+
+  useEffect(() => {
+    if (hasChangesRef) hasChangesRef.current = hasChanges;
+  }, [hasChanges, hasChangesRef]);
+
+  // ── auto-save draft on every form change ─────────────────────────────────
+  useEffect(() => {
+    if (formIsEmpty(form)) {
+      clearDraft(editId);
+      return;
+    }
+    saveDraft(form, editId);
+  }, [form, editId]);
+
+  // ── load categories when intervention changes ─────────────────────────────
   useEffect(() => {
     if (!form.intervention) { setCategories([]); return; }
     getInterventionCategories(form.intervention).then((res: any) => {
@@ -321,18 +397,30 @@ export function CriteriaForm({ initial, onSuccess, onCancel }: CriteriaFormProps
     setForm((f) => ({ ...f, [key]: val }));
   }, []);
 
-  const handleInterventionSelect = (r: InterventionSearchResult) => {
+  const handleInterventionSelect = async (r: InterventionSearchResult) => {
+    setCheckingDuplicate(true);
+    const all = await getAllCriteriaInfo();
+    setCheckingDuplicate(false);
+    const duplicate = all.find((c) => c.intervention === r.id);
+    if (duplicate) {
+      toast.warning(
+        `"${r.intervention_name}" already has criteria information. Edit the existing record instead.`,
+        { autoClose: 5000 }
+      );
+      return;
+    }
     setSelectedIntervention(r);
     setField("intervention", r.id);
   };
 
   const handleSubmit = async () => {
-    if (!form.intervention) return;
+    if (!form.intervention) {
+      toast.warning("Please select an intervention before saving.");
+      return;
+    }
     setSubmitState("submitting");
 
-    // Sanitize all HTML fields before sending to API
     const sanitized = sanitizeFormPayload(form);
-
     const payload: CriteriaInformationPayload = {
       ...sanitized,
       bod_type: sanitized.bod_type ?? null,
@@ -346,6 +434,9 @@ export function CriteriaForm({ initial, onSuccess, onCancel }: CriteriaFormProps
       setSubmitState("error");
       return;
     }
+
+    // Clear draft on successful save
+    clearDraft(editId);
     setSubmitState("success");
     setTimeout(() => onSuccess(), 900);
   };
@@ -404,6 +495,7 @@ export function CriteriaForm({ initial, onSuccess, onCancel }: CriteriaFormProps
             value={selectedIntervention}
             onChange={handleInterventionSelect}
             disabled={isEdit}
+            checking={checkingDuplicate}
           />
           {selectedIntervention && (
             <div style={{ marginTop: 8, padding: "8px 12px", background: "#eff6ff", borderRadius: 6, border: "1px solid #bfdbfe" }}>

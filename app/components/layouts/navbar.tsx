@@ -318,7 +318,7 @@ function SearchBox({ onNavigate, className }: { onNavigate?: () => void; classNa
                                 {r.title}
                               </p>
                               {(r.meta || r.excerpt) && (
-                                <p className="text-xs text-gray-400 truncate mt-0.5">
+                                <p className="text-xs text-gray-600 truncate mt-0.5">
                                   {r.meta ?? r.excerpt}
                                 </p>
                               )}
@@ -433,7 +433,7 @@ export default function Navbar() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 4 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-0 w-52 bg-white border border-gray-200 shadow-lg z-50"
+                            className="absolute top-full left-0 mt-0 w-62 bg-white border border-gray-200 shadow-lg z-50"
                           >
                             <div className="h-0.5 w-full bg-[#27aae1]" />
                             {link.subLinks!.map((sub) => (
@@ -441,7 +441,7 @@ export default function Navbar() {
                                 key={sub.href}
                                 href={sub.href}
                                 className={cn(
-                                  'block px-4 py-3 text-base  border-b border-gray-100 last:border-0 transition-colors',
+                                  'block px-4 py-3 text-base font-semibold border-b border-gray-100 last:border-0 transition-colors',
                                   pathname === sub.href
                                     ? 'text-[#27aae1] bg-blue-50'
                                     : 'text-gray-900 hover:text-[#27aae1] hover:bg-[#f0f9ff]'

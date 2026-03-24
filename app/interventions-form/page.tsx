@@ -5,6 +5,7 @@ import Footer from '../components/layouts/footer';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { MessageSquare, Users } from 'lucide-react';
+import ScrollToForm from './scroll';
 
 export const metadata: Metadata = {
   title: 'Interventions Proposal | Health Benefits Package',
@@ -38,7 +39,7 @@ export default function Page() {
       <section className="bg-white">
 
 
-        <div className="container mx-auto px-2  border-b border-gray-900  py-14">
+        <div className="container mx-auto px-2  border-b border-gray-900  py-12 mt-8">
           <div className="max-w-5xl">
      
 
@@ -116,6 +117,7 @@ export default function Page() {
       </section>
 
       <section className="bg-[#f8f9fa] border-b border-gray-200 flex-1">
+         <ScrollToForm>
         <div className="container mx-auto px-4 sm:px-6 py-6">
           <div className="mb-10">
      
@@ -131,6 +133,7 @@ export default function Page() {
             <BenefitsForm />
           </div>
         </div>
+        </ScrollToForm>
       </section>
 
       <Footer />

@@ -402,7 +402,7 @@ export default function Navbar() {
               <Image src="/images/logo.png" alt="BPTAP" height={110} width={110} className="w-auto h-18 object-contain" priority />
             </Link>
 
-            {/* Desktop nav */}
+            {/* l nav */}
             <div className="hidden lg:flex items-stretch flex-1 pl-2">
               {links.map((link) => {
                 const hasDropdown = 'subLinks' in link && !!link.subLinks
@@ -418,7 +418,7 @@ export default function Navbar() {
                       onMouseLeave={handleMouseLeave}
                     >
                       <button className={cn(
-                        'relative flex items-center gap-1 px-3 text-base font-semibold tracking-wide transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#27aae1]',
+                        'relative flex items-center gap-1 px-3 text-base xl:text-lg 2xl:text-xl  font-semibold tracking-wide transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#27aae1]',
                         isActive ? 'text-[#27aae1]' : 'text-black hover:text-[#27aae1]'
                       )}>
                         {link.label}
@@ -462,7 +462,7 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={cn(
-                      'relative flex items-center px-3 text-lg  font-semibold tracking-wide transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#27aae1]',
+                      'relative flex items-center px-3 text-lg  2xl:text-2xl  font-semibold tracking-wide transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#27aae1]',
                       isActive ? 'text-[#27aae1]' : 'text-black hover:text-[#27aae1]'
                     )}
                   >

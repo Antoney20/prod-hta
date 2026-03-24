@@ -1,5 +1,6 @@
 import { PublicProposal } from '@/types/new/public'
-import { News } from '@/types/dashboard/content'
+import { Governance, News } from '@/types/dashboard/content'
+import { getGovernanceMembers } from '@/app/api/dashboard/content'
 
 export interface StaticResult {
   title: string
@@ -47,12 +48,15 @@ export const STATIC_INDEX: StaticResult[] = [
     section: 'About',
   },
 
+  // ── Governance — Structure ──────────────────────────────────────
   {
     title: 'Governance structure',
     excerpt: 'Overview of how BPTAP is structured, including the advisory panel, secretariat, and scientific working groups responsible for evidence-informed decision making.',
     href: '/governance',
     section: 'Governance',
   },
+
+  // ── Governance — Advisory Panel members ────────────────────────
   {
     title: 'Advisory panel members',
     excerpt: 'The BPTAP advisory panel comprises independent experts in health economics, clinical medicine, public health, and health policy from across Kenya.',
@@ -60,9 +64,153 @@ export const STATIC_INDEX: StaticResult[] = [
     section: 'Governance',
   },
   {
+    title: 'Prof. Walter G. Jaoko — Chairperson',
+    excerpt: 'Chairperson of the BPTAP Advisory Panel. Affiliated with KAVI – University of Nairobi.',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Patrick Amoth — Panel Member',
+    excerpt: 'Director General for Health and member of the BPTAP Advisory Panel.',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Mary Kigasia Amuyunzu-Nyamongo — Vice Chairperson',
+    excerpt: 'Vice Chairperson of the BPTAP Advisory Panel. Representing the NCD Alliance.',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Gabriel Muswali — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing HENNET.',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Georgina Bonnet Arroyo — Panel Member',
+    excerpt: 'Ex-Officio member of the BPTAP Advisory Panel, representing DPHK.',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Hajara El Busaidy — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the Council of Governors (COG).',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Margaret Macharia — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the Social Health Authority (SHA).',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Nehemiah Odera — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the National Treasury.',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Robert Rapando — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the Council of Governors (CoG).',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Stephen Kaboro — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the Ministry of Health (MoH).',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Valeria Makory — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the Ministry of Health (MoH).',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Walter Oyamo Obita — Panel Member',
+    excerpt: 'Member of the BPTAP Advisory Panel, representing the Kenya Health Federation (KHF).',
+    href: '/governance#panel',
+    section: 'Governance',
+  },
+
+  // ── Governance — Panel Mandate ──────────────────────────────────
+  {
+    title: 'Advisory Panel mandate',
+    excerpt: 'The BPTAP Advisory Panel is mandated to review and update the existing benefits package and tariffs using health technology assessment, and to identify health interventions not yet available in Kenya.',
+    href: '/governance#mandate',
+    section: 'Governance',
+  },
+  {
+    title: 'Review and update the benefits package',
+    excerpt: 'The panel reviews and updates Kenya\'s existing healthcare benefits package in accordance with applicable health technology assessment standards.',
+    href: '/governance#mandate',
+    section: 'Governance',
+  },
+  {
+    title: 'Review and update tariffs',
+    excerpt: 'The panel reviews and updates existing healthcare tariffs in accordance with applicable health technology assessment methodologies.',
+    href: '/governance#mandate',
+    section: 'Governance',
+  },
+  {
+    title: 'Identify unavailable health interventions',
+    excerpt: 'The panel identifies and defines health interventions that are not yet available in Kenya for potential inclusion in the benefits package.',
+    href: '/governance#mandate',
+    section: 'Governance',
+  },
+
+  // ── Governance — Secretariat members ───────────────────────────
+  {
     title: 'Secretariat',
     excerpt: 'The BPTAP secretariat, hosted at the University of Nairobi, coordinates panel activities, manages submissions, and supports evidence review processes.',
     href: '/governance#secretariat',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Abdiaziz Abdikadir Ahmed — Secretariat Member',
+    excerpt: 'Member of the BPTAP Joint Secretariat, representing the University of Nairobi (UoN).',
+    href: '/governance#secretariat',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Christine Wambugu — Secretariat Member',
+    excerpt: 'Member of the BPTAP Joint Secretariat, representing the Ministry of Health (MoH).',
+    href: '/governance#secretariat',
+    section: 'Governance',
+  },
+  {
+    title: 'Francis Motiri, HSC — Secretariat Member',
+    excerpt: 'Member of the BPTAP Joint Secretariat, representing the Ministry of Health (MoH).',
+    href: '/governance#secretariat',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Patricia Nyokabi — Secretariat Member',
+    excerpt: 'Member of the BPTAP Joint Secretariat, representing CEMA.',
+    href: '/governance#secretariat',
+    section: 'Governance',
+  },
+  {
+    title: 'Dr. Tabitha Okech — Secretariat Member',
+    excerpt: 'Member of the BPTAP Joint Secretariat, representing CEMA.',
+    href: '/governance#secretariat',
+    section: 'Governance',
+  },
+
+  // ── Governance — Secretariat Mandate ───────────────────────────
+  {
+    title: 'Secretariat mandate',
+    excerpt: 'The secretariat brings deep expertise in medicine, health economics, and epidemiology to provide technical assistance and secretarial support to the panel — ensuring every decision is informed, efficient, and impactful.',
+    href: '/governance#secretariat-mandate',
+    section: 'Governance',
+  },
+  {
+    title: 'Technical assistance and secretarial support',
+    excerpt: 'The BPTAP secretariat empowers the panel with specialised knowledge across medicine, health economics, and epidemiology, supporting evidence review and administrative coordination.',
+    href: '/governance#secretariat-mandate',
     section: 'Governance',
   },
 
@@ -140,31 +288,31 @@ export const STATIC_INDEX: StaticResult[] = [
     excerpt: 'Access the BPTAP portal to manage submissions, review interventions, and update your account.',
     href: '/auth/login',
     section: 'Auth',
-    },
-    {
+  },
+  {
     title: 'Sign in to Dashboard',
     excerpt: 'Sign in to your BPTAP dashboard to track progress, manage proposals, and monitor activities.',
     href: '/auth/login',
     section: 'Auth',
-    },
-    {
+  },
+  {
     title: 'Portal Sign in',
     excerpt: 'Log in to the BPTAP portal and continue working on your submissions and interventions.',
     href: '/auth/login',
     section: 'Auth',
-    },
-    {
+  },
+  {
     title: 'Dashboard Login',
     excerpt: 'Access your dashboard to manage your account, review updates, and handle your BPTAP tasks.',
     href: '/auth/login',
     section: 'Auth',
-    },
-    {
+  },
+  {
     title: 'Access Portal Dashboard',
     excerpt: 'Securely log in to the BPTAP portal dashboard and stay on top of your proposals and progress.',
     href: '/auth/login',
     section: 'Auth',
-    },
+  },
   {
     title: 'Create an account',
     excerpt: 'Register to join the BPTAP platform. Sign up to submit intervention proposals and participate in the review process.',
@@ -224,12 +372,14 @@ const BASE = "/api"
 interface DynamicCache {
   proposals: PublicProposal[]
   news: News[]
+  governance: Governance[]
   loadedAt: number | null
 }
 
 const cache: DynamicCache = {
   proposals: [],
   news: [],
+  governance: [],
   loadedAt: null,
 }
 
@@ -239,9 +389,10 @@ export async function loadDynamicIndex(): Promise<void> {
   const now = Date.now()
   if (cache.loadedAt && now - cache.loadedAt < CACHE_TTL_MS) return
 
-  const [proposalsRes, newsRes] = await Promise.allSettled([
+  const [proposalsRes, newsRes, governanceRes] = await Promise.allSettled([
     fetch(`${BASE}/v3/proposals/`).then((r) => r.json()),
     fetch(`${BASE}/v1/news/`).then((r) => r.json()),
+    getGovernanceMembers(),
   ])
 
   if (proposalsRes.status === 'fulfilled') {
@@ -250,6 +401,10 @@ export async function loadDynamicIndex(): Promise<void> {
 
   if (newsRes.status === 'fulfilled') {
     cache.news = newsRes.value?.results ?? newsRes.value ?? []
+  }
+
+  if (governanceRes.status === 'fulfilled') {
+    cache.governance = governanceRes.value?.results ?? governanceRes.value ?? []
   }
 
   cache.loadedAt = now
@@ -287,6 +442,22 @@ export function searchDynamic(q: string): StaticResult[] {
         excerpt: n.excerpt?.slice(0, 90) ?? '',
         href: `/news/${n.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`,
         section: 'News',
+      })
+    )
+
+  // Dynamic governance — live member data from the API
+  cache.governance
+    .filter((g) =>
+      [g.name, g.title, g.role, g.from_organization, g.description]
+        .some((f) => f?.toLowerCase().includes(qLower))
+    )
+    .slice(0, 4)
+    .forEach((g) =>
+      results.push({
+        title: `${g.name}${g.title ? ` — ${g.title}` : ''}`,
+        excerpt: [g.role, g.from_organization].filter(Boolean).join(' · ') || g.description?.slice(0, 90) || '',
+        href: g.is_secretariat ? '/governance#secretariat' : '/governance#panel',
+        section: 'Governance',
       })
     )
 

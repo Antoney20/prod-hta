@@ -4,24 +4,20 @@ export interface DecisionType {
   description: string;
 }
 
-export interface SystemCategorySummary {
-  id: string;
-  name: string;
-}
-
-export type TopicPriorityStatus = "PENDING" | "ON_REVIEW" | "DECIDED" | "CLOSED";
-
 export interface TopicPriority {
-  id: string;
+  /** null when the row comes from a scored intervention with no status update yet */
+  id: string | null;
   reference_number: string;
   intervention_name: string;
-  status: TopicPriorityStatus;
   decision: DecisionType | null;
   decision_date: string | null;
   feedback: string;
-  system_categories: SystemCategorySummary[];
-  created_at: string;
-  updated_at: string;
+  system_categories: string[];
+  is_scored: string | null;
+  intervention_id:string | null;
+
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface TopicPriorityResponse {
@@ -33,11 +29,10 @@ export interface TopicPriorityResponse {
 
 export type TopicPriorityWritePayload = {
   intervention: string;
-  status?: TopicPriorityStatus;
   decision?: string | null;
   decision_date?: string | null;
   feedback?: string;
-  justification?: string;
+  notes?: string;
   additional_info?: string;
 };
 

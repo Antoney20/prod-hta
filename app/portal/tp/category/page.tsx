@@ -12,6 +12,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
+  Sheet, SheetContent, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
+import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -22,25 +25,29 @@ import {
 } from "@/components/ui/pagination";
 import {
   RefreshCw, Layers, Search, ChevronRight, Eye, CheckCircle2,
-  ClipboardList, AlertCircle, Info,
+  ClipboardList, AlertCircle, Info, Menu, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { SubmittedProposal } from "@/types/dashboard/submittedProposals";
 import { SystemCategory, InterventionSystemCategory, InterventionScore } from "@/types/new/client";
+import { TopicPriority } from "@/types/new/topic-prioritization";
 import { getSubmittedProposals } from "@/app/api/dashboard/submitted-proposals";
 import {
   getSystemCategories,
   getInterventionCategories,
   getInterventionScores,
 } from "@/app/api/new/client";
+import { getTopicPriorities } from "@/app/api/new/tp";
 
 const BRAND = "#27aae1";
 
 interface EnrichedProposal {
   proposal: SubmittedProposal;
   scored: boolean;
+  reviewStatus?: TopicPriority; // Status from review/topic-prioritization
 }
+
 interface CategoryGroup {
   category: SystemCategory;
   interventions: EnrichedProposal[];
@@ -59,20 +66,26 @@ export default function BrowseByCategoryPage() {
   const [tableSearch, setTableSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [proposalsRes, categories, allLinks, scores] = await Promise.all([
+      const [proposalsRes, categories, allLinks, scores, topicPriorities] = await Promise.all([
         getSubmittedProposals(),
         getSystemCategories(),
         getInterventionCategories(),
         getInterventionScores(),
+        getTopicPriorities(),
       ]);
 
       const proposals = proposalsRes.results ?? [];
       const scoredIds = new Set(scores.map((s: InterventionScore) => String(s.intervention)));
       const proposalMap = new Map(proposals.map((p) => [String(p.id), p]));
+
+      const reviewStatusMap = new Map(
+        topicPriorities.map((tp) => [String(tp.intervention_id), tp])
+      );
 
       const linksByCat = allLinks.reduce<Record<string, string[]>>((acc, link) => {
         const catId = String(link.system_category);
@@ -88,14 +101,22 @@ export default function BrowseByCategoryPage() {
           const interventions: EnrichedProposal[] = ids
             .map((id) => proposalMap.get(id))
             .filter(Boolean)
-            .map((p) => ({ proposal: p!, scored: scoredIds.has(String(p!.id)) }));
+            .map((p) => ({
+              proposal: p!,
+              scored: scoredIds.has(String(p!.id)),
+              reviewStatus: reviewStatusMap.get(String(p!.id)),
+            }));
           return { category: cat, interventions };
         })
         .filter((g) => g.interventions.length > 0);
 
       const unassignedList: EnrichedProposal[] = proposals
         .filter((p) => !categorisedIds.has(String(p.id)))
-        .map((p) => ({ proposal: p, scored: scoredIds.has(String(p.id)) }));
+        .map((p) => ({
+          proposal: p,
+          scored: scoredIds.has(String(p.id)),
+          reviewStatus: reviewStatusMap.get(String(p.id)),
+        }));
 
       setGroups(built);
       setUnassigned(unassignedList);
@@ -165,6 +186,113 @@ export default function BrowseByCategoryPage() {
     : activeCategory === "unassigned" ? "These interventions have not yet been linked to a system category."
     : activeGroup?.category.description ?? "";
 
+  /**
+   * UPDATED REVIEW STATUS LOGIC
+   * 
+   * Rules:
+   * 1. If current user hasn't scored:
+   *    - "Scored" column shows "No"
+   *    - "Decision" column shows:
+   *      - "Pending" if there's no decision from endpoint
+   *      - The decision name if decision exists from endpoint (override)
+   * 
+   * 2. If current user has scored:
+   *    - "Scored" column shows "Yes"
+   *    - "Decision" column shows:
+   *      - The decision name if it exists
+   *      - "Scored" if no decision yet
+   */
+  const getReviewStatusBadge = (item: EnrichedProposal) => {
+    const { reviewStatus, scored } = item;
+    
+    // User hasn't scored yet
+    if (!scored) {
+      // If there's a decision from endpoint, show it (override)
+      if (reviewStatus?.decision) {
+        return (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+            <CheckCircle2 className="h-3 w-3" /> {reviewStatus.decision.name}
+          </span>
+        );
+      }
+
+      // No decision from endpoint - show Pending
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+          <AlertCircle className="h-3 w-3" /> Pending
+        </span>
+      );
+    }
+
+    // User has scored
+    // If there's a decision, show it
+    if (reviewStatus?.decision) {
+      return (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+          <CheckCircle2 className="h-3 w-3" /> {reviewStatus.decision.name}
+        </span>
+      );
+    }
+
+    // User scored but no decision yet - show Scored
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+        <CheckCircle2 className="h-3 w-3" /> Scored
+      </span>
+    );
+  };
+
+  // Shared sidebar nav content — used in both desktop aside and mobile Sheet
+  const SidebarNav = ({ onSelect }: { onSelect?: () => void }) => (
+    <nav className="flex-1 overflow-y-auto divide-y divide-slate-100">
+      <SidebarItem
+        label="All Interventions"
+        count={totalAll}
+        active={activeCategory === "all"}
+        onClick={() => { setActiveCategory("all"); onSelect?.(); }}
+      />
+      {filteredGroups.length === 0 && sidebarSearch ? (
+        <p className="text-xs text-slate-400 px-4 py-3 italic">No categories match.</p>
+      ) : (
+        filteredGroups.map((g) => (
+          <SidebarItem
+            key={g.category.id}
+            label={g.category.name}
+            count={g.interventions.length}
+            active={activeCategory === g.category.id}
+            onClick={() => { setActiveCategory(g.category.id); onSelect?.(); }}
+          />
+        ))
+      )}
+      {unassigned.length > 0 && !sidebarSearch && (
+        <SidebarItem
+          label="Unassigned"
+          count={unassigned.length}
+          active={activeCategory === "unassigned"}
+          onClick={() => { setActiveCategory("unassigned"); onSelect?.(); }}
+          muted
+        />
+      )}
+    </nav>
+  );
+
+  const SidebarHeader = () => (
+    <div className="px-3 pt-4 pb-3 border-b border-slate-200 shrink-0">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2.5">
+        System Categories
+      </p>
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+        <Input
+          value={sidebarSearch}
+          onChange={(e) => setSidebarSearch(e.target.value)}
+          placeholder="Filter categories..."
+          className="pl-8 h-8 text-xs bg-slate-50 border-slate-200"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-5 h-full">
 
@@ -178,35 +306,55 @@ export default function BrowseByCategoryPage() {
             <h1 className="text-xl font-bold text-slate-800 tracking-tight">
               Interventions by System Category
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Select a system category on the left to view and score its interventions
+            <p className="text-sm text-slate-500 mt-0.5 hidden sm:block">
+              Select a system category on the left to view and manage interventions and review status
             </p>
           </div>
         </div>
-        <Button variant="outline" size="icon" onClick={load} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Mobile sidebar trigger */}
+          <Button
+            variant="outline"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setMobileSidebarOpen(true)}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" onClick={load} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile active category pill */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setMobileSidebarOpen(true)}
+          className="flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg border border-slate-200 bg-white w-full text-left shadow-sm"
+        >
+          <Layers className="h-4 w-4 shrink-0" style={{ color: BRAND }} />
+          <span className="flex-1 truncate text-slate-700">{activeCategoryLabel}</span>
+          <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />
+        </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Total Interventions (Categorized)" value={totalAll} sub="across all system categories" />
+        <StatCard label="Total Interventions" value={totalAll} sub="across all categories" />
         <StatCard label="Scored by Me" value={totalScored} sub="completed assessments" accent />
         <StatCard label="Pending" value={totalAll - totalScored} sub="awaiting your score" warn />
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-24">
-          <RefreshCw className="h-7 w-7 animate-spin text-slate-300" />
-        </div>
-      ) : (
-        <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm" style={{ minHeight: 520 }}>
-
-          {/* Sidebar — 20% */}
-          <aside className="flex flex-col border-r border-slate-200" style={{ width: "20%" }}>
-            <div className="px-3 pt-4 pb-3 border-b border-slate-200">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2.5">
-                System Categories
-              </p>
+      {/* Mobile sidebar Sheet */}
+      <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+        <SheetContent side="left" className="w-[300px] sm:w-[340px] p-0 flex flex-col">
+          <SheetHeader className="px-4 pt-5 pb-0">
+            <SheetTitle className="flex items-center justify-between text-base">
+              <span>System Categories</span>
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col flex-1 overflow-hidden mt-3">
+            <div className="px-3 pb-3 border-b border-slate-200 shrink-0">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <Input
@@ -217,48 +365,32 @@ export default function BrowseByCategoryPage() {
                 />
               </div>
             </div>
+            <SidebarNav onSelect={() => setMobileSidebarOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
 
-            <nav className="flex-1 overflow-y-auto divide-y divide-slate-100">
-              <SidebarItem
-                label="All Interventions"
-                count={totalAll}
-                active={activeCategory === "all"}
-                onClick={() => setActiveCategory("all")}
-              />
+      {loading ? (
+        <div className="flex justify-center py-24">
+          <RefreshCw className="h-7 w-7 animate-spin text-slate-300" />
+        </div>
+      ) : (
+        <div className="flex border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm" style={{ minHeight: 520 }}>
 
-              {filteredGroups.length === 0 && sidebarSearch ? (
-                <p className="text-xs text-slate-400 px-4 py-3 italic">No categories match..</p>
-              ) : (
-                filteredGroups.map((g) => (
-                  <SidebarItem
-                    key={g.category.id}
-                    label={g.category.name}
-                    count={g.interventions.length}
-                    active={activeCategory === g.category.id}
-                    onClick={() => setActiveCategory(g.category.id)}
-                  />
-                ))
-              )}
-
-              {unassigned.length > 0 && !sidebarSearch && (
-                <SidebarItem
-                  label="Unassigned"
-                  count={unassigned.length}
-                  active={activeCategory === "unassigned"}
-                  onClick={() => setActiveCategory("unassigned")}
-                  muted
-                />
-              )}
-            </nav>
+          {/* Desktop sidebar — hidden on mobile */}
+          <aside className="hidden lg:flex flex-col border-r border-slate-200" style={{ width: "20%" }}>
+            <SidebarHeader />
+            <SidebarNav />
           </aside>
 
+          {/* Main panel */}
           <div className="flex flex-col flex-1 min-w-0">
 
             {/* Panel header */}
-            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <div className="px-4 sm:px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h2 className=" text-lg font-semibold text-slate-800">{activeCategoryLabel}</h2>
+                  <h2 className="text-base sm:text-lg font-semibold text-slate-800">{activeCategoryLabel}</h2>
                   {activeCategoryDesc && (
                     <p className="text-xs text-slate-500 mt-1 flex items-start gap-1.5 max-w-xl">
                       <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-slate-400" />
@@ -267,24 +399,25 @@ export default function BrowseByCategoryPage() {
                   )}
                 </div>
                 <div className="shrink-0 text-xs text-slate-500 pt-0.5">
-                  <strong className="text-slate-700">{filteredItems.length}</strong> intervention{filteredItems.length !== 1 ? "s" : ""}
+                  <strong className="text-slate-700">{filteredItems.length}</strong>{" "}
+                  intervention{filteredItems.length !== 1 ? "s" : ""}
                   {tableSearch && <span className="text-slate-400"> (filtered)</span>}
                 </div>
               </div>
 
               {/* Toolbar */}
-              <div className="flex items-center gap-3 mt-3">
-                <div className="relative flex-1 max-w-sm">
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <div className="relative flex-1 min-w-[160px] max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   <Input
                     value={tableSearch}
                     onChange={(e) => setTableSearch(e.target.value)}
-                    placeholder="Search by intervention name or reference..."
+                    placeholder="Search by name or reference..."
                     className="pl-9 h-8 text-sm bg-white"
                   />
                 </div>
                 <div className="flex items-center gap-2 ml-auto text-xs text-slate-500">
-                  <span className="whitespace-nowrap">Rows per page</span>
+                  <span className="whitespace-nowrap hidden sm:inline">Rows per page</span>
                   <Select
                     value={String(pageSize)}
                     onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}
@@ -321,15 +454,17 @@ export default function BrowseByCategoryPage() {
                   <TableHeader>
                     <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
                       <TableHead className="w-10 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">#</TableHead>
-                      <TableHead className="w-56 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Reference</TableHead>
+                      <TableHead className="w-44 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Reference</TableHead>
                       <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Intervention Name</TableHead>
-                      <TableHead className="w-28 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Type</TableHead>
-                      <TableHead className="w-28 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">Review Status</TableHead>
+                      <TableHead className="w-28 hidden sm:table-cell text-[11px] font-semibold uppercase tracking-wider text-slate-400">Type</TableHead>
+                      <TableHead className="w-32 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Scored</TableHead>
+                      <TableHead className="w-40 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Decision</TableHead>
+                      <TableHead className="w-32 hidden md:table-cell text-[11px] font-semibold uppercase tracking-wider text-slate-400">Decided At</TableHead>
                       <TableHead className="w-24 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedItems.map(({ proposal, scored }, idx) => (
+                    {paginatedItems.map(({ proposal, scored, reviewStatus }, idx) => (
                       <TableRow key={proposal.id} className="hover:bg-slate-50/70 transition-colors border-b border-slate-100">
 
                         <TableCell className="text-center text-xs text-slate-400 font-mono">
@@ -337,25 +472,21 @@ export default function BrowseByCategoryPage() {
                         </TableCell>
 
                         <TableCell>
-                          <span className="text-xs font-mono text-slate-400 whitespace-nowrap ">
-                            <button
-                              onClick={() =>
-                                router.push(`/portal/interventions/${proposal.id}`)
-                              }
-                              className="font-mono  text-xs bg-slate-100 hover:bg-[#27aae1]/10 hover:text-[#27aae1] px-2 py-1 rounded transition-colors text-[#27aae1] whitespace-nowrap"
-                            >
-                              {proposal.reference_number ?? "—"}
-                            </button>
-                          </span>
+                          <button
+                            onClick={() => router.push(`/portal/interventions/${proposal.id}`)}
+                            className="font-mono text-xs bg-slate-100 hover:bg-[#27aae1]/10 hover:text-[#27aae1] px-2 py-1 rounded transition-colors text-[#27aae1] whitespace-nowrap"
+                          >
+                            {proposal.reference_number ?? "—"}
+                          </button>
                         </TableCell>
 
                         <TableCell>
-                          <p className="font-medium text-sm text-slate-800 leading-snug max-w-87.5 lg:max-w-90 truncate">
+                          <p className="font-medium text-sm text-slate-800 leading-snug truncate max-w-[200px] sm:max-w-xs lg:max-w-sm">
                             {proposal.intervention_name ?? "Untitled"}
                           </p>
                         </TableCell>
 
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           {proposal.intervention_type ? (
                             <Badge variant="secondary" className="text-xs">{proposal.intervention_type}</Badge>
                           ) : (
@@ -363,15 +494,25 @@ export default function BrowseByCategoryPage() {
                           )}
                         </TableCell>
 
-                        <TableCell className="text-center">
+                        <TableCell>
                           {scored ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                              <CheckCircle2 className="h-3 w-3" /> Scored
+                            <Badge className="text-xs bg-emerald-100 text-emerald-700 border-emerald-200">Yes</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs text-slate-500">No</Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell>
+                          {getReviewStatusBadge({ proposal, scored, reviewStatus })}
+                        </TableCell>
+
+                        <TableCell className="hidden md:table-cell">
+                          {reviewStatus?.decision_date ? (
+                            <span className="text-sm text-slate-600 whitespace-nowrap">
+                              {new Date(reviewStatus.decision_date).toLocaleDateString()}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
-                              <AlertCircle className="h-3 w-3" /> Pending
-                            </span>
+                            <span className="text-xs text-slate-300 italic">—</span>
                           )}
                         </TableCell>
 
@@ -384,8 +525,8 @@ export default function BrowseByCategoryPage() {
                             onClick={() => router.push(`/portal/tp/score/${proposal.id}`)}
                           >
                             {scored
-                              ? <><Eye className="h-3.5 w-3.5" /> View</>
-                              : <>Score <ChevronRight className="h-3.5 w-3.5" /></>}
+                              ? <><Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span></>
+                              : <><span className="hidden sm:inline">Score</span> <ChevronRight className="h-3.5 w-3.5" /></>}
                           </Button>
                         </TableCell>
 
@@ -398,16 +539,16 @@ export default function BrowseByCategoryPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="border-t border-slate-100 px-6 py-3 flex items-center justify-between bg-slate-50/40">
+              <div className="border-t border-slate-100 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
                 <p className="text-xs text-slate-500">
                   Showing{" "}
                   <strong className="text-slate-700">
                     {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredItems.length)}
                   </strong>{" "}
-                  of <strong className="text-slate-700">{filteredItems.length}</strong> interventions
+                  of <strong className="text-slate-700">{filteredItems.length}</strong>
                 </p>
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="flex-wrap">
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -416,9 +557,11 @@ export default function BrowseByCategoryPage() {
                     </PaginationItem>
                     {pageNumbers.map((p, i) =>
                       p === "ellipsis" ? (
-                        <PaginationItem key={`e-${i}`}><PaginationEllipsis /></PaginationItem>
+                        <PaginationItem key={`e-${i}`} className="hidden sm:flex">
+                          <PaginationEllipsis />
+                        </PaginationItem>
                       ) : (
-                        <PaginationItem key={p}>
+                        <PaginationItem key={p} className="hidden sm:flex">
                           <PaginationLink
                             isActive={page === p}
                             onClick={() => setPage(p as number)}
@@ -451,9 +594,11 @@ function StatCard({ label, value, sub, accent, warn }: {
 }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="text-2xl font-bold mt-1 tracking-tight"
-        style={{ color: accent ? "#059669" : warn ? "#d97706" : "#1e293b" }}>
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 truncate">{label}</p>
+      <p
+        className="text-2xl font-bold mt-1 tracking-tight"
+        style={{ color: accent ? "#059669" : warn ? "#d97706" : "#1e293b" }}
+      >
         {value}
       </p>
       <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
@@ -487,7 +632,7 @@ function SidebarItem({ label, count, active, onClick, muted = false }: {
     >
       <span className="truncate pr-2 leading-snug text-[13px]">{label}</span>
       <span className={cn(
-        "text-[11px] font-semibold shrink-0 min-w-5.5 text-center rounded-full px-1.5 py-0.5",
+        "text-[11px] font-semibold shrink-0 min-w-[22px] text-center rounded-full px-1.5 py-0.5",
         active ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500"
       )}>
         {count}

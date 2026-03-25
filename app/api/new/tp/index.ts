@@ -2,10 +2,20 @@ import api from "../../auth";
 import {
   TopicPriority,
   TopicPriorityWritePayload,
+  TopicPriorityResponse,
   DecisionType,
   DecisionTypeWritePayload,
 } from "@/types/new/topic-prioritization";
 
+
+export const getTopicPriorities = async (): Promise<TopicPriority[]> => {
+  try {
+    const res = await api.get<TopicPriorityResponse>("/v3/topic-priority/");
+    return res.data.results ?? [];
+  } catch {
+    return [];
+  }
+};
 
 export const createTopicPriority = async (
   body: TopicPriorityWritePayload
@@ -39,7 +49,19 @@ export const deleteTopicPriority = async (id: string): Promise<boolean> => {
   }
 };
 
-// ── Decision Types ───────────────────────────────────────────────────────────
+interface DecisionTypeListResponse {
+  count: number;
+  results: DecisionType[];
+}
+
+export const getDecisionTypes = async (): Promise<DecisionType[]> => {
+  try {
+    const res = await api.get<DecisionTypeListResponse>("/v3/decision-types/");
+    return res.data.results ?? [];
+  } catch {
+    return [];
+  }
+};
 
 export const createDecisionType = async (
   body: DecisionTypeWritePayload

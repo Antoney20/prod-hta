@@ -169,9 +169,9 @@ export default function InterventionDetailPage() {
   return (
     <>
     <Navbar/>
-    <div className="min-h-screen bg-white mt-8">
-      <div className="border-b border-gray-200 bg-white py-6">
-        <div className="container mx-auto px-4 sm:px-6 py-2">
+    <div className="min-h-screen bg-white mt-8 py-6">
+      <div className=" border-gray-200 bg-white py-6">
+        <div className="container mx-auto px-4 sm:px-6 py-2 border-b">
           <nav className="flex items-center gap-1 text-sm flex-wrap" aria-label="Breadcrumb">
             <a href="/" className="text-[#1d70b8] underline hover:text-[#003078]">Home</a>
             <span className="text-gray-400 mx-1">›</span>
@@ -186,7 +186,7 @@ export default function InterventionDetailPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 py-8">
+      <div className="container mx-auto px-4  py-8">
         {isLoading && <LoadingSkeleton />}
 
         {error && (

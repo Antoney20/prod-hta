@@ -1,16 +1,17 @@
 import { PublicProposal } from '@/types/new/public'
 import { Governance, News } from '@/types/dashboard/content'
 import { getGovernanceMembers } from '@/app/api/dashboard/content'
+import { TopicPriority } from '@/types/new/topic-prioritization'
+import { getTopicPriorities } from '@/app/api/new/tp'
 
 export interface StaticResult {
   title: string
   excerpt: string
   href: string
-  section: 'About' | 'FAQs' | 'Governance' | 'Page' | 'Auth' | 'Resources' | 'News' | 'Interventions'
+  section: 'About' | 'FAQs' | 'Governance' | 'Page' | 'Auth' | 'Resources' | 'News' | 'Interventions' | 'System Categorisation'
 }
 
 export const STATIC_INDEX: StaticResult[] = [
-  // ── About ──────────────────────────────────────────────────────
   {
     title: 'About BPTAP',
     excerpt: 'The Benefits Package and Tariffs Advisory Panel is an initiative to promote a transparent, evidence-informed approach to the operationalization of the Social Health Authority (SHA) program in Kenya.',
@@ -47,8 +48,6 @@ export const STATIC_INDEX: StaticResult[] = [
     href: '/about-us#htaa',
     section: 'About',
   },
-
-  // ── Governance — Structure ──────────────────────────────────────
   {
     title: 'Governance structure',
     excerpt: 'Overview of how BPTAP is structured, including the advisory panel, secretariat, and scientific working groups responsible for evidence-informed decision making.',
@@ -56,7 +55,6 @@ export const STATIC_INDEX: StaticResult[] = [
     section: 'Governance',
   },
 
-  // ── Governance — Advisory Panel members ────────────────────────
   {
     title: 'Advisory panel members',
     excerpt: 'The BPTAP advisory panel comprises independent experts in health economics, clinical medicine, public health, and health policy from across Kenya.',
@@ -136,7 +134,6 @@ export const STATIC_INDEX: StaticResult[] = [
     section: 'Governance',
   },
 
-  // ── Governance — Panel Mandate ──────────────────────────────────
   {
     title: 'Advisory Panel mandate',
     excerpt: 'The BPTAP Advisory Panel is mandated to review and update the existing benefits package and tariffs using health technology assessment, and to identify health interventions not yet available in Kenya.',
@@ -373,6 +370,7 @@ interface DynamicCache {
   proposals: PublicProposal[]
   news: News[]
   governance: Governance[]
+  topicPriorities: TopicPriority[]
   loadedAt: number | null
 }
 
@@ -380,20 +378,22 @@ const cache: DynamicCache = {
   proposals: [],
   news: [],
   governance: [],
+  topicPriorities: [],
   loadedAt: null,
 }
 
-const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000 
 
 export async function loadDynamicIndex(): Promise<void> {
   const now = Date.now()
   if (cache.loadedAt && now - cache.loadedAt < CACHE_TTL_MS) return
 
-  const [proposalsRes, newsRes, governanceRes] = await Promise.allSettled([
+const [proposalsRes, newsRes, governanceRes, prioritiesRes] = await Promise.allSettled([
     fetch(`${BASE}/v3/proposals/`).then((r) => r.json()),
     fetch(`${BASE}/v1/news/`).then((r) => r.json()),
     getGovernanceMembers(),
-  ])
+    getTopicPriorities(),                     
+  ]);
 
   if (proposalsRes.status === 'fulfilled') {
     cache.proposals = proposalsRes.value?.results ?? []
@@ -405,6 +405,9 @@ export async function loadDynamicIndex(): Promise<void> {
 
   if (governanceRes.status === 'fulfilled') {
     cache.governance = governanceRes.value?.results ?? governanceRes.value ?? []
+  }
+  if (prioritiesRes.status === "fulfilled") {
+    cache.topicPriorities = prioritiesRes.value ?? []; 
   }
 
   cache.loadedAt = now
@@ -461,5 +464,36 @@ export function searchDynamic(q: string): StaticResult[] {
       })
     )
 
+
+// 4. NEW: System Categorisation
+  // We search in system_categories + decision + feedback
+  // Link goes to /interventions?tab=system-categorisation
+  cache.topicPriorities
+    .filter((item) =>
+      [
+        ...(item.system_categories || []),
+        item.decision,
+        item.feedback,
+        item.intervention_id,
+      ].some((f) => f?.toString().toLowerCase().includes(qLower))
+    )
+    .slice(0, 5)                 
+    .forEach((item) => {
+      const mainCategory = item.system_categories?.[0] || "System Category";
+
+      results.push({
+        title: mainCategory,
+        excerpt: item.feedback 
+          ? item.feedback.slice(0, 85) + "..." 
+          : `Decision: ${item.decision || "Pending"}`,
+        href: "/interventions?tab=system-categorisation",
+        section: "System Categorisation",
+      });
+    });
+
+
+
   return results
+
+  
 }

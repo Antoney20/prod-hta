@@ -1,11 +1,10 @@
 "use client";
 
 import Navbar from "@/app/components/layouts/navbar";
-import { defaultFilters, Filters, FilterState } from "@/app/interventions/cc/filters";
+import { defaultFilters,  FilterState, InterventionFilters } from "@/app/interventions/cc/filters";
 import { Structure, TabId } from "@/app/interventions/cc/overview";
 import { withProposals, WithProposalsInjectedProps } from "@/app/interventions/hoc";
 import { useState, useMemo, useCallback } from "react";
-
 
 function MobileFilterDrawer({
   open,
@@ -90,7 +89,7 @@ function InterventionsPageInner({
   }, [proposals]);
 
   const filterSidebar = (
-    <Filters
+    <InterventionFilters
       filters={filters}
       typeCounts={typeCounts}
       onChange={handleFilterChange}

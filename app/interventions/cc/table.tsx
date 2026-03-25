@@ -3,28 +3,18 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { PublicProposal } from "@/types/new/public";
-import { FilterState } from "./filters";
-import { WithProposalsInjectedProps } from "../hoc";
 import { Pagination } from "./pagination";
-import PublicStatusPage from "../status/page";
+import { FilterState } from "./filters";
 
-interface StructureProps extends WithProposalsInjectedProps {
+interface InterventionsTableProps {
+  proposals: PublicProposal[];
   filters: FilterState;
+  isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
   currentPage: number;
   onPageChange: (page: number) => void;
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
 }
-
-export type TabId = "interventions" | "system-categorisation";
-
-
-const TABS: { id: TabId; label: string; upcoming?: boolean }[] = [
-  { id: "interventions", label: "Interventions submitted" },
-  { id: "system-categorisation", label: "Status Update" },
-];
-
-
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "—";
@@ -47,7 +37,6 @@ function getYear(dateStr: string): string {
     return "Unknown";
   }
 }
-
 
 function TableSkeleton() {
   return (
@@ -77,8 +66,13 @@ function EmptyState() {
   );
 }
 
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
   return (
     <div className="border-l-4 border-red-600 bg-red-50 px-6 py-4">
       <p className="text-red-800 font-bold text-sm">Failed to load data</p>
@@ -93,23 +87,6 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
   );
 }
 
-
-function UpcomingSection({ label }: { label: string }) {
-  return (
-    <div className="py-16 text-center border border-dashed border-amber-300 bg-amber-50">
-      <div className="inline-flex items-center gap-2 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold px-3 py-1 uppercase tracking-wider mb-4">
-        Upcoming
-      </div>
-      <h3 className="text-xl font-bold text-gray-900">{label}</h3>
-      <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto leading-relaxed">
-        This section is currently in development and will be available in a future release
-        of the BPTAP guidance framework.
-      </p>
-    </div>
-  );
-}
-
-
 function InterventionRow({ proposal: p }: { proposal: PublicProposal }) {
   return (
     <tr className="border-b border-gray-200 hover:bg-[#f8f8f8] transition-colors group">
@@ -121,7 +98,9 @@ function InterventionRow({ proposal: p }: { proposal: PublicProposal }) {
           {p.intervention_name ?? "—"}
         </Link>
         <div className="mt-1 space-y-0.5 md:hidden">
-          <span className="block text-xs text-gray-500 font-mono">{p.reference_number}</span>
+          <span className="block text-xs text-gray-500 font-mono">
+            {p.reference_number}
+          </span>
           {p.intervention_type && (
             <span className="inline-block bg-blue-50 text-[#1d70b8] text-xs px-2 py-0.5 border border-blue-200">
               {p.intervention_type}
@@ -136,8 +115,6 @@ function InterventionRow({ proposal: p }: { proposal: PublicProposal }) {
         </span>
       </td>
 
-
-
       <td className="py-4 px-4 align-top hidden xl:table-cell">
         <span className="text-sm text-gray-600 line-clamp-2 max-w-xs">
           {p.beneficiary ?? "—"}
@@ -151,8 +128,7 @@ function InterventionRow({ proposal: p }: { proposal: PublicProposal }) {
   );
 }
 
-
-function InterventionsTable({
+export function InterventionsTable({
   proposals,
   filters,
   isLoading,
@@ -160,7 +136,7 @@ function InterventionsTable({
   refetch,
   currentPage,
   onPageChange,
-}: Omit<StructureProps, "activeTab" | "onTabChange">) {
+}: InterventionsTableProps) {
   const filtered = useMemo(() => {
     let data = [...proposals];
 
@@ -265,7 +241,6 @@ function InterventionsTable({
 
   return (
     <div>
-      {/* Result count */}
       <p className="text-sm text-gray-600 mb-4">
         Showing{" "}
         <strong>
@@ -297,53 +272,6 @@ function InterventionsTable({
         pageSize={pageSize}
         onPageChange={onPageChange}
       />
-    </div>
-  );
-}
-
-
-export function Structure(props: StructureProps) {
-  const { activeTab, onTabChange } = props;
-
-  return (
-    <div className="flex-1 min-w-0">
-      <div className="border-b-2 border-gray-900 mb-6 -mt-0.5">
-        <nav className="flex" role="tablist" aria-label="Guidance sections">
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const isDisabled = tab.upcoming;
-            return (
-              <button
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                aria-disabled={isDisabled}
-                type="button"
-                onClick={() => !isDisabled && onTabChange(tab.id)}
-                className={`relative px-5 py-3 text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d70b8] ${
-                  isActive
-                    ? "bg-gray-900 text-white"
-                    : isDisabled
-                    ? "text-gray-400 cursor-default"
-                    : "text-[#1d70b8] hover:bg-[#e8f0fb]"
-                }`}
-              >
-                {tab.label}
-                {tab.upcoming && (
-                  <span className="ml-2 text-[10px] bg-amber-100 text-amber-700 border border-amber-300 px-1.5 py-0.5 font-semibold uppercase tracking-wide">
-                    Soon
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      {activeTab === "interventions" && <InterventionsTable {...props} />}
-      {activeTab === "system-categorisation" && (
-        <PublicStatusPage  />
-      )}
     </div>
   );
 }

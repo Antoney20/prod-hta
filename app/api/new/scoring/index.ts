@@ -1,6 +1,6 @@
 
 import api from "../../auth";
-import { ScoringReportResult } from "@/types/new/scoring";
+import { ScoringReport } from "@/types/new/scoring";
 
 /**
  * Fetch the full scoring report.
@@ -8,13 +8,13 @@ import { ScoringReportResult } from "@/types/new/scoring";
  */
 export const getScoringReport = async (
   interventionIds?: string[]
-): Promise<ScoringReportResult> => {
+): Promise<ScoringReport> => {
   const params: Record<string, string> = {};
   if (interventionIds?.length) {
     params.intervention = interventionIds.join(",");
   }
 
-  const res = await api.get<ScoringReportResult>("/v3/scoring-report/", { params });
+  const res = await api.get<ScoringReport>("/v3/scoring-report/", { params });
   return res.data;
 };
 
@@ -25,13 +25,13 @@ export const getScoringReport = async (
  */
 export const getAdminScoringReport = async (
   interventionIds?: string[]
-): Promise<ScoringReportResult> => {
+): Promise<ScoringReport> => {
   const params: Record<string, string> = {};
   if (interventionIds?.length) {
     params.intervention = interventionIds.join(",");
   }
 
-  const res = await api.get<ScoringReportResult>("/v3/admin-report/", { params });
+  const res = await api.get<ScoringReport>("/v3/admin-report/", { params });
   return res.data;
 };
 

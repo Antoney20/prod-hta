@@ -7,8 +7,7 @@ import { useState, useEffect } from 'react';
 
 const API_URL = '/api';  
 
-
-export type UserRole = 'admin' | 'secretariate' | 'content_manager' | 'user' | 'swg';
+export type UserRole = 'admin' | 'secretariat' | 'content_manager' | 'user' | 'swg';
 
 
 const api = axios.create({

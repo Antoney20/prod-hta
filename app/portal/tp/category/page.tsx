@@ -227,7 +227,7 @@ export default function BrowseByCategoryPage() {
               />
 
               {filteredGroups.length === 0 && sidebarSearch ? (
-                <p className="text-xs text-slate-400 px-4 py-3 italic">No categories match.</p>
+                <p className="text-xs text-slate-400 px-4 py-3 italic">No categories match..</p>
               ) : (
                 filteredGroups.map((g) => (
                   <SidebarItem

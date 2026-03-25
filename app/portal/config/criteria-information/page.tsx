@@ -1,31 +1,59 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { CriteriaInformation } from "@/types/new/criteria-info";
 import { deleteCriteriaInfo, getAllCriteriaInfo } from "@/app/api/new/criteria-info";
 import { CriteriaTable } from "./cc/table";
 import { CriteriaForm } from "./cc/form";
+import { clearDraft } from "./cc/form";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+
+interface ModalProps {
+  children: React.ReactNode;
+  /** Called when the user clicks the backdrop — may be a no-op if we need to
+   *  show the "unsaved changes" guard first. */
+  onBackdropClick: () => void;
+}
+
+function Modal({ children, onBackdropClick }: ModalProps) {
   return (
     <div
       className="fixed inset-0 bg-black/40 z-50 flex items-start justify-center overflow-y-auto pt-12 pb-12"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) onBackdropClick(); }}
     >
-      <div 
-        className="w-full max-w-3xl mx-4" 
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="w-full max-w-3xl mx-4" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
     </div>
   );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function CriteriaInformationPage() {
   const [data, setData] = useState<CriteriaInformation[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CriteriaInformation | null>(null);
+
+  // AlertDialog state
+  const [guardOpen, setGuardOpen] = useState(false);
+  // Pending close action — stored so we can execute it after the user confirms
+  const pendingClose = useRef<(() => void) | null>(null);
+
+  // Ref wired into <CriteriaForm> — lets us ask "are there unsaved changes?"
+  const formHasChanges = useRef<() => boolean>(() => false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -36,17 +64,69 @@ export default function CriteriaInformationPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => { setEditing(null); setModalOpen(true); };
-  const openEdit = (row: CriteriaInformation) => { setEditing(row); setModalOpen(true); };
-  const closeModal = () => setModalOpen(false);
-  const handleSuccess = () => { closeModal(); load(); };
+  // ── Close helpers ─────────────────────────────────────────────────────────
+
+  /**
+   * Attempt to close the modal.  If the form reports unsaved changes, open
+   * the AlertDialog instead and store the intended close action for later.
+   */
+  const attemptClose = useCallback((then?: () => void) => {
+    const doClose = () => {
+      setModalOpen(false);
+      setEditing(null);
+      then?.();
+    };
+
+    if (formHasChanges.current()) {
+      pendingClose.current = doClose;
+      setGuardOpen(true);
+    } else {
+      doClose();
+    }
+  }, []);
+
+  const handleGuardDiscard = () => {
+    setGuardOpen(false);
+    clearDraft(editing?.id);
+    pendingClose.current?.();
+    pendingClose.current = null;
+  };
+
+  const handleGuardContinue = () => {
+    setGuardOpen(false);
+    pendingClose.current = null;
+  };
+
+  // ── Modal open helpers ────────────────────────────────────────────────────
+
+  const openCreate = () => {
+    // Reset the hasChanges ref for a fresh form
+    formHasChanges.current = () => false;
+    setEditing(null);
+    setModalOpen(true);
+  };
+
+  const openEdit = (row: CriteriaInformation) => {
+    formHasChanges.current = () => false;
+    setEditing(row);
+    setModalOpen(true);
+  };
+
+  const handleSuccess = () => {
+    // Save succeeded — close without guard
+    setModalOpen(false);
+    setEditing(null);
+    load();
+  };
+
   const handleDelete = async (row: CriteriaInformation) => {
     await deleteCriteriaInfo(row.id);
     await load();
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-linear-to-b py-12 from-slate-50 to-white">
+      <ToastContainer  position="top-right" autoClose={4000} hideProgressBar={false} closeOnClick pauseOnHover />
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="container mx-auto px-6 py-8 flex items-center justify-between">
@@ -81,12 +161,44 @@ export default function CriteriaInformationPage() {
 
       {/* Modal */}
       {modalOpen && (
-        <Modal onClose={closeModal}>
+        <Modal onBackdropClick={() => attemptClose()}>
           <div className="bg-white rounded-lg shadow-lg">
-            <CriteriaForm initial={editing} onSuccess={handleSuccess} onCancel={closeModal} />
+            <CriteriaForm
+              initial={editing}
+              onSuccess={handleSuccess}
+              // Cancel / × button inside the form → go through the guard
+              onCancel={() => attemptClose()}
+              hasChangesRef={formHasChanges}
+            />
           </div>
         </Modal>
       )}
+
+      {/* Unsaved-changes AlertDialog */}
+      <AlertDialog open={guardOpen} onOpenChange={setGuardOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Your progress has been saved as a draft and will be available
+              the next time you open this form — but if you discard, the draft will be deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {/* "Continue editing" — keep the modal open */}
+            <AlertDialogCancel onClick={handleGuardContinue}>
+              Continue editing
+            </AlertDialogCancel>
+            {/* "Discard" — close the modal and clear the draft */}
+            <AlertDialogAction
+              onClick={handleGuardDiscard}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Discard changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

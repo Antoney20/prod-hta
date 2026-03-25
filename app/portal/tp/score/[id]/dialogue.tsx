@@ -34,7 +34,7 @@ export function groupTools(tools: SelectionTool[]): CriteriaGroup[] {
 }
 
 export interface ScorePayload {
-  criteria: string;          // SelectionTool UUID (the chosen option)
+  criteria: string;          
   score: Record<string, unknown>;
   comment: string;
 }

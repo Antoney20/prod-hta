@@ -1,4 +1,4 @@
-import { InterventionScore, InterventionSystemCategory, SelectionTool, SystemCategory } from "@/types/new/client";
+import { BulkRescorePayload, InterventionProposal, InterventionScore, InterventionScoreResponse, InterventionSystemCategory, ScorePatchPayload, SelectionTool, SystemCategory } from "@/types/new/client";
 import api from "../../auth";
 import { PaginatedResponse } from "@/types/new/shared";
 
@@ -151,15 +151,17 @@ export const getInterventionScoreDetail = async (id: string): Promise<Interventi
   }
 };
 
+
+
+
 export const createInterventionScore = async (
-  body: Pick<InterventionScore, "intervention" | "criteria" | "score" | "comment">
-): Promise<InterventionScore | null> => {
-  try {
-    const res = await api.post<InterventionScore>("/v3/intervention-scores/", body);
-    return res.data;
-  } catch {
-    return null;
-  }
+  scores: Pick<InterventionScore, "intervention" | "criteria" | "score" | "comment">[]
+): Promise<InterventionScore[]> => {
+  const res = await api.post<InterventionScore[]>(
+    "/v3/intervention-scores/bulk/",
+    { scores }
+  );
+  return res.data;
 };
 
 export const updateInterventionScore = async (
@@ -181,4 +183,102 @@ export const deleteInterventionScore = async (id: string): Promise<boolean> => {
   } catch {
     return false;
   }
+};
+
+
+
+export const getInterventionProposals = async (): Promise<InterventionProposal[]> => {
+  try {
+    const res = await api.get<PaginatedResponse<InterventionProposal>>("/v3/re-open/");
+    return res.data.results ?? [];
+  } catch { return []; }
+};
+
+// ---------------------------------------------------------------------------
+// Rescore window  (admin / SWG / secretariat only)
+// ---------------------------------------------------------------------------
+ 
+/**
+ * Open the rescore window for a specific intervention.
+ * Only admin / SWG / secretariat can call this.
+ *
+ * POST /v3/interventions/<id>/open-rescore/
+ */
+export const openRescoreWindow = async (
+  interventionId: string
+): Promise<{ detail: string } | null> => {
+  try {
+    const res = await api.post<{ detail: string }>(
+      `/v3/re-open/${interventionId}/open-rescore/`
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+ 
+/**
+ * Close the rescore window for a specific intervention.
+ * Only admin / SWG / secretariat can call this.
+ *
+ * POST /v3/interventions/<id>/close-rescore/
+ */
+export const closeRescoreWindow = async (
+  interventionId: string
+): Promise<{ detail: string } | null> => {
+  try {
+    const res = await api.post<{ detail: string }>(
+      `/v3/re-open/${interventionId}/close-rescore/`
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+ 
+ 
+
+
+ 
+// ---------------------------------------------------------------------------
+// Rescoring  — edits the existing row in-place, requires rescore window open
+// ---------------------------------------------------------------------------
+ 
+/**
+ * Rescore a single existing score.
+ * Reviewer patches their own row — intervention rescore window must be open.
+ * Can only be done once per score (is_rescored flips to true).
+ *
+ * PATCH /v3/intervention-scores/<id>/rescore/
+ */
+export const rescoreIntervention = async (
+  scoreId: string,
+  payload: ScorePatchPayload
+): Promise<InterventionScoreResponse | null> => {
+  try {
+    const res = await api.patch<InterventionScoreResponse>(
+      `/v3/intervention-scores/${scoreId}/rescore/`,
+      payload
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+ 
+/**
+ * Rescore all scores for one intervention in a single call.
+ * Reviewer patches their own rows — intervention rescore window must be open.
+ * Already-rescored criteria are rejected by the backend.
+ *
+ * POST /v3/intervention-scores/bulk-rescore/
+ */
+export const bulkRescoreIntervention = async (
+  payload: BulkRescorePayload
+): Promise<InterventionScoreResponse[]> => {
+  const res = await api.post<InterventionScoreResponse[]>(
+    "/v3/intervention-scores/bulk-rescore/",
+    payload
+  );
+  return res.data;
 };

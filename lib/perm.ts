@@ -5,7 +5,7 @@ export const ROLE_HIERARCHY: UserRole[] = [
   'user',
   'swg',
   'content_manager',
-  'secretariate',
+  'secretariat',
   'admin',
 ]
 
@@ -122,7 +122,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     PERMISSIONS.MANAGE_SUBSCRIPTIONS,
   ],
 
-  secretariate: [
+  secretariat: [
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_TOOLS_CONFIG,
     PERMISSIONS.MANAGE_CRITERIA_SELECTION,

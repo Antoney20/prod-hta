@@ -28,10 +28,12 @@ import { getCriteriaInfoByIntervention } from "@/app/api/new/criteria-info";
 
 import { ScoringWizard } from "./wizard";
 import { ActiveCriteriaPanel, BasicInfoPanel, NoCriteriaPanel } from "./details";
+import { useGlobalUser } from "@/app/context/guard";
 
 export default function InterventionScoringPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { user, isInitialized } = useGlobalUser();
 
   const [proposal, setProposal] = useState<SubmittedProposal | null>(null);
   const [tools, setTools] = useState<SelectionTool[]>([]);
@@ -103,38 +105,56 @@ export default function InterventionScoringPage() {
     };
   }, [hasUnsavedDrafts]);
 
-  const handleSubmitAll = async () => {
-    setSubmitting(true);
-    try {
-      const entries = Object.values(drafts);
-      const results = await Promise.all(
-        entries.map((d) =>
-          createInterventionScore({
-            intervention: id,
-            criteria: d.tool_id,
-            score: {
-              tool_id: d.tool_id,
-              scoring_mechanism: d.scoring_mechanism,
-              score_value: d.score_value,
-              criteria_label: d.criteriaGroupLabel,
-            },
-            comment: d.comment,
-          })
-        )
-      );
-      const failed = results.filter((r) => !r).length;
-      if (failed === 0) {
-        toast.success(`${entries.length} scores submitted.`);
-        setDrafts({});
-        localStorage.removeItem(STORAGE_KEY); // clear drafts after success
-        await load();
-      } else {
-        toast.error(`${failed} score(s) failed.`);
-      }
-    } finally {
-      setSubmitting(false);
+  const canScore = isInitialized
+    ? user?.role === "admin" || user?.role === "swg"
+    : null;
+
+const handleSubmitAll = async () => {
+  if (!canScore) {
+    toast.error("Your role does not allow scoring. Please contact an admin.");
+    return;
+  }
+  setSubmitting(true);
+  try {
+    const payload = Object.values(drafts).map((d) => ({
+      intervention: id,
+      criteria: d.tool_id,
+      score: {
+        tool_id: d.tool_id,
+        scoring_mechanism: d.scoring_mechanism,
+        score_value: d.score_value,
+        criteria_label: d.criteriaGroupLabel,
+      },
+      comment: d.comment,
+    }));
+
+    const result = await createInterventionScore(payload);
+
+    toast.success(`${result.length} scores submitted successfully.`);
+    setDrafts({});
+    localStorage.removeItem(STORAGE_KEY);
+    await load();
+
+  } catch (err: any) {
+    const data = err?.response?.data;
+
+    if (data?.errors?.length) {
+      // Per-item validation errors from bulk_create
+      data.errors.forEach((e: any) => {
+        const field = Object.values(e.errors ?? {}).flat().join(", ");
+        toast.error(`Criteria ${e.index + 1}: ${field}`, { autoClose: 6000 });
+      });
+    } else {
+      // Fallback — detail string or generic
+      const msg = data?.detail ?? "Submission failed — no scores were saved.";
+      toast.error(msg);
     }
-  };
+
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   const handleBack = () => {
     if (hasUnsavedDrafts) {

@@ -1,120 +1,100 @@
 "use client";
 
-
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
+  Tooltip, TooltipContent, TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
 import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+  Pagination, PaginationContent, PaginationEllipsis, PaginationItem,
+  PaginationLink, PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  Users,
-  Info,
-  Eye,
-  Layers,
-} from "lucide-react";
-import { InterventionScoreReport } from "@/types/new/scoring";
+import { AlertCircle, XCircle, Users, Info, Layers } from "lucide-react";
+import { InterventionReport } from "@/types/new/scoring";
 import { useRouter } from "next/navigation";
-
-
-
-export interface ReportTableProps {
-  items: InterventionScoreReport[];
-  onViewDetails: (item: InterventionScoreReport) => void;
-}
-
 
 const BRAND = "#27aae1";
 const PAGE_SIZES = [25, 50, 75, 100];
 
+// Canonical order + short display labels for criteria columns
+const CRITERIA_SHORT: Record<string, string> = {
+  "Clinical effectiveness, safety, and quality of the intervention.": "Clinical Effectiveness",
+  "Clinical effectiveness safety and quality of the intervention": "Clinical Effectiveness",
+  "Burden of disease": "Burden of Disease",
+  "Population": "Population",
+  "Equity": "Equity",
+  "Cost-effectiveness": "Cost-effectiveness",
+  "Cost effectiveness": "Cost-effectiveness",
+  "Budgetary impact affordability of the intervention": "Budget Impact",
+  "Feasibility of implementation of the intervention": "Feasibility",
+  "Catastrophic health expenditure": "Catastrophic Expenditure",
+  "Access to healthcare": "Access to Healthcare",
+  "Congruence with existing priorities in the health sector UHC Kenya Health Policy": "Congruence w/ Priorities",
+};
 
-/** Pill badge showing scoring status */
-function StatusBadge({ item }: { item: InterventionScoreReport }) {
-  if (item.is_fully_scored)
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-        <CheckCircle2 className="h-3 w-3" /> Complete
-      </span>
-    );
-  if (item.criteria_scored > 0)
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-        <AlertCircle className="h-3 w-3" /> Partial
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-      <XCircle className="h-3 w-3" /> Not Scored
-    </span>
-  );
+function shortLabel(name: string): string {
+  return CRITERIA_SHORT[name] ?? name;
+}
+
+export interface ReportTableProps {
+  items: InterventionReport[];
+}
+
+/** Sum a single criteria across ALL reviewers for one intervention */
+function criteriaTotal(item: InterventionReport, criteriaName: string): number {
+  return item.reviewers.reduce((sum, r) => {
+    const cs = r.criteria_scores.find((c) => c.criteria_name === criteriaName);
+    return sum + (cs?.score_value ?? 0);
+  }, 0);
+}
+
+/** Average a single criteria across ALL reviewers for one intervention */
+function criteriaAvg(item: InterventionReport, criteriaName: string): number {
+  const scorers = item.reviewers.filter((r) => {
+    const cs = r.criteria_scores.find((c) => c.criteria_name === criteriaName);
+    return (cs?.score_value ?? 0) > 0;
+  });
+  if (!scorers.length) return 0;
+  const total = scorers.reduce((sum, r) => {
+    const cs = r.criteria_scores.find((c) => c.criteria_name === criteriaName);
+    return sum + (cs?.score_value ?? 0);
+  }, 0);
+  return Math.round((total / scorers.length) * 10) / 10;
 }
 
 function CategoryPills({ categories }: { categories: string[] }) {
-  if (!categories || categories.length === 0)
-    return <span className="text-slate-300 text-xs italic">No category</span>;
-
-  const visible = categories.slice(0, 2);
-  const overflow = categories.slice(2);
-
-  const short = (label: string) => label.replace(/\s*\(.*\)$/, "").trim();
-
+  if (!categories?.length)
+    return <span className="text-slate-300 text-[10px] italic">—</span>;
+  const short = (s: string) => s.replace(/\s*\(.*\)$/, "").trim();
+  const [first, ...rest] = categories;
   return (
     <div className="flex flex-wrap gap-1 items-center">
-      {visible.map((cat) => (
-        <Tooltip key={cat}>
-          <TooltipTrigger asChild>
-            <span
-              className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border cursor-default leading-tight max-w-[140px] truncate"
-              style={{
-                background: `${BRAND}10`,
-                borderColor: `${BRAND}30`,
-                color: BRAND,
-              }}
-            >
-              <Layers className="h-2.5 w-2.5 shrink-0" />
-              <span className="truncate">{short(cat)}</span>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-xs text-xs">{cat}</TooltipContent>
-        </Tooltip>
-      ))}
-      {overflow.length > 0 && (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border cursor-default leading-tight max-w-[120px] truncate"
+            style={{ background: `${BRAND}10`, borderColor: `${BRAND}30`, color: BRAND }}
+          >
+            <Layers className="h-2.5 w-2.5 shrink-0" />
+            <span className="truncate">{short(first)}</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs text-xs">{first}</TooltipContent>
+      </Tooltip>
+      {rest.length > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-[10px] font-medium text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded cursor-default">
-              +{overflow.length} more
+              +{rest.length}
             </span>
           </TooltipTrigger>
           <TooltipContent className="max-w-xs text-xs space-y-0.5">
-            {overflow.map((c) => <p key={c}>{c}</p>)}
+            {rest.map((c) => <p key={c}>{c}</p>)}
           </TooltipContent>
         </Tooltip>
       )}
@@ -122,181 +102,182 @@ function CategoryPills({ categories }: { categories: string[] }) {
   );
 }
 
+function ScoreCell({ value }: { value: number }) {
+  return (
+    <span className={`tabular-nums text-sm font-semibold ${value > 0 ? "text-slate-800" : "text-slate-300"}`}>
+      {value > 0 ? value : "—"}
+    </span>
+  );
+}
 
-export function ReportTable({ items, onViewDetails }: ReportTableProps) {
+export function ReportTable({ items }: ReportTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const router = useRouter();
+
+  // Derive all unique criteria names in canonical order
+  const allCriteria = useMemo(() => {
+    const canonicalOrder = Object.keys(CRITERIA_SHORT);
+    const found = new Set<string>();
+    for (const iv of items)
+      for (const r of iv.reviewers)
+        for (const cs of r.criteria_scores)
+          found.add(cs.criteria_name);
+
+    return [
+      ...canonicalOrder.filter((k) => found.has(k)),
+      ...[...found].filter((k) => !canonicalOrder.includes(k)).sort(),
+    ];
+  }, [items]);
+
   const totalPages = Math.ceil(items.length / pageSize);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = startIndex + pageSize;
-  const paginatedItems = items.slice(startIndex, endIndex);
-    const router = useRouter();
+  const start = (currentPage - 1) * pageSize;
+  const paginatedItems = items.slice(start, start + pageSize);
 
   const handlePageSizeChange = (size: string) => {
     setPageSize(Number(size));
     setCurrentPage(1);
   };
 
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1);
-      if (currentPage > 3) pages.push("...");
-      
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-      
-      for (let i = start; i <= end; i++) {
-        if (!pages.includes(i)) pages.push(i);
-      }
-      
-      if (currentPage < totalPages - 2) pages.push("...");
-      pages.push(totalPages);
-    }
-
+  const pageNumbers = (): (number | "...")[] => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages: (number | "...")[] = [1];
+    if (currentPage > 3) pages.push("...");
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++)
+      pages.push(i);
+    if (currentPage < totalPages - 2) pages.push("...");
+    pages.push(totalPages);
     return pages;
   };
 
+  const colSpanTotal = 5 + allCriteria.length + 1;
+
   return (
     <div className="space-y-4">
-      <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
-        <Table>
+      <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">
+        <Table className="min-w-max w-full text-sm">
           <TableHeader>
-            <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
-              <TableHead className="w-28 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Reference
-              </TableHead>
-              <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            {/* Column group header — splits fixed cols from criteria cols */}
+            <TableRow className="border-b-0">
+              <TableHead colSpan={5} className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
                 Intervention
               </TableHead>
-              <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 min-w-[180px]">
+              <TableHead
+                colSpan={allCriteria.length}
+                className="text-center bg-sky-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest"
+                style={{ color: BRAND }}
+              >
+                Criteria Scores (all reviewers combined)
+              </TableHead>
+              <TableHead className="bg-slate-50 border-b border-slate-200 py-1.5" />
+            </TableRow>
+
+            {/* Column headers */}
+            <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
+              <TableHead className="sticky left-0 z-10 bg-slate-50 w-32 text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-200 whitespace-nowrap">
+                Reference
+              </TableHead>
+              <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 min-w-[200px]">
+                Intervention
+              </TableHead>
+              <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 min-w-[150px]">
                 System Category
               </TableHead>
-              <TableHead className="w-28 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                <span className="flex items-center gap-1">
-                  Score
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-3 w-3 text-slate-300" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Total score across for thi intervention across all criteria and reviewers
-                    </TooltipContent>
-                  </Tooltip>
-                </span>
-              </TableHead>
-              <TableHead className="w-28 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              <TableHead className="w-24 text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
                 <span className="flex items-center gap-1">
                   Reviewers
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-3 w-3 text-slate-300" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Reviewers who have scored / total assigned reviewers
-                    </TooltipContent>
+                    <TooltipTrigger><Info className="h-3 w-3 text-slate-300" /></TooltipTrigger>
+                    <TooltipContent>Scored / total reviewers</TooltipContent>
                   </Tooltip>
                 </span>
               </TableHead>
-              <TableHead className="w-28 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Status
-              </TableHead>
-              <TableHead className="w-20 text-[10px] font-semibold uppercase tracking-wider text-slate-400 text-right">
-                Details
-              </TableHead>
+
+              {/* One column per criteria */}
+              {allCriteria.map((name) => (
+                <TableHead
+                  key={name}
+                  className="w-28 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-l border-slate-100 bg-sky-50/60 whitespace-nowrap"
+                >
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-default block truncate max-w-[96px] mx-auto">
+                        {shortLabel(name)}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs text-xs">{name}</TooltipContent>
+                  </Tooltip>
+                </TableHead>
+              ))}
+
+            
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {items.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-center py-16 text-slate-400 text-sm"
-                >
+                <TableCell colSpan={colSpanTotal} className="text-center py-16 text-slate-400 text-sm">
                   No interventions match the current filters.
                 </TableCell>
               </TableRow>
             ) : (
               paginatedItems.map((item) => {
-                const reviewersScored = item.reviewer_statuses.filter(
-                  (r) => r.scored
-                ).length;
-
+                const reviewersScored = item.reviewers.filter((r) => r.scored).length;
                 return (
                   <TableRow
                     key={item.intervention_id}
-                    className="hover:bg-slate-50/70 transition-colors border-b border-slate-100 last:border-0"
+                    className="hover:bg-slate-50/70 transition-colors border-b border-slate-100 last:border-0 group"
                   >
-                    {/* Reference */}
-                    <TableCell className="align-top pt-3">
-                      <span className="text-xs font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded whitespace-nowrap">
-                         <button
-                          onClick={() =>
-                            router.push(`/portal/interventions/${item.intervention_id}`)
-                          }
-                          className="font-mono  text-xs bg-slate-100 hover:bg-[#27aae1]/10 hover:text-[#27aae1] px-2 py-1 rounded transition-colors text-[#27aae1] whitespace-nowrap"
-                        >
-                          {item.reference_number ?? "—"}
-                        </button>  
-                      </span>
-                    
+                    {/* Reference — sticky */}
+                    <TableCell className="sticky left-0 z-20 bg-white align-middle border-r border-slate-100 py-3">
+                      <button
+                        onClick={() => router.push(`/portal/interventions/${item.intervention_id}`)}
+                        className="font-mono text-xs bg-slate-100 hover:bg-[#27aae1]/10 hover:text-[#27aae1] px-2 py-1 rounded transition-colors text-[#27aae1] whitespace-nowrap"
+                      >
+                        {item.reference_number ?? "—"}
+                      </button>
                     </TableCell>
 
-                    {/* Name */}
-                    <TableCell className="align-top pt-3">
+                    {/* Name + type */}
+                    <TableCell className="align-middle py-3">
                       <p className="font-medium text-sm text-slate-800 leading-snug">
                         {item.intervention_name}
                       </p>
+                      {item.intervention_type && (
+                        <span className="text-[10px] text-slate-400 mt-0.5 block">{item.intervention_type}</span>
+                      )}
                     </TableCell>
 
-                    {/* System Category */}
-                    <TableCell className="align-top pt-3">
+                    {/* Category */}
+                    <TableCell className="align-middle py-3">
                       <CategoryPills categories={item.system_categories ?? []} />
                     </TableCell>
 
-                    {/* Score */}
-                    <TableCell className="align-top pt-3">
-                      <span className=" center mx-auto font-bold text-slate-800 tabular-nums">
-                        {item.overall_total_score}
-                      </span>
-                    </TableCell>
-
                     {/* Reviewers */}
-                    <TableCell className="align-top pt-3">
+                    <TableCell className="align-middle py-3">
                       <span className="flex items-center gap-1.5 text-sm text-slate-700">
                         <Users className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <span className="tabular-nums">
                           <strong>{reviewersScored}</strong>
-                          <span className="text-slate-400">
-                            {" "}/ {item.reviewer_statuses.length}
-                          </span>
+                          <span className="text-slate-400"> / {item.reviewers.length}</span>
                         </span>
                       </span>
                     </TableCell>
 
-                    {/* Status */}
-                    <TableCell className="align-top pt-3">
-                      <StatusBadge item={item} />
-                    </TableCell>
+                    {/* Per-criteria totals */}
+                    {/* {allCriteria.map((name) => (
+                      <TableCell key={name} className="text-center align-middle py-3 border-l border-slate-100 bg-sky-50/20 px-3">
+                        <ScoreCell value={criteriaTotal(item, name)} />
+                      </TableCell>
+                    ))} */}
+                    {allCriteria.map((name) => (
+                      <TableCell key={name} className="text-center align-middle py-3 border-l border-slate-100 bg-sky-50/20 px-3">
+                        <ScoreCell value={criteriaAvg(item, name)} />
+                      </TableCell>
+                    ))}
 
-                    {/* Details */}
-                    <TableCell className="text-right align-top pt-2.5">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs gap-1 hover:border-[#27aae1] hover:text-[#27aae1] transition-colors"
-                        onClick={() => onViewDetails(item)}
-                      >
-                        <Eye className="h-3.5 w-3.5" /> View
-                      </Button>
-                    </TableCell>
+                    
                   </TableRow>
                 );
               })
@@ -305,72 +286,42 @@ export function ReportTable({ items, onViewDetails }: ReportTableProps) {
         </Table>
       </div>
 
-      {/* Pagination Footer */}
+      {/* Pagination */}
       {items.length > 0 && (
-        <div className="flex items-center justify-between">
-          {/* Page Size Selector */}
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-600">Items per page:</span>
             <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="w-20">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {PAGE_SIZES.map((size) => (
-                  <SelectItem key={size} value={size.toString()}>
-                    {size}
-                  </SelectItem>
-                ))}
+                {PAGE_SIZES.map((s) => <SelectItem key={s} value={s.toString()}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
             <span className="text-sm text-slate-500 ml-2">
-              Showing {startIndex + 1}–{Math.min(endIndex, items.length)} of {items.length}
+              Showing {start + 1}–{Math.min(start + pageSize, items.length)} of {items.length}
             </span>
           </div>
 
-          {/* Pagination Controls */}
           <Pagination>
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage > 1) setCurrentPage(currentPage - 1);
-                  }}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
+                <PaginationPrevious href="#"
+                  onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} />
               </PaginationItem>
-
-              {getPageNumbers().map((page, idx) => (
+              {pageNumbers().map((page, idx) => (
                 <PaginationItem key={idx}>
-                  {page === "..." ? (
-                    <PaginationEllipsis />
-                  ) : (
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === page}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(Number(page));
-                      }}
-                      className="cursor-pointer"
-                    >
-                      {page}
-                    </PaginationLink>
+                  {page === "..." ? <PaginationEllipsis /> : (
+                    <PaginationLink href="#" isActive={currentPage === page}
+                      onClick={(e) => { e.preventDefault(); setCurrentPage(Number(page)); }}
+                      className="cursor-pointer">{page}</PaginationLink>
                   )}
                 </PaginationItem>
               ))}
-
               <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                  }}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
+                <PaginationNext href="#"
+                  onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} />
               </PaginationItem>
             </PaginationContent>
           </Pagination>

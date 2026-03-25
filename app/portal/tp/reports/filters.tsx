@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,20 +10,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export type FilterStatus = "all" | "fully_scored" | "partial" | "not_scored";
+export type SortOrder = "score_desc" | "score_asc" | "az" | "za";
 
 export interface ReportFiltersProps {
   search: string;
   onSearchChange: (value: string) => void;
-
-  statusFilter: FilterStatus;
-  onStatusFilterChange: (value: FilterStatus) => void;
-
+  sortOrder: SortOrder;
+  onSortOrderChange: (value: SortOrder) => void;
   categoryFilter: string;
   onCategoryFilterChange: (value: string) => void;
-
   categories: string[];
-
   shownCount: number;
   totalCount: number;
 }
@@ -31,8 +27,8 @@ export interface ReportFiltersProps {
 export function ReportFilters({
   search,
   onSearchChange,
-  statusFilter,
-  onStatusFilterChange,
+  sortOrder,
+  onSortOrderChange,
   categoryFilter,
   onCategoryFilterChange,
   categories,
@@ -52,26 +48,23 @@ export function ReportFilters({
         />
       </div>
 
-      {/* Status filter */}
+      {/* Sort */}
       <div className="flex items-center gap-1.5">
-        <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => onStatusFilterChange(v as FilterStatus)}
-        >
+        <ArrowUpDown className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+        <Select value={sortOrder} onValueChange={(v) => onSortOrderChange(v as SortOrder)}>
           <SelectTrigger className="h-9 w-44 text-sm bg-white border-slate-200">
-            <SelectValue placeholder="All statuses" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="fully_scored">✅ Complete</SelectItem>
-            <SelectItem value="partial">⚠️ Partially Scored</SelectItem>
-            <SelectItem value="not_scored">○ Not Scored</SelectItem>
+            <SelectItem value="score_desc">Score: High → Low</SelectItem>
+            <SelectItem value="score_asc">Score: Low → High</SelectItem>
+            <SelectItem value="az">Name: A → Z</SelectItem>
+            <SelectItem value="za">Name: Z → A</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* System-category filter */}
+      {/* Category */}
       {categories.length > 0 && (
         <Select
           value={categoryFilter || "__all__"}
@@ -92,7 +85,7 @@ export function ReportFilters({
         </Select>
       )}
 
-      {/* Result count */}
+      {/* Count */}
       <span className="text-xs text-slate-400 ml-auto tabular-nums whitespace-nowrap">
         Showing <strong className="text-slate-600">{shownCount}</strong> of {totalCount}
       </span>

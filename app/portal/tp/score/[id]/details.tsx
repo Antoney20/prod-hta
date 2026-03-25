@@ -48,7 +48,6 @@ function getMatchedEntry(activeCriteriaLabel: string) {
   return null;
 }
 
-// ── HTML renderer (sanitized) ──────────────────────────────────────────────
 
 function HtmlContent({ html }: { html: string }) {
   const clean = sanitizeHtml(html);
@@ -265,8 +264,6 @@ export function NoCriteriaPanel() {
     </Card>
   );
 }
-
-// ── Legacy default export (kept for any existing imports) ─────────────────
 
 export function CriteriaInfoDetail({
   criteriaInfo,

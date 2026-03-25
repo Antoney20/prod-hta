@@ -145,7 +145,8 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
         { title: "System Categories",  href: "/portal/config/system-category", icon: <Layers className="h-4 w-4" /> },
         
                 { title: "Assign System Categories",  href: "/portal/config/assign",   icon: <Layers className="h-4 w-4" /> },
-        { title: "Criteria Information",  href: "/portal/config/criteria-information", icon: <BookText className="h-4 w-4" /> }
+        { title: "Criteria Information",  href: "/portal/config/criteria-information", icon: <BookText className="h-4 w-4" /> },
+        // { title: "Open Rescoring",  href: "/portal/config/open-rescoring", icon:  <SlidersHorizontal  className="h-4 w-4" /> }
       ],
     },
     
@@ -247,7 +248,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
 
   const getRoleLabel = (): string => {
     if (role === 'admin')           return 'Admin';
-    if (role === 'secretariate')    return 'Secretariate';
+    if (role === 'secretariat')    return 'Secretariate';
     if (role === 'content_manager') return 'Content Manager';
     if (role === 'swg')             return 'SWG Member';
     return 'Member';

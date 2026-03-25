@@ -3,7 +3,7 @@ import RoleGuard from "@/app/context/role";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RoleGuard roles={['admin', 'secretariate']}>
+    <RoleGuard roles={['admin', 'secretariat']}>
       {children}
     </RoleGuard>
   )

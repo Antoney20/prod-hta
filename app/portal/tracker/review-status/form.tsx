@@ -20,9 +20,6 @@ import { getPublicProposals } from "@/app/api/public";
 import { PublicProposal } from "@/types/new/public";
 import { getDecisionTypes } from "@/app/api/new/tp";
 
-// ---------------------------------------------------------------------------
-// Rich text editor
-// ---------------------------------------------------------------------------
 
 interface RichEditorProps {
   value: string;
@@ -310,10 +307,12 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
   const [proposals, setProposals] = useState<PublicProposal[]>([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
 
-  // id !== null  → editing existing InterventionStatusUpdate
-  // id === null  → scored but no status yet → open as CREATE, pre-fill intervention
-  // undefined    → fresh create
-  const isEdit = !!defaultValues?.id;
+  // Determine mode:
+  // - isEdit = true: id is a real UUID (existing record) → EDIT mode, intervention locked
+  // - isCreate = true: id is null (scored but no status) → CREATE mode, intervention pre-filled but editable
+  // - otherwise: fresh CREATE mode, no defaults
+  const isEdit = !!defaultValues?.id && defaultValues.id !== null;
+  const isCreate = defaultValues?.id === null;
 
   useEffect(() => {
     if (open && proposals.length === 0) {
@@ -327,29 +326,53 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
     }
   }, [open]);
 
+  // Initialize form based on defaultValues and mode
   useEffect(() => {
     if (!open) return;
     setErrors({});
-    if (!defaultValues) { setForm(empty); return; }
-    setForm({
-      // For id===null rows we resolve to a real proposal id once proposals load (see below)
-      intervention: isEdit ? String(defaultValues.id) : (defaultValues.reference_number ?? ""),
-      decision: defaultValues.decision?.id ?? "none",
-      decision_date: defaultValues.decision_date ?? "",
-      feedback: defaultValues.feedback ?? "",
-      notes: "",
-      additional_info: "",
-    });
-  }, [open, defaultValues]);
+    
+    if (!defaultValues) {
+      // Fresh create: no defaults
+      setForm(empty);
+      return;
+    }
+
+    if (isEdit) {
+      // Editing existing: use id
+      setForm({
+        intervention: String(defaultValues.id),
+        decision: defaultValues.decision?.id ?? "none",
+        decision_date: defaultValues.decision_date ?? "",
+        feedback: defaultValues.feedback ?? "",
+        notes: "",
+        additional_info: "",
+      });
+    } else if (isCreate) {
+      // Creating from scored intervention: pre-fill with reference_number
+      // Will be resolved to intervention_id once proposals load
+      setForm({
+        intervention: defaultValues.reference_number ?? "",
+        decision: "none",
+        decision_date: "",
+        feedback: "",
+        notes: "",
+        additional_info: "",
+      });
+    }
+  }, [open, defaultValues, isEdit, isCreate]);
 
   // Resolve reference_number → proposal id once proposals are available (null-id rows)
   useEffect(() => {
-    if (!proposals.length || !defaultValues || isEdit) return;
+    if (!proposals.length || !defaultValues || !isCreate) return;
+    
     const ref = defaultValues.reference_number;
     if (!ref) return;
+    
     const match = proposals.find((p) => p.reference_number === ref);
-    if (match) setForm((f) => ({ ...f, intervention: match.id }));
-  }, [proposals, defaultValues, isEdit]);
+    if (match) {
+      setForm((f) => ({ ...f, intervention: match.id }));
+    }
+  }, [proposals, defaultValues, isCreate]);
 
   const setField = useCallback(
     <K extends keyof FormState>(field: K) =>
@@ -370,8 +393,26 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    // Resolve intervention_id from form.intervention
+    // If form.intervention contains an intervention_id (from edit or resolved from reference_number),
+    // extract it; otherwise assume it's already the id
+    let interventionId = form.intervention;
+
+    // If in create mode, form.intervention should now be a proposal.id
+    // If in edit mode, form.intervention is the update record id, but we need the intervention_id
+    if (isEdit && defaultValues?.intervention_id) {
+      interventionId = defaultValues.intervention_id;
+    } else {
+      // In create mode or fresh create, form.intervention is a proposal id
+      const proposal = proposals.find((p) => p.id === form.intervention);
+      if (proposal) {
+        interventionId = proposal.id;
+      }
+    }
+
     await onSubmit({
-      intervention: form.intervention,
+      intervention: interventionId,
       decision: form.decision !== "none" ? form.decision : null,
       decision_date: form.decision_date || null,
       feedback: form.feedback,
@@ -390,8 +431,8 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
           <SheetDescription>
             {isEdit
               ? "Update the HTA review status for this intervention."
-              : defaultValues?.id === null
-                ? `Assign an initial review status to ${defaultValues.intervention_name}.`
+              : isCreate
+                ? `Assign an initial review status to ${defaultValues?.intervention_name}.`
                 : "Assign a review status to a submitted intervention."}
           </SheetDescription>
         </SheetHeader>

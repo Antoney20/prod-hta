@@ -94,7 +94,7 @@ function ExportDropdown({ proposals }: { proposals: SubmittedProposal[] }) {
 
 export function ExportButton({ proposals }: { proposals: SubmittedProposal[] }) {
   return (
-    <RoleGuard minimumRole="secretariat" silent>
+    <RoleGuard minimumRole="admin" silent>
       <ExportDropdown proposals={proposals} />
     </RoleGuard>
   );

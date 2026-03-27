@@ -129,19 +129,16 @@ function RichEditor({ value, onChange, placeholder, minHeight = 100 }: RichEdito
   );
 }
 
-// ---------------------------------------------------------------------------
-// Searchable intervention picker
-// ---------------------------------------------------------------------------
-
 interface InterventionPickerProps {
   proposals: PublicProposal[];
   value: string;
-  onChange: (id: string) => void;
+  onChange: (id: string, name: string) => void;
   disabled?: boolean;
+  disabledName?: string;
   error?: string;
 }
 
-function InterventionPicker({ proposals, value, onChange, disabled, error }: InterventionPickerProps) {
+function InterventionPicker({ proposals, value, onChange, disabled, disabledName, error }: InterventionPickerProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -167,25 +164,30 @@ function InterventionPicker({ proposals, value, onChange, disabled, error }: Int
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const pick = (id: string) => {
-    onChange(id);
+  const pick = (p: PublicProposal) => {
+    onChange(p.id, p.intervention_name ?? "");
     setOpen(false);
     setQuery("");
   };
 
   const clear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange("");
+    onChange("", "");
     setQuery("");
   };
 
-  if (disabled && selected) {
+  // In edit mode, show the intervention_name passed from defaultValues (not from proposals lookup)
+  if (disabled) {
+    const displayName = disabledName ?? selected?.intervention_name ?? "—";
+    const displayRef = selected?.reference_number ?? "";
     return (
       <div className="flex items-center gap-2 rounded-md border border-input bg-muted px-3 py-2 text-sm">
-        <span className="font-mono text-xs text-muted-foreground shrink-0">
-          {selected.reference_number}
-        </span>
-        <span className="truncate">{selected.intervention_name ?? "—"}</span>
+        {displayRef && (
+          <span className="font-mono text-xs text-muted-foreground shrink-0">
+            {displayRef}
+          </span>
+        )}
+        <span className="truncate">{displayName}</span>
       </div>
     );
   }
@@ -246,7 +248,7 @@ function InterventionPicker({ proposals, value, onChange, disabled, error }: Int
               filtered.map((p) => (
                 <div
                   key={p.id}
-                  onClick={() => pick(p.id)}
+                  onClick={() => pick(p)}
                   className={[
                     "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-accent",
                     p.id === value ? "bg-accent font-medium" : "",
@@ -271,7 +273,8 @@ function InterventionPicker({ proposals, value, onChange, disabled, error }: Int
 // ---------------------------------------------------------------------------
 
 type FormState = {
-  intervention: string;
+  intervention: string;        // proposal/intervention UUID
+  intervention_name: string;   // human-readable name (from defaultValues.intervention_name)
   decision: string;
   decision_date: string;
   feedback: string;
@@ -281,6 +284,7 @@ type FormState = {
 
 const empty: FormState = {
   intervention: "",
+  intervention_name: "",
   decision: "none",
   decision_date: "",
   feedback: "",
@@ -307,10 +311,6 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
   const [proposals, setProposals] = useState<PublicProposal[]>([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
 
-  // Determine mode:
-  // - isEdit = true: id is a real UUID (existing record) → EDIT mode, intervention locked
-  // - isCreate = true: id is null (scored but no status) → CREATE mode, intervention pre-filled but editable
-  // - otherwise: fresh CREATE mode, no defaults
   const isEdit = !!defaultValues?.id && defaultValues.id !== null;
   const isCreate = defaultValues?.id === null;
 
@@ -330,17 +330,17 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
   useEffect(() => {
     if (!open) return;
     setErrors({});
-    
+
     if (!defaultValues) {
-      // Fresh create: no defaults
       setForm(empty);
       return;
     }
 
     if (isEdit) {
-      // Editing existing: use id
+      // Editing existing record: use intervention_id + intervention_name from the row
       setForm({
-        intervention: String(defaultValues.id),
+        intervention: defaultValues.intervention_id ?? "",
+        intervention_name: defaultValues.intervention_name ?? "",
         decision: defaultValues.decision?.id ?? "none",
         decision_date: defaultValues.decision_date ?? "",
         feedback: defaultValues.feedback ?? "",
@@ -348,10 +348,10 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
         additional_info: "",
       });
     } else if (isCreate) {
-      // Creating from scored intervention: pre-fill with reference_number
-      // Will be resolved to intervention_id once proposals load
+      // Creating from a scored intervention: pre-fill intervention_name from the row
       setForm({
-        intervention: defaultValues.reference_number ?? "",
+        intervention: defaultValues.intervention_id ?? "",
+        intervention_name: defaultValues.intervention_name ?? "",
         decision: "none",
         decision_date: "",
         feedback: "",
@@ -362,15 +362,22 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
   }, [open, defaultValues, isEdit, isCreate]);
 
   // Resolve reference_number → proposal id once proposals are available (null-id rows)
+  // Only needed if intervention_id wasn't available directly
   useEffect(() => {
     if (!proposals.length || !defaultValues || !isCreate) return;
-    
+    if (form.intervention) return; // already resolved via intervention_id
+
     const ref = defaultValues.reference_number;
     if (!ref) return;
-    
+
     const match = proposals.find((p) => p.reference_number === ref);
     if (match) {
-      setForm((f) => ({ ...f, intervention: match.id }));
+      setForm((f) => ({
+        ...f,
+        intervention: match.id,
+        // Only fall back to proposals name if intervention_name is still empty
+        intervention_name: f.intervention_name || match.intervention_name || "",
+      }));
     }
   }, [proposals, defaultValues, isCreate]);
 
@@ -380,6 +387,11 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
         setForm((f) => ({ ...f, [field]: value })),
     []
   );
+
+  // Picker onChange passes both id and name
+  const handleInterventionChange = useCallback((id: string, name: string) => {
+    setForm((f) => ({ ...f, intervention: id, intervention_name: name }));
+  }, []);
 
   const validate = () => {
     const e: Partial<Record<keyof FormState, string>> = {};
@@ -394,21 +406,9 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
     e.preventDefault();
     if (!validate()) return;
 
-    // Resolve intervention_id from form.intervention
-    // If form.intervention contains an intervention_id (from edit or resolved from reference_number),
-    // extract it; otherwise assume it's already the id
     let interventionId = form.intervention;
-
-    // If in create mode, form.intervention should now be a proposal.id
-    // If in edit mode, form.intervention is the update record id, but we need the intervention_id
     if (isEdit && defaultValues?.intervention_id) {
       interventionId = defaultValues.intervention_id;
-    } else {
-      // In create mode or fresh create, form.intervention is a proposal id
-      const proposal = proposals.find((p) => p.id === form.intervention);
-      if (proposal) {
-        interventionId = proposal.id;
-      }
     }
 
     await onSubmit({
@@ -438,8 +438,6 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 py-6">
-
-          {/* Intervention */}
           <div className="space-y-1.5">
             <Label>Intervention <span className="text-destructive">*</span></Label>
             {loadingMeta ? (
@@ -450,8 +448,9 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
               <InterventionPicker
                 proposals={proposals}
                 value={form.intervention}
-                onChange={setField("intervention")}
+                onChange={handleInterventionChange}
                 disabled={isEdit}
+                // disabledName={form.intervention_name}
                 error={errors.intervention}
               />
             )}

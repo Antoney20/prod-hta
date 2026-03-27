@@ -45,13 +45,7 @@ export default function ContactClient() {
       <HeroSection />
       <ContactFormSection />
       <CTA />
-      <SubscribeSection
-        email={email}
-        setEmail={setEmail}
-        isSubscribing={isSubscribing}
-        subscriptionStatus={subscriptionStatus}
-        handleSubscribe={handleSubscribe}
-      />
+      
       <Footer />
     </main>
   )
@@ -91,91 +85,4 @@ interface SubscribeSectionProps {
   isSubscribing: boolean
   subscriptionStatus: { type: 'success' | 'error' | null; message: string }
   handleSubscribe: (e: React.FormEvent) => void
-}
-
-function SubscribeSection({
-  email,
-  setEmail,
-  isSubscribing,
-  subscriptionStatus,
-  handleSubscribe,
-}: SubscribeSectionProps) {
-  return (
-    <section className="bg-gray-900 border-b-2 border-[#27aae1]">
-      <div className="container mx-auto px-4 sm:px-6 py-16">
-        <div className="max-w-4xl">
-
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px w-8 bg-[#27aae1]" />
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#27aae1]">
-              Newsletter
-            </span>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-            Stay Updated
-          </h2>
-
-          <p className="text-base text-gray-400 leading-relaxed mb-8">
-            Subscribe to our newsletter for the latest updates on health technology assessment
-            in Kenya.
-          </p>
-
-          <form onSubmit={handleSubscribe} noValidate>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                required
-                disabled={isSubscribing}
-                className="flex-1 bg-white border-2 border-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#27aae1] focus:border-[#27aae1] disabled:bg-gray-100 disabled:cursor-not-allowed"
-              />
-              <button
-                type="submit"
-                disabled={isSubscribing}
-                className="inline-flex items-center justify-center gap-2 bg-[#27aae1] hover:bg-[#1a8fc4] text-white text-sm font-bold px-6 py-3 transition-colors duration-150 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-[#27aae1] focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 whitespace-nowrap"
-              >
-                {isSubscribing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Subscribing…
-                  </>
-                ) : (
-                  <>
-                    Subscribe
-                    <Send className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Status message */}
-            {subscriptionStatus.type && (
-              <div
-                role="alert"
-                className={`mt-4 flex items-center gap-2 px-4 py-3 text-sm font-medium border ${
-                  subscriptionStatus.type === 'success'
-                    ? 'bg-green-50 border-green-300 text-green-800'
-                    : 'bg-red-50 border-red-300 text-red-800'
-                }`}
-              >
-                {subscriptionStatus.type === 'success' ? (
-                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                )}
-                {subscriptionStatus.message}
-              </div>
-            )}
-          </form>
-
-          <p className="text-xs text-gray-500 mt-5">
-            We respect your privacy. Unsubscribe at any time.
-          </p>
-        </div>
-      </div>
-    </section>
-  )
 }

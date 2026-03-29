@@ -490,11 +490,7 @@ const TasksPage = () => {
                             <span>
                               Created by: {task.created_by?.username || 'Unknown'}
                             </span>
-                            {getAssignedUsersText(task) && (
-                              <span>
-                                Assigned to: {getAssignedUsersText(task)}
-                              </span>
-                            )}
+                            
                           </div>
                         </div>
                         <TaskActions

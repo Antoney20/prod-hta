@@ -112,6 +112,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
 
   const sharedAll:NavItem = {
 
+
       title: "Interventions",
       icon: <BarChart3 className="h-5 w-5" />,
       children: [
@@ -121,6 +122,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
   };
 
   const userSwgNavItems: NavItem[] = [
+    { title: "Dashboard", href: "/portal", icon: <Home className="h-5 w-5" /> },
     sharedAll,
     {
       title: "Topic Prioritization",

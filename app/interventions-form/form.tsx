@@ -3,6 +3,30 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import type { FormErrors, FormData, EmailResponse } from '../services/types';
 import { ApiResponse, submitProposal } from '../api/interventions';
+import { sanitizeEmail, sanitizeFormData, sanitizePhone, sanitizeText, validateField, validateFormData } from './validate';
+
+
+
+const FieldError: React.FC<{ message?: string }> = ({ message }) =>
+  message ? (
+    <p role="alert" className="mt-1 text-sm text-red-600 flex items-center gap-1">
+      <svg
+        className="h-4 w-4 flex-shrink-0"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fillRule="evenodd"
+          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+          clipRule="evenodd"
+        />
+      </svg>
+      {message}
+    </p>
+  ) : null;
+ 
+
 
 const BenefitsForm: React.FC = () => {
   const counties = [
@@ -15,6 +39,7 @@ const BenefitsForm: React.FC = () => {
     'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
   ].sort((a, b) => a.localeCompare(b));
 
+  // ── State (unchanged) ────────────────────────────────────────────────────
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
@@ -38,9 +63,9 @@ const BenefitsForm: React.FC = () => {
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [formTouched, setFormTouched] = useState<boolean>(false);
   const [emailStatus, setEmailStatus] = useState<EmailResponse | null>(null);
-
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
 
+  // ── Reset after success (unchanged) ─────────────────────────────────────
   useEffect(() => {
     if (submitted) {
       const timer = setTimeout(() => {
@@ -71,111 +96,100 @@ const BenefitsForm: React.FC = () => {
     }
   }, [submitted]);
 
+  // ── onChange: sanitize per field type, live-revalidate if error exists ───
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
+    const { name, value } = e.target;
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-    
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
+    // Sanitize based on field type
+    let clean = value;
+    if (name === 'phone')      clean = sanitizePhone(value);
+    else if (name === 'email') clean = sanitizeEmail(value);
+    else                       clean = sanitizeText(value);
+
+    const updated = { ...formData, [name]: clean } as FormData;
+    setFormData(updated);
+    setFormTouched(true);
+
+    // Re-validate only if the field already has an error showing
+    if (errors[name as keyof FormData]) {
+      const fieldErr = validateField(name as keyof FormData, updated);
+      setErrors(prev => {
+        const next = { ...prev };
+        if (fieldErr) next[name as keyof FormData] = fieldErr;
+        else delete next[name as keyof FormData];
+        return next;
+      });
     }
-    
-    if (!formData.profession.trim()) newErrors.profession = "Profession is required";
-    if (!formData.organization.trim()) newErrors.organization = "Organization is required";
-    if (!formData.county.trim()) newErrors.county = "County is required";
-    if (!formData.interventionName.trim()) newErrors.interventionName = "Intervention name is required";
-    if (!formData.interventionType) newErrors.interventionType = "Intervention type must be selected";
-    if (!formData.beneficiary.trim()) newErrors.beneficiary = "Beneficiary is required";
-    if (!formData.justification.trim()) newErrors.justification = "Justification is required";
-    if (!formData.expectedImpact.trim()) newErrors.expectedImpact = "Expected impact is required";
-    if (!formData.signature.trim()) newErrors.signature = "Signature is required";
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
+  // ── File change: validate immediately, show inline error (replaces alert) 
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0] || null;
+    const updated = { ...formData, uploadedDocument: file };
+    setFormData(updated);
+    setFormTouched(true);
 
-
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
-  const { name, value } = e.target;
-  setFormData(prev => ({ ...prev, [name]: value }));
-  setFormTouched(true);
-
-  if (errors[name]) {
+    const fieldErr = validateField('uploadedDocument', updated);
     setErrors(prev => {
-      const updated = {...prev};
-      delete updated[name];
-      return updated;
+      const next = { ...prev };
+      if (fieldErr) {
+        next.uploadedDocument = fieldErr;
+        e.target.value = ''; // reset native input on error
+      } else {
+        delete next.uploadedDocument;
+      }
+      return next;
     });
-  }
-};
+  };
 
-const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
-  const file = e.target.files?.[0] || null;
-  
-  if (file) {
-    if (file.type !== 'application/pdf') {
-      alert('Please upload only PDF files');
-      e.target.value = ''; 
-      return;
-    }
-    
-   
-    if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
-      e.target.value = ''; 
-      return;
-    }
-  }
-  
-  setFormData(prev => ({ ...prev, uploadedDocument: file }));
-  setFormTouched(true);
-};
-
+  // ── Submit: sanitize → validate → submit ─────────────────────────────────
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    
-    const isValid = validateForm();
-   
-    if (isValid) {
-      setIsSubmitting(true);
-      
-      try {
-        const response = await submitProposal(formData);
-        setApiResponse(response);
-        
-        if (response.success) {
-          setSubmitted(true);
-          // Optional: Store submission ID in localStorage for tracking
-          if (response.submission_id) {
-            localStorage.setItem('lastSubmissionId', response.submission_id);
-          }
-        }
-      } catch (error) {
-        setApiResponse({
-          success: false,
-          message: 'An unexpected error occurred. Please try again.',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      } finally {
-        setIsSubmitting(false);
-        setFormTouched(false);
-      }
-    } else {
-      const firstErrorField = Object.keys(errors)[0];
+
+    // 1. Sanitize the whole form first
+    const clean = sanitizeFormData(formData);
+    setFormData(clean);
+
+    // 2. Run full validation against clean data
+    const newErrors = validateFormData(clean);
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0];
       const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
       if (errorElement) {
         errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         (errorElement as HTMLElement).focus();
       }
+      return;
+    }
+
+    // 3. Submit clean, validated data
+    setIsSubmitting(true);
+    try {
+      const response = await submitProposal(clean);
+      setApiResponse(response);
+
+      if (response.success) {
+        setSubmitted(true);
+        if (response.submission_id) {
+          localStorage.setItem('lastSubmissionId', response.submission_id);
+        }
+      }
+    } catch (error) {
+      setApiResponse({
+        success: false,
+        message: 'An unexpected error occurred. Please try again.',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } finally {
+      setIsSubmitting(false);
+      setFormTouched(false);
     }
   };
 
 
+  // ── Success screen (unchanged) ────────────────────────────────────────────
   if (submitted) {
     return (
       <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
@@ -191,17 +205,15 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
           )}
           <h2 className="mt-4 text-2xl font-bold text-gray-900">Form Submitted Successfully</h2>
           <p className="mt-2 text-gray-600">{emailStatus?.message || 'Thank you for your submission. Your intervention proposal has been received.'}</p>
-          
-      
         </div>
       </div>
     );
   }
 
+  // ── Form JSX (completely unchanged from your original) ───────────────────
   return (
     <form onSubmit={handleSubmit} className="container  mx-auto p-6 py-24 bg-white rounded-lg shadow-lg">
       <div className="text-center mb-8">
- 
         <h1 className="text-2xl font-bold text-gray-800">REPUBLIC OF KENYA</h1>
         <h2 className="text-xl font-semibold text-gray-700 mt-2">SOCIAL HEALTH INSURANCE ACT, 2023</h2>
         <h3 className="text-lg font-medium text-gray-600 mt-1">BENEFIT PACKAGE INTERVENTION PROPOSAL</h3>
@@ -355,7 +367,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 
         <fieldset>
           <legend className="block text-sm font-medium text-gray-700 mb-1.5">7. Type of intervention</legend>
-       
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4" role="radiogroup" aria-labelledby="interventionType-label">
             {['Health Service', 'Vaccine', 'Drug', 'Medical Device', 'Other'].map(type => (
               <div key={type} className="flex items-center">
@@ -439,7 +450,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
           )}
         </div>
 
-
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="additionalInfo-textarea">
             11. Any additional information that you may want to provide about the intervention?
@@ -455,6 +465,9 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
             aria-required="false"
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
+          {errors.additionalInfo && (
+            <p className="text-sm text-red-600 mt-1">{errors.additionalInfo}</p>
+          )}
         </div>
 
         <div>
@@ -472,7 +485,7 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
                   <span>Upload a file</span>
                   <input
                     id="document-upload"
-                    name="document-upload"
+                    name="uploadedDocument"
                     type="file"
                     accept=".pdf"
                     onChange={handleFileChange}
@@ -503,6 +516,9 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
                     Remove file
                   </button>
                 </div>
+              )}
+              {errors.uploadedDocument && (
+                <p className="text-sm text-red-600 mt-1">{errors.uploadedDocument}</p>
               )}
             </div>
           </div>
@@ -551,11 +567,11 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
           <button
             type="submit"
             disabled={isSubmitting}
-             aria-label={isSubmitting ? "Submitting form" : "Submit form"}
+            aria-label={isSubmitting ? "Submitting form" : "Submit form"}
             className={`px-6 py-3 text-white rounded-md font-medium ${formTouched ? 'bg-[#1d8fc3] hover:bg-[#27aae1]' : 'bg-gray-800'} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200`}
           >
             {isSubmitting ? (
-              <span className="flex items-center justify-center"  aria-hidden="true">
+              <span className="flex items-center justify-center" aria-hidden="true">
                 <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

@@ -1,139 +1,124 @@
-import { 
-  DashboardData, 
-  DashboardStats,
-  ProposalStatusCount,
-  RecentActivity,
-  ThematicAreaStats,
-  PriorityDistribution,
-  ReviewerWorkload,
-  ImplementationProgress,
-  MonthlyTrend
-} from "@/types/dashboard/home";
-import api from "../../auth";
+import { DashboardError, DashboardResponse } from "@/types/dashboard/home"
+
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api'
 
 /**
- * Get complete dashboard data with all stats and reports
+ * Fetch complete dashboard data
+ * Returns aggregated stats for tasks, proposals, scoring, decisions, and system categories
+ * Includes user statistics if the current user is admin
  */
-export const getDashboardData = async (): Promise<DashboardData> => {
+export const getDashboardData = async (): Promise<DashboardResponse> => {
   try {
-    const response = await api.get('/v1/dashboard/');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch dashboard data');
+    const response = await fetch(`${API_BASE_URL}/v1/dashboard/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies for authentication
+    })
+
+    if (!response.ok) {
+      const errorData: DashboardError = await response.json()
+      throw new Error(
+        errorData.message || `Dashboard API error: ${response.statusText}`
+      )
+    }
+
+    const data: DashboardResponse = await response.json()
+    return data
+  } catch (error) {
+    console.error('Failed to fetch dashboard data:', error)
+    throw error
   }
-};
+}
 
 /**
- * Get dashboard statistics only
+ * Refresh dashboard data (for manual refresh button)
+ * Returns updated statistics
  */
-export const getDashboardStats = async (): Promise<DashboardStats> => {
-  try {
-    const response = await api.get('/v1/dashboard/stats/');
-    return response.data;
-  } catch (error: any) {
-
-    throw new Error(error?.response?.data?.message || 'Failed to fetch dashboard stats');
-  }
-};
+export const refreshDashboard = async (): Promise<DashboardResponse> => {
+  return getDashboardData()
+}
 
 /**
- * Get proposal status distribution
+ * Get only task statistics
+ * Used for task-specific views
  */
-export const getProposalStatusDistribution = async (): Promise<ProposalStatusCount[]> => {
+export const getTaskStats = async () => {
   try {
-    const response = await api.get('/v1/dashboard/proposal-status/');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch proposal status distribution');
+    const data = await getDashboardData()
+    return data.tasks
+  } catch (error) {
+    console.error('Failed to fetch task stats:', error)
+    throw error
   }
-};
+}
 
 /**
- * Get recent activities
+ * Get only proposal statistics
+ * Includes monthly trends and system category breakdown
  */
-export const getRecentActivities = async (limit: number = 10): Promise<RecentActivity[]> => {
+export const getProposalStats = async () => {
   try {
-    const response = await api.get('/v1/dashboard/activities/', {
-      params: { limit }
-    });
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch recent activities');
+    const data = await getDashboardData()
+    return data.proposals
+  } catch (error) {
+    console.error('Failed to fetch proposal stats:', error)
+    throw error
   }
-};
+}
 
 /**
- * Get thematic area statistics
+ * Get only scoring statistics
+ * Role-aware: returns different data based on user role
  */
-export const getThematicAreaStats = async (): Promise<ThematicAreaStats[]> => {
+export const getScoringStats = async () => {
   try {
-    const response = await api.get('/v1/dashboard/thematic-areas/');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch thematic area stats');
+    const data = await getDashboardData()
+    return data.scoring
+  } catch (error) {
+    console.error('Failed to fetch scoring stats:', error)
+    throw error
   }
-};
+}
 
 /**
- * Get priority distribution
+ * Get decision/intervention status updates
  */
-export const getPriorityDistribution = async (): Promise<PriorityDistribution[]> => {
+export const getDecisionStats = async () => {
   try {
-    const response = await api.get('/v1/dashboard/priority-distribution/');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch priority distribution');
+    const data = await getDashboardData()
+    return data.decisions
+  } catch (error) {
+    console.error('Failed to fetch decision stats:', error)
+    throw error
   }
-};
+}
 
 /**
- * Get reviewer workload
+ * Get system category statistics
  */
-export const getReviewerWorkload = async (): Promise<ReviewerWorkload[]> => {
+export const getSystemCategoryStats = async () => {
   try {
-    const response = await api.get('/v1/dashboard/reviewer-workload/');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch reviewer workload');
+    const data = await getDashboardData()
+    return data.system_categories
+  } catch (error) {
+    console.error('Failed to fetch system category stats:', error)
+    throw error
   }
-};
+}
 
 /**
- * Get implementation progress
+ * Get user statistics (admin only)
+ * Returns null for non-admin users
  */
-export const getImplementationProgress = async (): Promise<ImplementationProgress[]> => {
+export const getUserStats = async () => {
   try {
-    const response = await api.get('/v1/dashboard/implementation-progress/');
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch implementation progress');
+    const data = await getDashboardData()
+    return data.users || null
+  } catch (error) {
+    console.error('Failed to fetch user stats:', error)
+    throw error
   }
-};
-
-/**
- * Get monthly trends
- */
-export const getMonthlyTrends = async (months: number = 6): Promise<MonthlyTrend[]> => {
-  try {
-    const response = await api.get('/v1/dashboard/trends/', {
-      params: { months }
-    });
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to fetch monthly trends');
-  }
-};
-
-/**
- * Refresh dashboard data - forces a fresh fetch
- */
-export const refreshDashboard = async (): Promise<DashboardData> => {
-  try {
-    const response = await api.get('/v1/dashboard/', {
-      params: { refresh: true, timestamp: Date.now() }
-    });
-    return response.data;
-  } catch (error: any) {
-    throw new Error(error?.response?.data?.message || 'Failed to refresh dashboard');
-  }
-};
+}

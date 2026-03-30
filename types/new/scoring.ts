@@ -23,6 +23,7 @@ export interface InterventionReport {
   reference_number: string;
   intervention_name: string;
   intervention_type: string | null;
+  scored_at: string | null;
   system_categories: string[];
   total_score: number;          // sum of ALL score_values from ALL reviewers
   criteria_scored: number;      // unique criteria scored by any reviewer

@@ -14,9 +14,10 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, XCircle, Users, Info, Layers } from "lucide-react";
+import { AlertCircle, XCircle, Users, Info, Layers, Calendar } from "lucide-react";
 import { InterventionReport } from "@/types/new/scoring";
 import { useRouter } from "next/navigation";
+import { SortOrder } from "./filters";
 
 const BRAND = "#27aae1";
 const PAGE_SIZES = [25, 50, 75, 100];
@@ -41,8 +42,23 @@ function shortLabel(name: string): string {
   return CRITERIA_SHORT[name] ?? name;
 }
 
+// Helper at top of file
+function formatScoredAt(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString(undefined, {
+    day: "2-digit", month: "short", year: "numeric",
+  });
+}
+
+function dayKey(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+
 export interface ReportTableProps {
   items: InterventionReport[];
+  sortOrder: SortOrder;
 }
 
 /** Sum a single criteria across ALL reviewers for one intervention */
@@ -110,6 +126,25 @@ function ScoreCell({ value }: { value: number }) {
   );
 }
 
+function DateSectionHeader({ date, count, colSpan }: { date: string; count: number; colSpan: number }) {
+  const isToday = dayKey(new Date().toISOString()) === date;
+  const label = isToday ? "Today" : formatScoredAt(date || "");
+
+  return (
+    <TableRow className="bg-gradient-to-r from-slate-50 to-slate-25 hover:bg-slate-50/80 border-b-2 border-slate-200">
+      <TableCell colSpan={colSpan} className="py-2.5">
+        <div className="flex items-center gap-2 ml-1">
+          <Calendar className="h-4 w-4 text-slate-400" />
+          <span className="text-sm font-semibold text-slate-700">{label}</span>
+          <span className="text-xs font-medium bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full ml-1">
+            {count} scored
+          </span>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function ReportTable({ items }: ReportTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -130,9 +165,40 @@ export function ReportTable({ items }: ReportTableProps) {
     ];
   }, [items]);
 
-  const totalPages = Math.ceil(items.length / pageSize);
+  // Group items by scored_at date (most recent first)
+  const groupedByDate = useMemo(() => {
+    const groups = new Map<string, InterventionReport[]>();
+    
+    for (const item of items) {
+      const key = dayKey(item.scored_at);
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(item);
+    }
+
+    // Sort groups by date descending (most recent first)
+    const sorted = Array.from(groups.entries())
+      .sort(([keyA], [keyB]) => {
+        if (!keyA) return 1;
+        if (!keyB) return -1;
+        return keyB.localeCompare(keyA);
+      });
+
+    return sorted;
+  }, [items]);
+
+  // Build list of items with their date groups for rendering with headers
+  const itemsWithDates = useMemo(() => {
+    return groupedByDate.flatMap(([date, dateItems]) => [
+      { type: "header" as const, date, count: dateItems.length },
+      ...dateItems.map(item => ({ type: "row" as const, item }))
+    ]);
+  }, [groupedByDate]);
+
+  const totalPages = Math.ceil(itemsWithDates.length / pageSize);
   const start = (currentPage - 1) * pageSize;
-  const paginatedItems = items.slice(start, start + pageSize);
+  const paginatedItemsWithDates = itemsWithDates.slice(start, start + pageSize);
 
   const handlePageSizeChange = (size: string) => {
     setPageSize(Number(size));
@@ -222,15 +288,28 @@ export function ReportTable({ items }: ReportTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedItems.map((item) => {
+              paginatedItemsWithDates.map((entry, idx) => {
+                if (entry.type === "header") {
+                  return (
+                    <DateSectionHeader
+                      key={`header-${entry.date}`}
+                      date={entry.date}
+                      count={entry.count}
+                      colSpan={colSpanTotal}
+                    />
+                  );
+                }
+
+                const item = entry.item;
                 const reviewersScored = item.reviewers.filter((r) => r.scored).length;
+
                 return (
                   <TableRow
                     key={item.intervention_id}
                     className="hover:bg-slate-50/70 transition-colors border-b border-slate-100 last:border-0 group"
                   >
                     {/* Reference — sticky */}
-                    <TableCell className="sticky left-0 z-20 bg-white align-middle border-r border-slate-100 py-3">
+                    <TableCell className="sticky left-0 z-20 bg-white group-hover:bg-slate-50/70 align-middle border-r border-slate-100 py-3">
                       <button
                         onClick={() => router.push(`/portal/interventions/${item.intervention_id}`)}
                         className="font-mono text-xs bg-slate-100 hover:bg-[#27aae1]/10 hover:text-[#27aae1] px-2 py-1 rounded transition-colors text-[#27aae1] whitespace-nowrap"
@@ -265,19 +344,12 @@ export function ReportTable({ items }: ReportTableProps) {
                       </span>
                     </TableCell>
 
-                    {/* Per-criteria totals */}
-                    {/* {allCriteria.map((name) => (
-                      <TableCell key={name} className="text-center align-middle py-3 border-l border-slate-100 bg-sky-50/20 px-3">
-                        <ScoreCell value={criteriaTotal(item, name)} />
-                      </TableCell>
-                    ))} */}
+                    {/* Per-criteria averages */}
                     {allCriteria.map((name) => (
                       <TableCell key={name} className="text-center align-middle py-3 border-l border-slate-100 bg-sky-50/20 px-3">
                         <ScoreCell value={criteriaAvg(item, name)} />
                       </TableCell>
                     ))}
-
-                    
                   </TableRow>
                 );
               })

@@ -57,6 +57,11 @@ function triggerDownload(csv: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+function formatDate(value: string | null): string {
+  if (!value) return "";
+  return new Date(value).toLocaleString();
+}
+
 /**
  * Export all data — one row per reviewer per intervention.
  * Columns: Ref, Category, Reviewer, Email, Scored, <criteria...>
@@ -76,6 +81,7 @@ export function exportAllDataCSV(
     "Reviewer Name",
     "Reviewer Email",
     "Scored",
+    "Scored At",
     ...allCriteria,
   ];
 
@@ -88,13 +94,13 @@ export function exportAllDataCSV(
       const criteriaMap = Object.fromEntries(
         reviewer.criteria_scores.map((cs) => [cs.criteria_name, cs.score_value])
       );
-
       rows.push([
         csvCell(iv.reference_number),
         csvCell(category),
         csvCell(reviewer.full_name),
         csvCell(reviewer.email),
         csvCell(reviewer.scored ? "Yes" : "No"),
+        csvCell(formatDate(iv.scored_at)),
         ...allCriteria.map((name) => csvCell(criteriaMap[name] ?? 0)),
       ].join(","));
     }

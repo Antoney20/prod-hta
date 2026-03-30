@@ -487,15 +487,16 @@ const BenefitsForm: React.FC = () => {
                     id="document-upload"
                     name="uploadedDocument"
                     type="file"
-                    accept=".pdf"
+                    accept=".pdf,.xlsx,.docx"
                     onChange={handleFileChange}
                     aria-required="false"
                     className="sr-only"
                   />
                 </label>
-                <p className="pl-1">or drag and drop</p>
+                <p className="pl-1">or drag and drop</p><span className="text-gray-500 italic text-xs ml-1">*PDF, XLSX or DOCX — max 10MB</span>
+
               </div>
-              <p className="text-xs text-gray-500">PDF up to 10MB</p>
+              <p className="text-xs text-gray-500">PDF, XLSX or DOCX up to 10MB</p>
               {formData.uploadedDocument && (
                 <div className="mt-2">
                   <p className="text-sm text-green-600 flex items-center justify-center">

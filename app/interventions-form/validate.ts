@@ -179,11 +179,15 @@ export function validateFormData(data: FormData): FormErrors {
     errors.additionalInfo = "Additional information contains invalid characters.";
   }
 
-  // ── File upload  only pdf accepterd──────────────────────
-
+  // ── File upload  accepterd──────────────────────
   if (data.uploadedDocument) {
-    if (data.uploadedDocument.type !== "application/pdf") {
-      errors.uploadedDocument = "Only PDF files are accepted.";
+    const allowed = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+    ];
+    if (!allowed.includes(data.uploadedDocument.type)) {
+      errors.uploadedDocument = "Only PDF, XLSX, and DOCX files are accepted.";
     } else if (data.uploadedDocument.size > 10 * 1024 * 1024) {
       errors.uploadedDocument = "File size must be under 10 MB.";
     }

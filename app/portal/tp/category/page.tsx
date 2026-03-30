@@ -156,6 +156,30 @@ export default function BrowseByCategoryPage() {
   const totalAll = groups.reduce((s, g) => s + g.interventions.length, 0);
   const totalScored = groups.flatMap((g) => g.interventions).filter((i) => i.scored).length;
 
+
+const decisionGroups = useMemo(() => {
+  const all = [
+    ...groups.flatMap((g) => g.interventions),
+    ...unassigned,
+  ];
+  const map = new Map<string, number>();
+  for (const item of all) {
+    const name = item.reviewStatus?.decision?.name;
+    if (name) map.set(name, (map.get(name) ?? 0) + 1);
+  }
+  return Array.from(map.entries()); // [["Test decision", 3], ...]
+}, [groups, unassigned]);
+
+const totalPending = useMemo(() => {
+  const all = [...groups.flatMap((g) => g.interventions), ...unassigned];
+  return all.filter((i) => !i.scored && !i.reviewStatus?.decision).length;
+}, [groups, unassigned]);
+
+const totalScoredNoPendingDecision = useMemo(() => {
+  const all = [...groups.flatMap((g) => g.interventions), ...unassigned];
+  return all.filter((i) => i.scored && !i.reviewStatus?.decision).length;
+}, [groups, unassigned]);
+
   const filteredGroups = useMemo(() => {
     if (!sidebarSearch) return groups;
     const q = sidebarSearch.toLowerCase();
@@ -339,10 +363,41 @@ export default function BrowseByCategoryPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard label="Total Interventions" value={totalAll} sub="across all categories" />
-        <StatCard label="Scored by Me" value={totalScored} sub="completed assessments" accent />
-        <StatCard label="Pending" value={totalAll - totalScored} sub="awaiting your score" warn />
+      <div className="flex flex-wrap items-start gap-5">
+
+        {/* Status group */}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Status</p>
+          <div className="flex gap-3">
+            <StatCard label="Pending" value={totalPending} sub="not yet scored" warn />
+            <StatCard label="Scored by me" value={totalScoredNoPendingDecision} sub="awaiting decision" accent />
+          </div>
+        </div>
+
+        <div className="self-stretch w-px bg-slate-200 mt-5" />
+
+        {/* Decisions group */}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Decisions</p>
+          <div className="flex flex-wrap gap-3">
+            {decisionGroups.length === 0 ? (
+              <StatCard label="No decisions yet" value={0} sub="—" />
+            ) : (
+              decisionGroups.map(([name, count]) => (
+                <StatCard key={name} label={name} value={count} sub="interventions" />
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="self-stretch w-px bg-slate-200 mt-5" />
+
+        {/* Total */}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Total</p>
+          <StatCard label="Interventions (Categorized)" value={totalAll} sub={`across ${groups.length} categories`} />
+        </div>
+
       </div>
 
       {/* Mobile sidebar Sheet */}

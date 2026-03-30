@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Pagination } from "@/app/interventions/cc/pagination";
 import { TopicPriority } from "@/types/new/topic-prioritization";
 import { getTopicPriorities } from "@/app/api/new/tp";
@@ -25,25 +25,129 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Decision / status resolution rules:
+ *
+ * 1. If decision exists AND its name (lowercased) === "discussed"
+ *    → treat as "Under review" (same as scored-no-decision)
+ *
+ * 2. If scored AND decision exists AND decision name !== "discussed"
+ *    → show the decision name (override under-review)
+ *
+ * 3. If NOT scored AND decision exists AND name !== "discussed"
+ *    → show the decision name
+ *
+ * 4. If scored AND no decision (or decision is "discussed")
+ *    → "Under review"
+ *
+ * 5. Otherwise → "Pending"
+ */
+function resolveStatus(row: TopicPriority): {
+  label: string;
+  variant: "decision" | "under-review" | "pending";
+} {
+  const decisionName = row.decision?.name ?? null;
+  const isDiscussed =
+    decisionName !== null && decisionName.toLowerCase() === "discussed";
+
+  // Real decision (not discussed)
+  if (decisionName && !isDiscussed) {
+    return { label: decisionName, variant: "decision" };
+  }
+
+  // Scored, or has a "discussed" decision → under review
+  if (row.is_scored || isDiscussed) {
+    return { label: "Under review", variant: "under-review" };
+  }
+
+  return { label: "Pending", variant: "pending" };
+}
+
 function DecisionTag({ row }: { row: TopicPriority }) {
-  if (row.decision) {
+  const { label, variant } = resolveStatus(row);
+
+  if (variant === "decision") {
     return (
       <strong className="inline-block bg-[#27aae1] text-white text-xs font-bold px-2 py-0.5 uppercase tracking-wide whitespace-nowrap">
-        {row.decision.name}
+        {label}
       </strong>
     );
   }
-  if (row.is_scored) {
+  if (variant === "under-review") {
     return (
       <strong className="inline-block bg-[#00703c] text-white text-xs font-bold px-2 py-0.5 uppercase tracking-wide whitespace-nowrap">
-        Under review
+        {label}
       </strong>
     );
   }
   return (
     <strong className="inline-block bg-[#505a5f] text-white text-xs font-bold px-2 py-0.5 uppercase tracking-wide whitespace-nowrap">
-      Pending
+      {label}
     </strong>
+  );
+}
+
+/**
+ * Feedback cell — "See more / See less" only appears when the text
+ * genuinely overflows 2 lines (measured via scrollHeight vs clientHeight).
+ */
+function FeedbackCell({
+  feedback,
+  expanded,
+  onToggle,
+}: {
+  feedback: string;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const clampRef = useRef<HTMLParagraphElement>(null);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = clampRef.current;
+    if (!el) return;
+    // Temporarily unconstrain to measure true height
+    el.style.webkitLineClamp = "unset";
+    el.style.display = "block";
+    const full = el.scrollHeight;
+    el.style.webkitLineClamp = "2";
+    el.style.display = "-webkit-box";
+    const clamped = el.clientHeight;
+    setOverflows(full > clamped + 2); // +2px tolerance
+  }, [feedback]);
+
+  if (!feedback) {
+    return <span className="text-xs text-gray-400 italic">No feedback yet</span>;
+  }
+
+  return (
+    <div>
+      <p
+        ref={clampRef}
+        className="text-sm text-gray-700 leading-relaxed"
+        style={
+          expanded
+            ? undefined
+            : {
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }
+        }
+      >
+        {feedback}
+      </p>
+      {overflows && (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="mt-1 text-xs text-[#1d70b8] underline hover:text-[#003078] focus:outline-none focus:ring-1 focus:ring-[#1d70b8]"
+        >
+          {expanded ? "See less" : "See more"}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -61,7 +165,6 @@ function StatusRow({
   const key = row.id ?? row.reference_number;
   const expanded = expandedId === key;
   const feedback = stripHtml(row.feedback ?? "");
-  const hasFeedback = feedback.length > 0;
 
   return (
     <tr className="border-b border-gray-200 hover:bg-[#f8f8f8] transition-colors align-top">
@@ -95,30 +198,17 @@ function StatusRow({
       </td>
 
       <td className="py-4 px-4 whitespace-nowrap">
-        <span className="text-sm text-gray-700">{formatDate(row.decision_date)}</span>
+        <span className="text-sm text-gray-700">
+          {(row.decision || row.is_scored) ? "—" : formatDate(row.decision_date)}
+        </span>
       </td>
 
       <td className="py-4 px-4 min-w-[350px]" style={{ maxWidth: 500 }}>
-        {hasFeedback ? (
-          <div>
-            <p
-              className={`text-sm text-gray-700 leading-relaxed ${
-                expanded ? "" : "line-clamp-2"
-              }`}
-            >
-              {feedback}
-            </p>
-            <button
-              type="button"
-              onClick={() => onToggle(key!)}
-              className="mt-1 text-xs text-[#1d70b8] underline hover:text-[#003078] focus:outline-none focus:ring-1 focus:ring-[#1d70b8]"
-            >
-              {expanded ? "See less" : "See more"}
-            </button>
-          </div>
-        ) : (
-          <span className="text-xs text-gray-400 italic">No feedback yet</span>
-        )}
+        <FeedbackCell
+          feedback={feedback}
+          expanded={expanded}
+          onToggle={() => onToggle(key!)}
+        />
       </td>
     </tr>
   );
@@ -152,7 +242,6 @@ function Stat({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
-
 
 type SortOrder = "az" | "za" | "date-desc" | "date-asc";
 
@@ -428,13 +517,20 @@ function SidebarFilters({
   );
 }
 
-
 const PAGE_SIZE = 25;
 
 /**
- * @param embedded - When true, suppresses the Navbar and standalone hero
- *   so this component can be rendered inside the shared interventions layout.
+ * Helper — returns the "canonical" filter key for a row, matching the keys
+ * used when building decisionOptions.
  */
+function getFilterKey(row: TopicPriority): string {
+  const { variant } = resolveStatus(row);
+  if (variant === "under-review") return "_under_review";
+  if (variant === "pending") return "_pending";
+  // real decision
+  return row.decision!.id;
+}
+
 export default function PublicStatusPage({
   embedded = false,
 }: {
@@ -461,9 +557,7 @@ export default function PublicStatusPage({
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     setPage(1);
@@ -484,19 +578,35 @@ export default function PublicStatusPage({
     return counts;
   }, [records]);
 
+  /**
+   * Build filter options:
+   * - One entry per distinct real decision (excluding "discussed")
+   * - One "Under review" entry covering: is_scored OR decision === "discussed"
+   * - One "Pending" entry covering: not scored, no decision (should rarely appear
+   *   given the load filter, but kept for completeness)
+   */
   const decisionOptions = useMemo(() => {
     const seen = new Map<string, string>();
+    let hasUnderReview = false;
+    let hasPending = false;
+
     for (const r of records) {
-      if (r.decision) seen.set(r.decision.id, r.decision.name);
+      const { variant } = resolveStatus(r);
+      if (variant === "decision") {
+        seen.set(r.decision!.id, r.decision!.name);
+      } else if (variant === "under-review") {
+        hasUnderReview = true;
+      } else {
+        hasPending = true;
+      }
     }
+
     const opts = Array.from(seen.entries()).map(([value, label]) => ({
       value,
       label,
     }));
-    if (records.some((r) => r.is_scored && !r.decision))
-      opts.push({ value: "_scored", label: "Under review" });
-    if (records.some((r) => !r.is_scored && !r.decision))
-      opts.push({ value: "_pending", label: "Pending" });
+    if (hasUnderReview) opts.push({ value: "_under_review", label: "Under review" });
+    if (hasPending) opts.push({ value: "_pending", label: "Pending" });
     return opts;
   }, [records]);
 
@@ -520,19 +630,9 @@ export default function PublicStatusPage({
     }
 
     if (filters.decisions.length > 0) {
-      data = data.filter((r) => {
-        if (r.decision && filters.decisions.includes(r.decision.id))
-          return true;
-        if (!r.decision && r.is_scored && filters.decisions.includes("_scored"))
-          return true;
-        if (
-          !r.decision &&
-          !r.is_scored &&
-          filters.decisions.includes("_pending")
-        )
-          return true;
-        return false;
-      });
+      data = data.filter((r) =>
+        filters.decisions.includes(getFilterKey(r))
+      );
     }
 
     switch (filters.sort) {
@@ -562,8 +662,13 @@ export default function PublicStatusPage({
 
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const withDecision = records.filter((r) => r.decision !== null).length;
-  const underReview = records.filter((r) => r.is_scored && !r.decision).length;
+  // Stats use resolveStatus so they reflect the same logic
+  const withDecision = records.filter(
+    (r) => resolveStatus(r).variant === "decision"
+  ).length;
+  const underReview = records.filter(
+    (r) => resolveStatus(r).variant === "under-review"
+  ).length;
 
   const filterProps: SidebarFiltersProps = {
     filters,
@@ -574,8 +679,6 @@ export default function PublicStatusPage({
 
   const content = (
     <>
-     
-
       <div className="lg:hidden mb-4">
         <button
           type="button"
@@ -651,9 +754,7 @@ export default function PublicStatusPage({
             <Skeleton />
           ) : error ? (
             <div className="border-l-4 border-red-600 bg-red-50 px-6 py-4">
-              <p className="text-red-800 font-bold text-sm">
-                Failed to load data
-              </p>
+              <p className="text-red-800 font-bold text-sm">Failed to load data</p>
               <p className="text-red-700 text-sm mt-1">{error}</p>
               <button
                 onClick={load}
@@ -675,10 +776,7 @@ export default function PublicStatusPage({
                 Showing{" "}
                 <strong>
                   {((page - 1) * PAGE_SIZE + 1).toLocaleString()}–
-                  {Math.min(
-                    page * PAGE_SIZE,
-                    filtered.length
-                  ).toLocaleString()}
+                  {Math.min(page * PAGE_SIZE, filtered.length).toLocaleString()}
                 </strong>{" "}
                 of <strong>{filtered.length.toLocaleString()}</strong>{" "}
                 interventions

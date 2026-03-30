@@ -80,7 +80,7 @@ const TasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<string>('today');
+  const [activeFilter, setActiveFilter] = useState<string>('all');
   const [showAddTask, setShowAddTask] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<CustomUser[]>([]);
   const [currentPage, setCurrentPage] = useState(1);

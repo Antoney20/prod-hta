@@ -15,14 +15,20 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | The Benefits Package and Tariffs Advisory Panel | The University of Nairobi",
-    default: "The Benefits Package and Tariffs Advisory Panel | Advancing Evidence-Based Healthcare | The University of Nairobi"
+    template: "%s | BPTAP | Ministry of Health Kenya",
+    default: "Benefits Package & Tariffs Advisory Panel | Ministry of Health Kenya"
   },
-  description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage in Kenya.",
-  keywords: ["health technology assessment", "HTA Kenya", "evidence-based healthcare", "universal health coverage", "SHA program", "healthcare policy", "benefits package", "healthcare tariffs"],
-  authors: [{ name: "Health Technology Assessment Panel" }],
+  description: "The official website for the Benefits Package and Tariffs Advisory Panel (BPTAP), under the Ministry of Health Kenya. Promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+  keywords: [
+    "health technology assessment", "HTA Kenya", "evidence-based healthcare",
+    "universal health coverage", "SHA program", "healthcare policy",
+    "benefits package", "healthcare tariffs", "Ministry of Health Kenya",
+    "BPTAP", "Kenya health policy"
+  ],
+  authors: [{ name: "Benefits Package and Tariffs Advisory Panel" }],
   creator: "CEMA",
-  publisher: "CEMA",
+  publisher: "Ministry of Health Kenya",
+
   metadataBase: new URL("https://bptap.health.go.ke"),
   alternates: {
     canonical: "/",
@@ -31,26 +37,28 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+
   openGraph: {
     type: "website",
-    title: "The Benefits Package and Tariffs Advisory Panel | Advancing Evidence-Based Healthcare",
-    description: "The official website for The Benefits Package and Tariffs Advisory Panel , promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+    title: "BPTAP | Ministry of Health Kenya",
+    description: "The official website for the Benefits Package and Tariffs Advisory Panel, under the Ministry of Health Kenya.",
     url: "https://bptap.health.go.ke",
-    siteName: "The Benefits Package and Tariffs Advisory Panel ",
+    siteName: "BPTAP – Ministry of Health Kenya",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "The Benefits Package and Tariffs Advisory Panel ",
+        alt: "Benefits Package and Tariffs Advisory Panel – Ministry of Health Kenya",
       },
     ],
-    locale: "en_US",
+    locale: "en_KE",   
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "The Benefits Package and Tariffs Advisory Panel ",
-    description: "Promoting transparent, evidence-informed approaches to healthcare decision-making and universal health coverage.",
+    title: "BPTAP | Ministry of Health Kenya",
+    description: "Promoting transparent, evidence-informed healthcare decision-making and universal health coverage in Kenya.",
     images: ["/twitter-image.jpg"],
   },
   verification: {

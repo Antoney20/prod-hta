@@ -19,14 +19,14 @@ import {
   GitBranch,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
   RefreshCw,
-  Loader,
 } from 'lucide-react'
 
 import { globalUserStore } from '../context/guard'
 import { DashboardResponse, DashboardUIData } from '@/types/dashboard/home'
 import { AlertsSection } from './components/alert'
+import { getDashboardData } from '../api/dashboard/home'
+
 
 interface MetricCardProps {
   label: string
@@ -44,16 +44,8 @@ const colorMap = {
   purple: { bg: 'bg-purple-50', text: 'text-purple-600', icon: 'text-purple-600' },
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({
-  label,
-  value,
-  icon,
-  trend,
-  description,
-  color,
-}) => {
+const MetricCard: React.FC<MetricCardProps> = ({ label, value, icon, trend, description, color }) => {
   const colors = colorMap[color]
-
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-300 hover:shadow-sm transition-all max-h-80 overflow-y-auto">
       <div className="flex items-start justify-between mb-3">
@@ -61,18 +53,10 @@ const MetricCard: React.FC<MetricCardProps> = ({
         {trend && (
           <div
             className={`flex items-center gap-1 text-xs font-semibold ${
-              trend === 'up'
-                ? 'text-green-600'
-                : trend === 'down'
-                  ? 'text-red-600'
-                  : 'text-gray-600'
+              trend === 'up' ? 'text-green-600' : trend === 'down' ? 'text-red-600' : 'text-gray-600'
             }`}
           >
-            {trend === 'up' ? (
-              <ArrowUpRight size={14} />
-            ) : trend === 'down' ? (
-              <ArrowDownRight size={14} />
-            ) : null}
+            {trend === 'up' ? <ArrowUpRight size={14} /> : trend === 'down' ? <ArrowDownRight size={14} /> : null}
             {trend !== 'neutral' && 'vs last month'}
           </div>
         )}
@@ -92,15 +76,8 @@ interface ProgressItemProps {
   showPercentage?: boolean
 }
 
-const ProgressItem: React.FC<ProgressItemProps> = ({
-  label,
-  value,
-  total,
-  color,
-  showPercentage = true,
-}) => {
+const ProgressItem: React.FC<ProgressItemProps> = ({ label, value, total, color, showPercentage = true }) => {
   const percentage = total > 0 ? (value / total) * 100 : 0
-
   return (
     <div className="mb-4 last:mb-0">
       <div className="flex justify-between items-center mb-2">
@@ -113,10 +90,7 @@ const ProgressItem: React.FC<ProgressItemProps> = ({
       <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${percentage}%`,
-            backgroundColor: color,
-          }}
+          style={{ width: `${percentage}%`, backgroundColor: color }}
         />
       </div>
     </div>
@@ -132,7 +106,7 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, icon, description, children }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 hover:shadow-sm transition-all  max-h-80 overflow-y-auto">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 hover:shadow-sm transition-all max-h-80 overflow-y-auto">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
@@ -158,120 +132,37 @@ const DashboardPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<DashboardUIData | null>(null)
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [user, setUser] = useState(globalUserStore.userData)
+  const [user] = useState(globalUserStore.userData)
 
-  // Update time every second
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
 
-  // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        // Mock data - replace with actual API call
-        const mockResponse: DashboardResponse = {
-          tasks: {
-            total: 1,
-            completed: 0,
-            overdue: 0,
-            upcoming: 1,
-            by_status: { new: 1 },
-          },
-          proposals: {
-            total: 14,
-            monthly_trend: [
-              { month: 'Oct 2025', count: 0 },
-              { month: 'Nov 2025', count: 0 },
-              { month: 'Dec 2025', count: 0 },
-              { month: 'Jan 2026', count: 0 },
-              { month: 'Feb 2026', count: 0 },
-              { month: 'Mar 2026', count: 14 },
-            ],
-            by_system_category: [
-              {
-                name: 'Circulatory System (Heart)',
-                count: 3,
-              },
-              {
-                name: 'Skin, Subcutaneous Tissue',
-                count: 1,
-              },
-              {
-                name: 'Musculoskeletal System',
-                count: 1,
-              },
-              {
-                name: 'Circulatory System (Perfusion)',
-                count: 1,
-              },
-            ],
-          },
-          scoring: {
-            total_scored_interventions: 6,
-            by_reviewer: [
-              { reviewer_username: 'admin', count: 6 },
-              { reviewer_username: 'Tester', count: 3 },
-            ],
-          },
-          decisions: {
-            total_updates: 6,
-            by_decision: [
-              { decision_name: 'Test decision', count: 4 },
-              { decision_name: 'discussed', count: 1 },
-              { decision_name: 'deferred', count: 1 },
-            ],
-          },
-          system_categories: [
-            {
-              name: 'Circulatory System (Heart)',
-              intervention_count: 3,
-            },
-            {
-              name: 'Musculoskeletal System',
-              intervention_count: 1,
-            },
-            {
-              name: 'Skin, Subcutaneous Tissue',
-              intervention_count: 1,
-            },
-            {
-              name: 'Circulatory System (Perfusion)',
-              intervention_count: 1,
-            },
-          ],
-          users: {
-            total_active: 2,
-            by_role: [
-              { role: 'secretariat', count: 1 },
-              { role: 'admin', count: 1 },
-            ],
-          },
-        }
+        const response: DashboardResponse = await getDashboardData()
 
-        // Transform data for UI
         const uiData: DashboardUIData = {
-          ...mockResponse,
-          systemCategories: mockResponse.system_categories,
-          proposalCompletionRate:
-            mockResponse.proposals.total > 0 ? 65 : 0, // Mock completion rate
-          taskCompletionRate:
-            mockResponse.tasks.total > 0
-              ? (mockResponse.tasks.completed / mockResponse.tasks.total) * 100
-              : 0,
-          topCategory: mockResponse.system_categories[0] || null,
+          ...response,
+          systemCategories: response.system_categories,
+          proposalCompletionRate: response.proposals.total > 0
+            ? Math.round((response.scoring.total_scored_interventions / response.proposals.total) * 100)
+            : 0,
+          taskCompletionRate: response.tasks.total > 0
+            ? Math.round((response.tasks.completed / response.tasks.total) * 100)
+            : 0,
+          topCategory: response.system_categories?.[0] ?? null,
         }
 
         setData(uiData)
       } catch (err) {
         setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load dashboard data. Please try again.'
+          err instanceof Error ? err.message : 'Failed to load dashboard data. Please try again.'
         )
       } finally {
         setLoading(false)
@@ -283,30 +174,26 @@ const DashboardPage: React.FC = () => {
 
   const getGreeting = (): GetGreetingReturn => {
     const hour = currentTime.getHours()
-    if (hour < 12)
-      return { text: 'Good Morning', icon: Sunrise, color: '#f97316' }
+    if (hour < 12) return { text: 'Good Morning', icon: Sunrise, color: '#f97316' }
     if (hour < 17) return { text: 'Good Afternoon', icon: Sun, color: '#3b82f6' }
-    if (hour < 21)
-      return { text: 'Good Evening', icon: Sunset, color: '#f97316' }
+    if (hour < 21) return { text: 'Good Evening', icon: Sunset, color: '#f97316' }
     return { text: 'Good Night', icon: Moon, color: '#6366f1' }
   }
 
-  const formatDate = (): string => {
-    return currentTime.toLocaleDateString('en-US', {
+  const formatDate = (): string =>
+    currentTime.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     })
-  }
 
-  const formatTime = (): string => {
-    return currentTime.toLocaleTimeString('en-US', {
+  const formatTime = (): string =>
+    currentTime.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
     })
-  }
 
   if (loading) {
     return (
@@ -329,9 +216,7 @@ const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-50 mb-4">
             <AlertCircle className="w-6 h-6 text-red-600" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Unable to Load Dashboard
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Dashboard</h3>
           <p className="text-sm text-gray-600 mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -349,41 +234,37 @@ const DashboardPage: React.FC = () => {
   const greeting = getGreeting()
   const GreetingIcon = greeting.icon
 
+  const totalCategoryInterventions = data.systemCategories.reduce(
+    (sum, c) => sum + c.intervention_count, 0
+  )
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <AlertsSection
-          pendingTasks={data.tasks.upcoming}
-          pendingNotifications={0}
-          customAlerts={[]}
-        />
+      <AlertsSection
+        pendingTasks={data.tasks.upcoming}
+        pendingNotifications={0}
+        customAlerts={[]}
+      />
+
       {/* Header */}
       <div className="px-4 lg:px-8 py-6 border-b border-gray-200 bg-white">
-
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-start gap-3 md:gap-4">
-            <div
-              className="p-2.5 md:p-3 rounded-xl"
-              style={{ backgroundColor: `${greeting.color}15` }}
-            >
-              <GreetingIcon  style={{ color: greeting.color }} />
+            <div className="p-2.5 md:p-3 rounded-xl" style={{ backgroundColor: `${greeting.color}15` }}>
+              <GreetingIcon style={{ color: greeting.color }} />
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                 {greeting.text}, {user?.username || 'User'}!
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Welcome to your personalized dashboard.
-              </p>
+              <p className="text-sm text-gray-500 mt-1">Welcome to your personalized dashboard.</p>
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar size={14} />
                   <span>{formatDate()}</span>
                 </div>
                 <span className="hidden sm:inline text-gray-300">•</span>
-                <div
-                  className="flex items-center gap-2 text-sm font-semibold"
-                  style={{ color: greeting.color }}
-                >
+                <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: greeting.color }}>
                   <Clock size={14} />
                   <span>{formatTime()}</span>
                 </div>
@@ -395,13 +276,12 @@ const DashboardPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="p-4 lg:p-8 space-y-6 max-w-7xl mx-auto">
+
         {/* Primary Metrics */}
         <div>
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Overview</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Key metrics at a glance
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Key metrics at a glance</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
@@ -427,7 +307,7 @@ const DashboardPage: React.FC = () => {
               description={`${data.tasks.upcoming} upcoming`}
             />
             <MetricCard
-              label="Topic Prioritization "
+              label="Topic Prioritization"
               value={data.decisions.total_updates}
               icon={<TrendingUp className="w-5 h-5 text-purple-600" />}
               color="purple"
@@ -441,9 +321,7 @@ const DashboardPage: React.FC = () => {
           <div>
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-900">User Statistics</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                System user breakdown and roles
-              </p>
+              <p className="text-sm text-gray-500 mt-1">System user breakdown and roles</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <MetricCard
@@ -454,9 +332,7 @@ const DashboardPage: React.FC = () => {
                 description="Registered and active"
               />
               <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">
-                  Users by Role
-                </h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">Users by Role</h3>
                 <div className="space-y-3">
                   {data.users.by_role.map((role, idx) => (
                     <ProgressItem
@@ -482,54 +358,50 @@ const DashboardPage: React.FC = () => {
             icon={<GitBranch className="w-5 h-5 text-orange-600" />}
             description="Interventions by category"
           >
-            <div className="space-y-3">
-              {data.systemCategories.slice(0, 5).map((category, idx) => (
-                <ProgressItem
-                  key={idx}
-                  label={category.name}
-                  value={category.intervention_count}
-                  total={data.systemCategories.reduce(
-                    (sum, c) => sum + c.intervention_count,
-                    0
-                  )}
-                  color={[
-                    '#f97316',
-                    '#3b82f6',
-                    '#10b981',
-                    '#8b5cf6',
-                    '#ec4899',
-                  ][idx % 5]}
-                />
-              ))}
-            </div>
+            {data.systemCategories.length > 0 ? (
+              <div className="space-y-3">
+                {data.systemCategories.slice(0, 5).map((category, idx) => (
+                  <ProgressItem
+                    key={idx}
+                    label={category.name}
+                    value={category.intervention_count}
+                    total={totalCategoryInterventions}
+                    color={['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'][idx % 5]}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">No category data available</p>
+            )}
           </StatCard>
 
-          {/* Proposal Status */}
+          {/* Task Status Breakdown */}
           <StatCard
             title="Task Status Breakdown"
             icon={<BarChart3 className="w-5 h-5 text-blue-600" />}
             description="Current task distribution"
           >
-            <div className="space-y-3">
-              <ProgressItem
-                label="New"
-                value={data.tasks.by_status['new'] || 0}
-                total={data.tasks.total}
-                color="#3b82f6"
-              />
-              <ProgressItem
-                label="In Progress"
-                value={data.tasks.by_status['in_progress'] || 0}
-                total={data.tasks.total}
-                color="#f97316"
-              />
-              <ProgressItem
-                label="Completed"
-                value={data.tasks.completed}
-                total={data.tasks.total}
-                color="#10b981"
-              />
-            </div>
+            {data.tasks.total > 0 ? (
+              <div className="space-y-3">
+                {Object.entries(data.tasks.by_status).map(([status, count], idx) => (
+                  <ProgressItem
+                    key={status}
+                    label={status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                    value={count}
+                    total={data.tasks.total}
+                    color={['#3b82f6', '#f97316', '#10b981', '#8b5cf6'][idx % 4]}
+                  />
+                ))}
+                <ProgressItem
+                  label="Completed"
+                  value={data.tasks.completed}
+                  total={data.tasks.total}
+                  color="#10b981"
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">No task data available</p>
+            )}
           </StatCard>
         </div>
 
@@ -541,21 +413,21 @@ const DashboardPage: React.FC = () => {
             icon={<Users className="w-5 h-5 text-blue-600" />}
             description="Most active scorers"
           >
-            <div className="space-y-2">
-              {data.scoring.by_reviewer.map((reviewer, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <span className="text-sm font-medium text-gray-700">
-                    {reviewer.reviewer_username}
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">
-                    {reviewer.count} reviews
-                  </span>
-                </div>
-              ))}
-            </div>
+            {data.scoring.by_reviewer.length > 0 ? (
+              <div className="space-y-2">
+                {data.scoring.by_reviewer.map((reviewer, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700">{reviewer.reviewer_username}</span>
+                    <span className="text-sm font-bold text-gray-900">{reviewer.count} reviews</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">No reviewer data available</p>
+            )}
           </StatCard>
 
           {/* Decision Distribution */}
@@ -564,21 +436,21 @@ const DashboardPage: React.FC = () => {
             icon={<Zap className="w-5 h-5 text-purple-600" />}
             description="Intervention status updates"
           >
-            <div className="space-y-2">
-              {data.decisions.by_decision.map((decision, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <span className="text-sm font-medium text-gray-700">
-                    {decision.decision_name}
-                  </span>
-                  <span className="text-sm font-bold text-gray-900">
-                    {decision.count} Interventions
-                  </span>
-                </div>
-              ))}
-            </div>
+            {data.decisions.by_decision.length > 0 ? (
+              <div className="space-y-2">
+                {data.decisions.by_decision.map((decision, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-700">{decision.decision_name}</span>
+                    <span className="text-sm font-bold text-gray-900">{decision.count} Interventions</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">No decision data available</p>
+            )}
           </StatCard>
         </div>
 
@@ -586,25 +458,27 @@ const DashboardPage: React.FC = () => {
         <div>
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Proposal Trends</h2>
-            <p className="text-sm text-gray-500 mt-1">
-              Monthly submission activity
-            </p>
+            <p className="text-sm text-gray-500 mt-1">Monthly submission activity</p>
           </div>
           <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              {data.proposals.monthly_trend.map((trend, idx) => (
-                <div key={idx} className="text-center p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                  <p className="text-xs font-medium text-gray-500 mb-2">
-                    {trend.month}
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {trend.count}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {data.proposals.monthly_trend.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {data.proposals.monthly_trend.map((trend, idx) => (
+                  <div
+                    key={idx}
+                    className="text-center p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <p className="text-xs font-medium text-gray-500 mb-2">{trend.month}</p>
+                    <p className="text-2xl font-bold text-gray-900">{trend.count}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-6">No trend data available</p>
+            )}
           </div>
         </div>
+
       </div>
     </div>
   )

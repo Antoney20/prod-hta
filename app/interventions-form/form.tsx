@@ -493,7 +493,7 @@ const BenefitsForm: React.FC = () => {
                     className="sr-only"
                   />
                 </label>
-                <p className="pl-1">or drag and drop</p><span className="text-gray-500 italic text-xs ml-1">*PDF, XLSX or DOCX — max 10MB</span>
+     
 
               </div>
               <p className="text-xs text-gray-500">PDF, XLSX or DOCX up to 10MB</p>

@@ -97,30 +97,55 @@ const BenefitsForm: React.FC = () => {
   }, [submitted]);
 
   // ── onChange: sanitize per field type, live-revalidate if error exists ───
+  // const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
+  //   const { name, value } = e.target;
+
+  //   // Sanitize based on field type
+  //   let clean = value;
+  //   if (name === 'phone')      clean = sanitizePhone(value);
+  //   else if (name === 'email') clean = sanitizeEmail(value);
+  //   else                       clean = sanitizeText(value);
+
+  //   const updated = { ...formData, [name]: clean } as FormData;
+  //   setFormData(updated);
+  //   setFormTouched(true);
+
+  //   // Re-validate only if the field already has an error showing
+  //   if (errors[name as keyof FormData]) {
+  //     const fieldErr = validateField(name as keyof FormData, updated);
+  //     setErrors(prev => {
+  //       const next = { ...prev };
+  //       if (fieldErr) next[name as keyof FormData] = fieldErr;
+  //       else delete next[name as keyof FormData];
+  //       return next;
+  //     });
+  //   }
+  // };
+
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
-    // Sanitize based on field type
-    let clean = value;
-    if (name === 'phone')      clean = sanitizePhone(value);
-    else if (name === 'email') clean = sanitizeEmail(value);
-    else                       clean = sanitizeText(value);
+  // On keystroke: only strip null bytes and control chars — NO trim()
+  // Full sanitization runs on submit via sanitizeFormData()
+  let clean = value;
+  if (name === 'phone')      clean = sanitizePhone(value);
+  else if (name === 'email') clean = sanitizeEmail(value);
 
-    const updated = { ...formData, [name]: clean } as FormData;
-    setFormData(updated);
-    setFormTouched(true);
+  const updated = { ...formData, [name]: clean } as FormData;
+  setFormData(updated);
+  setFormTouched(true);
 
-    // Re-validate only if the field already has an error showing
-    if (errors[name as keyof FormData]) {
-      const fieldErr = validateField(name as keyof FormData, updated);
-      setErrors(prev => {
-        const next = { ...prev };
-        if (fieldErr) next[name as keyof FormData] = fieldErr;
-        else delete next[name as keyof FormData];
-        return next;
-      });
-    }
-  };
+  if (errors[name as keyof FormData]) {
+    const fieldErr = validateField(name as keyof FormData, updated);
+    setErrors(prev => {
+      const next = { ...prev };
+      if (fieldErr) next[name as keyof FormData] = fieldErr;
+      else delete next[name as keyof FormData];
+      return next;
+    });
+  }
+};
 
   // ── File change: validate immediately, show inline error (replaces alert) 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {

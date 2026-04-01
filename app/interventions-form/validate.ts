@@ -3,28 +3,57 @@ import type { FormData } from "@/types/form";
 // ─── Sanitization ────────────────────────────────────────────────────────────
 
 /**
- * Strips characters that are unsafe in most text contexts while
- * allowing plain text, newlines, and HTML paragraph tags (<p>, </p>).
+ * Allowed HTML tags in text fields.
+ * Extend this list if you need more (e.g. "table", "td", "tr").
+ */
+const ALLOWED_TAGS = new Set([
+  "p", "b", "strong", "i", "em", "u", "br", "a",
+  "h1", "h2", "h3", "h4", "h5", "h6",
+  "ul", "ol", "li", "blockquote", "span",
+]);
+
+/**
+ * Returns true if the tag name is in the allow-list.
+ * Handles closing tags (</p>), self-closing tags (<br/>), and tags with
+ * attributes (<a href="...">).
+ */
+function isAllowedTag(rawInner: string): boolean {
+  // rawInner is everything between < and >, e.g. 'p', '/p', 'a href="..."', 'br/'
+  const name = rawInner.trim().replace(/^\//, "").split(/[\s/]/)[0].toLowerCase();
+  return ALLOWED_TAGS.has(name);
+}
+
+/**
+ * Sanitizes free-text fields while preserving:
+ *   - All whitespace: spaces, tabs, newlines
+ *   - Allowed HTML/formatting tags: <p>, <b>, <strong>, <i>, <em>, <u>,
+ *     <br>, <a>, headings, lists, <blockquote>, <span>
  *
- * Blocked: all other HTML/XML tags, JS injection patterns, null bytes,
- * non-printable control characters (except \n \r \t).
+ * Stripped / blocked:
+ *   - Unknown or dangerous HTML/XML tags (tag removed, inner text kept)
+ *   - javascript: / vbscript: / data: URI schemes
+ *   - on* event handler attributes (onclick=, onload=, etc.)
+ *   - Null bytes and non-printable control characters (keeps \t \n \r)
+ *   - Runs of 3+ consecutive newlines collapsed to 2
  */
 export function sanitizeText(value: string): string {
   if (typeof value !== "string") return "";
 
   return (
     value
-      // Remove null bytes
+      // 1. Remove null bytes
       .replace(/\0/g, "")
-      // Remove control chars except newline (\n), carriage return (\r), tab (\t)
+      // 2. Remove non-printable control chars; keep \t (0x09), \n (0x0A), \r (0x0D)
       .replace(/[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
-      // Strip ALL HTML/XML tags EXCEPT <p> and </p>
-      .replace(/<(?!\/?p\s*\/?>)[^>]*>/gi, "")
-      // Remove javascript: / vbscript: / data: URI schemes (case-insensitive)
+      // 3. Neutralise dangerous URI schemes inside attribute values
       .replace(/(?:javascript|vbscript|data):/gi, "")
-      // Remove on* event handler attributes (e.g. onclick=)
-      .replace(/\bon\w+\s*=/gi, "")
-      // Collapse runs of more than 3 consecutive newlines to 2
+      // 4. Strip on* event handler attributes wherever they appear in a tag
+      .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, "")
+      // 5. Drop tags that are NOT in the allow-list (keep their inner text)
+      .replace(/<([^>]+)>/g, (fullMatch, inner) =>
+        isAllowedTag(inner) ? fullMatch : ""
+      )
+      // 6. Collapse 3+ consecutive newlines down to 2
       .replace(/(\r?\n){3,}/g, "\n\n")
       .trim()
   );
@@ -65,7 +94,7 @@ export function sanitizeFormData(data: FormData): FormData {
     additionalInfo: sanitizeText(data.additionalInfo),
     signature: sanitizeText(data.signature),
     date: sanitizeText(data.date),
-    uploadedDocument: data.uploadedDocument, 
+    uploadedDocument: data.uploadedDocument,
   };
 }
 
@@ -130,11 +159,10 @@ export function validateFormData(data: FormData): FormErrors {
     errors.county = "County is required.";
   }
 
-
   if (!data.interventionName.trim()) {
     errors.interventionName = "Intervention name is required.";
   } else if (data.interventionName.trim().length > 300) {
-    errors.interventionName = "Intervention name too long";
+    errors.interventionName = "Intervention name too long.";
   } else if (hasInjection(data.interventionName)) {
     errors.interventionName = "Intervention name contains invalid characters.";
   }
@@ -156,7 +184,7 @@ export function validateFormData(data: FormData): FormErrors {
   } else if (data.justification.trim().length < 10) {
     errors.justification = "Please provide a more detailed justification.";
   } else if (data.justification.trim().length > 3000) {
-    errors.justification = "Justification too  long.";
+    errors.justification = "Justification too long.";
   } else if (hasInjection(data.justification)) {
     errors.justification = "Justification contains invalid characters.";
   }
@@ -164,14 +192,12 @@ export function validateFormData(data: FormData): FormErrors {
   if (!data.expectedImpact.trim()) {
     errors.expectedImpact = "Expected impact is required.";
   } else if (data.expectedImpact.trim().length < 10) {
-    errors.expectedImpact = "Please describe the expected impact too short.";
+    errors.expectedImpact = "Please describe the expected impact in more detail.";
   } else if (data.expectedImpact.trim().length > 3000) {
     errors.expectedImpact = "Expected impact too long.";
   } else if (hasInjection(data.expectedImpact)) {
     errors.expectedImpact = "Expected impact field contains invalid characters.";
   }
-
-  // ── Optional: additional info ─────────────────────────────────────────────
 
   if (data.additionalInfo && data.additionalInfo.trim().length > 2000) {
     errors.additionalInfo = "Additional information too long.";
@@ -179,7 +205,6 @@ export function validateFormData(data: FormData): FormErrors {
     errors.additionalInfo = "Additional information contains invalid characters.";
   }
 
-  // ── File upload  accepterd──────────────────────
   if (data.uploadedDocument) {
     const allowed = [
       "application/pdf",
@@ -192,8 +217,6 @@ export function validateFormData(data: FormData): FormErrors {
       errors.uploadedDocument = "File size must be under 10 MB.";
     }
   }
-
-  // ── Signature ─────────────────────────────────────────────────────────────
 
   if (!data.signature.trim()) {
     errors.signature = "Signature is required.";

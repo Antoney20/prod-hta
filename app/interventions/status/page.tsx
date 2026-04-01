@@ -199,7 +199,7 @@ function StatusRow({
 
       <td className="py-4 px-4 whitespace-nowrap">
         <span className="text-sm text-gray-700">
-          {(row.decision || row.is_scored) ? "—" : formatDate(row.decision_date)}
+          {(row.is_scored) ? "—" : formatDate(row.decision_date)}
         </span>
       </td>
 

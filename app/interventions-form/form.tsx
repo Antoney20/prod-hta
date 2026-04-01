@@ -11,7 +11,7 @@ const FieldError: React.FC<{ message?: string }> = ({ message }) =>
   message ? (
     <p role="alert" className="mt-1 text-sm text-red-600 flex items-center gap-1">
       <svg
-        className="h-4 w-4 flex-shrink-0"
+        className="h-4 w-4 shrink-0"
         viewBox="0 0 20 20"
         fill="currentColor"
         aria-hidden="true"

@@ -241,7 +241,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <AlertsSection
-        pendingTasks={data.tasks.upcoming}
+        // pendingTasks={data.tasks.upcoming}
         pendingNotifications={0}
         customAlerts={[]}
       />

@@ -1,27 +1,44 @@
-# robots.txt for HTA website
+# robots.txt for BPTAP HTA Website
+# https://bptap.health.go.ke
 
-# Allow all crawlers to access public content
 User-agent: *
 Allow: /
 
-# Disallow portal and admin areas
+#################################
+#  (DO NOT CRAWL)
+#################################
+
+# Admin & internal systems
 Disallow: /portal/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
 
-# Disallow form submission pages
+# Form submission & workflow pages
 Disallow: /interventions-form
 Disallow: /approve
 
-# Allow specific public pages
+#################################
+#  PUBLIC view
+#################################
+
 Allow: /about-us
 Allow: /contact
 Allow: /faqs
 Allow: /news
 Allow: /resources
+Allow: /resources/media
+Allow: /resources/stakeholders
 Allow: /governance
 Allow: /capacity-building
 
-# Sitemap location
+# Public intervention pages
+Allow: /interventions
+Allow: /interventions/status
+Allow: /interventions/
+
+#################################
+# Sitemap
+#################################
+
 Sitemap: https://bptap.health.go.ke/sitemap.xml

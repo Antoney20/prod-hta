@@ -18,9 +18,9 @@ function TabNav({
   onTabChange: (tab: TabId) => void;
 }) {
   return (
-    <div className="border-b-2 border-gray-900">
+    <div className="border-b-2  p-2 border-t-2 border-gray-900">
       <nav
-        className="flex"
+        className="flex gap-3"
         role="tablist"
         aria-label="Interventions sections"
       >
@@ -33,10 +33,10 @@ function TabNav({
               aria-selected={isActive}
               type="button"
               onClick={() => onTabChange(tab.id as TabId)}
-              className={`relative px-5 py-3 text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d70b8] ${
+              className={`relative px-5 py-3   text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d70b8] ${
                 isActive
-                  ? "bg-gray-900 text-white"
-                  : "text-[#1d70b8] hover:bg-[#e8f0fb]"
+                  ? "bg-[#1d70b8]  text-white"
+                  : "text-black  bg-gray-200 hover:bg-[#e8f0fb]"
               }`}
             >
               {tab.label}
@@ -63,8 +63,8 @@ function Hero({
   const config = TAB_HERO_CONFIG[activeTab];
 
   return (
-    <div className="bg-white mt-8 py-6 h-55 border-gray-200">
-      <div className="container mx-auto px-4 py-8">
+    <div className="bg-white mt-8 py-6 lg:h-55  h-75 border-gray-200 ">
+      <div className="container mx-auto px-4 py-8 ">
         {config.badge && (
           <p className="text-xs font-bold text-[#1d70b8] uppercase tracking-widest mb-2">
             {config.badge}
@@ -73,7 +73,7 @@ function Hero({
         <h1 className="text-3xl font-bold tracking-tight leading-tight mb-3 text-gray-900">
           {config.title}
         </h1>
-        <p className="text-base text-gray-700 max-w-7xl leading-relaxed">
+        <p className="text-base text-gray-700  leading-relaxed line-clamp-5">
           {config.description}
         </p>
 
@@ -164,7 +164,7 @@ function InterventionsPageInner({
       <Navbar />
       <Hero activeTab={activeTab} stats={heroStats} />
 
-      <div className="container mx-auto px-3 py-4 mt-6">
+      <div className="container mx-auto px-3 py-8 mt-6">
         <TabNav activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
 

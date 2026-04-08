@@ -2,6 +2,7 @@
 export interface CriteriaScore {
   criteria_name: string;
   score_value: number;          // 0 if this reviewer hasn't scored this criteria yet
+  notes?: string | null;
 }
 
 // ── Per-reviewer status within an intervention ────────────────────────────────

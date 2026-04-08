@@ -42,7 +42,6 @@ function shortLabel(name: string): string {
   return CRITERIA_SHORT[name] ?? name;
 }
 
-// Helper at top of file
 function formatScoredAt(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString(undefined, {
@@ -53,9 +52,13 @@ function formatScoredAt(iso: string | null | undefined): string {
 function dayKey(iso: string | null | undefined): string {
   if (!iso) return "";
   const d = new Date(iso);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
 
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0"); 
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
 export interface ReportTableProps {
   items: InterventionReport[];
   sortOrder: SortOrder;

@@ -252,11 +252,9 @@ export default function InterventionDetailPage() {
               <DetailRow
                 label="Justification"
                 value={
-                  proposal.justification ? (
                     <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
                       {proposal.justification}
                     </p>
-                  ) : null
                 }
                 wide
               />

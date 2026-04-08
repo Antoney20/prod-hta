@@ -82,7 +82,7 @@ export function exportAllDataCSV(
     "Reviewer Email",
     "Scored",
     "Scored At",
-    ...allCriteria,
+    ...allCriteria.flatMap((c) => [`${c} (Score)`, `${c} (Notes)`]),
   ];
 
   const rows: string[] = [];
@@ -91,9 +91,19 @@ export function exportAllDataCSV(
     const category = iv.system_categories.join(" | ") || "Uncategorized";
 
     for (const reviewer of iv.reviewers) {
+      // const criteriaMap = Object.fromEntries(
+      //   reviewer.criteria_scores.map((cs) => [cs.criteria_name, cs.score_value])
+      // );
+
       const criteriaMap = Object.fromEntries(
-        reviewer.criteria_scores.map((cs) => [cs.criteria_name, cs.score_value])
-      );
+          reviewer.criteria_scores.map((cs) => [
+            cs.criteria_name,
+            {
+              score: cs.score_value,
+              notes: cs.notes ?? "",
+            },
+          ])
+        );
       rows.push([
         csvCell(iv.reference_number),
         csvCell(category),
@@ -101,7 +111,14 @@ export function exportAllDataCSV(
         csvCell(reviewer.email),
         csvCell(reviewer.scored ? "Yes" : "No"),
         csvCell(formatDate(iv.scored_at)),
-        ...allCriteria.map((name) => csvCell(criteriaMap[name] ?? 0)),
+        ...allCriteria.flatMap((name) => {
+        const entry = criteriaMap[name];
+
+        return [
+          csvCell(entry?.score ?? 0),
+          csvCell(entry?.notes ?? ""),
+        ];
+      }),
       ].join(","));
     }
   }

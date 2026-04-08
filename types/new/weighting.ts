@@ -1,0 +1,131 @@
+export interface CriteriaAnchor {
+  criteria_name: string;
+  worst_value: number;
+  best_value: number;
+}
+
+export interface NormalisedScore {
+  criteria_name: string;
+  normalised_value: number | null;
+}
+
+export interface InterventionNormalised {
+  intervention_id: string;
+  intervention_name: string;
+  normalised: NormalisedScore[];
+}
+
+export interface CriteriaStdDev {
+  criteria_name: string;
+  std_dev: number;
+}
+
+export interface PearsonCell {
+  criteria_name: string;
+  coefficient: number;
+}
+
+export interface PearsonRow {
+  criteria_name: string;
+  correlations: PearsonCell[];
+}
+
+export interface ConflictCell {
+  criteria_name: string;
+  conflict_value: number;
+}
+
+export interface ConflictRow {
+  criteria_name: string;
+  conflicts: ConflictCell[];
+  sum_of_conflict: number;
+}
+
+export interface CriteriaWeighting {
+  criteria_name: string;
+  std_dev: number;
+  sum_of_conflict: number;
+  product: number;
+  sum_of_products: number;
+  weight: number;
+  weight_percentage: number;
+}
+
+// ── Per-reviewer CRITIC result ────────────────────────────────────────────────
+
+export interface ReviewerWeightingResult {
+  reviewer_id: string;
+  reviewer_email: string | null;
+  reviewer_username: string | null;
+  anchors: CriteriaAnchor[];
+  normalisation_report: InterventionNormalised[];
+  standard_deviations: CriteriaStdDev[];
+  pearson_matrix: PearsonRow[];
+  conflict_matrix: ConflictRow[];
+  weightings: CriteriaWeighting[];
+}
+
+// ── Reviewer scores (raw_score × weight) ─────────────────────────────────────
+
+export interface ReviewerInterventionScore {
+  reviewer_id: string;
+  reviewer_email: string | null;
+  reviewer_username: string | null;
+  intervention_id: string;
+  intervention_name: string;
+  weighted_criteria: Record<string, number>; // { criteria_name: weighted_score }
+  total_score: number;
+}
+
+// ── Individual ranking ────────────────────────────────────────────────────────
+
+export interface ReviewerInterventionRank {
+  rank: number;
+  intervention_id: string;
+  intervention_name: string;
+  total_score: number;
+}
+
+export interface ReviewerRanking {
+  reviewer_id: string;
+  reviewer_email: string | null;
+  reviewer_username: string | null;
+  ranked_interventions: ReviewerInterventionRank[];
+}
+
+// ── Aggregate ─────────────────────────────────────────────────────────────────
+
+export interface InterventionAggregateScore {
+  intervention_id: string;
+  intervention_name: string;
+  reviewer_count: number;
+  averaged_criteria: Record<string, number>; // { criteria_name: averaged_weighted_score }
+  average_value_score: number;
+}
+
+export interface AggregateRankingEntry {
+  rank: number;
+  intervention_id: string;
+  intervention_name: string;
+  reviewer_count: number;
+  value: number;
+}
+
+
+export interface WeightingReportSuccess {
+  success: true;
+  message: string;
+  reviewer_results: ReviewerWeightingResult[];
+  reviewer_scores: ReviewerInterventionScore[];
+  reviewer_rankings: ReviewerRanking[];
+  average_scores: InterventionAggregateScore[];
+  average_ranking: AggregateRankingEntry[];
+}
+
+export interface WeightingReportFailure {
+  success: false;
+  message: string;
+  error?: string;
+}
+
+export type WeightingReport = WeightingReportSuccess | WeightingReportFailure;

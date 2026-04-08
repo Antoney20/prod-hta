@@ -163,7 +163,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
       children: [
 
         { title: "Interventions by Category", href: "/portal/tp/category", icon: <LayoutDashboard className="h-4 w-4" /> },
-        // { title: "Score Interventions",       href: "/portal/tp/score",    icon: <SlidersHorizontal className="h-4 w-4" /> },
+        { title: "Individual Weighted Reports",       href: "/portal/tp/weighting",    icon: <SlidersHorizontal className="h-4 w-4" /> },
         { title: "Scoring Reports",           href: "/portal/tp/reports",  icon: <BarChart3 className="h-4 w-4" /> },
       ],
     },

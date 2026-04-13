@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 
 import type { ContactFormData } from '@/types/contact';
 import { submitContactForm, validateContactForm } from '../api/contact';
+import { validateEmail } from '@/lib/email';
 
 function ContactFormSection() {
   const [formData, setFormData] = useState<ContactFormData>({
@@ -52,10 +53,17 @@ function ContactFormSection() {
     e.preventDefault();
     
     const validation = validateContactForm(formData);
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      return;
-    }
+
+
+   const emailError = validateEmail(formData.email);
+  
+   if (!validation.isValid || emailError) {
+    setErrors([
+      ...validation.errors,
+      ...(emailError ? [emailError] : [])
+    ]);
+    return;
+  }
     
     setIsSubmitting(true);
     setErrors([]);

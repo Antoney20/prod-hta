@@ -1,3 +1,4 @@
+import { validateEmail } from "@/lib/email";
 import type { FormData } from "@/types/form";
 
 // ─── Sanitization ────────────────────────────────────────────────────────────
@@ -131,12 +132,18 @@ export function validateFormData(data: FormData): FormErrors {
     errors.phone = "Enter a valid phone number (e.g. +254 712 345 678).";
   }
 
-  if (!data.email.trim()) {
+  const email = data.email.trim();
+
+  if (!email) {
     errors.email = "Email address is required.";
-  } else if (!EMAIL_RE.test(data.email.trim())) {
-    errors.email = "Enter a valid email address.";
-  } else if (data.email.length > 50) {
-    errors.email = "Email address is too long.";
+  } else {
+    const emailError = validateEmail(email);
+
+    if (emailError) {
+      errors.email = emailError;
+    } else if (email.length > 50) {
+      errors.email = "Email address is too long.";
+    }
   }
 
   if (!data.profession.trim()) {

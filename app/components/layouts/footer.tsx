@@ -1,6 +1,7 @@
 'use client'
 
 import { subscribeToNewsletter } from '@/app/api/newsletter'
+import { validateEmail } from '@/lib/email'
 import { ArrowUpRight, Linkedin, Mail, MapPin, Phone, Twitter, Send, Youtube, CheckCircle, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -17,19 +18,25 @@ export default function Footer() {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!email.trim()) {
-      setSubscriptionStatus({
-        type: 'error',
-        message: 'Please enter a valid email address.'
-      })
-      return
-    }
+    const error = validateEmail(email)
+
+
+  if (error) {
+    setSubscriptionStatus({
+      type: 'error',
+      message: error
+    })
+    return
+  }
+
+  setIsSubmitting(true)
+  setSubscriptionStatus({ type: null, message: '' })
+
+  try {
+    const result = await subscribeToNewsletter({ email: email.trim().toLowerCase() })
     
-    setIsSubmitting(true)
-    setSubscriptionStatus({ type: null, message: '' })
-    
-    try {
-      const result = await subscribeToNewsletter({ email })
+    // try {
+    //   const result = await subscribeToNewsletter({ email })
       
       if (result.success) {
         setSubscriptionStatus({

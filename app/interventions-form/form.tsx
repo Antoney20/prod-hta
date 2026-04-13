@@ -96,32 +96,6 @@ const BenefitsForm: React.FC = () => {
     }
   }, [submitted]);
 
-  // ── onChange: sanitize per field type, live-revalidate if error exists ───
-  // const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
-  //   const { name, value } = e.target;
-
-  //   // Sanitize based on field type
-  //   let clean = value;
-  //   if (name === 'phone')      clean = sanitizePhone(value);
-  //   else if (name === 'email') clean = sanitizeEmail(value);
-  //   else                       clean = sanitizeText(value);
-
-  //   const updated = { ...formData, [name]: clean } as FormData;
-  //   setFormData(updated);
-  //   setFormTouched(true);
-
-  //   // Re-validate only if the field already has an error showing
-  //   if (errors[name as keyof FormData]) {
-  //     const fieldErr = validateField(name as keyof FormData, updated);
-  //     setErrors(prev => {
-  //       const next = { ...prev };
-  //       if (fieldErr) next[name as keyof FormData] = fieldErr;
-  //       else delete next[name as keyof FormData];
-  //       return next;
-  //     });
-  //   }
-  // };
-
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
   const { name, value } = e.target;
@@ -130,7 +104,7 @@ const BenefitsForm: React.FC = () => {
   // Full sanitization runs on submit via sanitizeFormData()
   let clean = value;
   if (name === 'phone')      clean = sanitizePhone(value);
-  else if (name === 'email') clean = sanitizeEmail(value);
+
 
   const updated = { ...formData, [name]: clean } as FormData;
   setFormData(updated);
@@ -171,23 +145,23 @@ const BenefitsForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-    // 1. Sanitize the whole form first
-    const clean = sanitizeFormData(formData);
-    setFormData(clean);
+  // 1. VALIDATE RAW DATA FIRST (no sanitization)
+  const newErrors = validateFormData(formData);
+  setErrors(newErrors);
 
-    // 2. Run full validation against clean data
-    const newErrors = validateFormData(clean);
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      const firstErrorField = Object.keys(newErrors)[0];
-      const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        (errorElement as HTMLElement).focus();
-      }
-      return;
+  if (Object.keys(newErrors).length > 0) {
+    const firstErrorField = Object.keys(newErrors)[0];
+    const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (errorElement as HTMLElement).focus();
     }
+    return;
+  }
+
+  // 2. SANITIZE ONLY AFTER VALIDATION PASSES
+  const clean = sanitizeFormData(formData);
+  setFormData(clean);
 
     // 3. Submit clean, validated data
     setIsSubmitting(true);

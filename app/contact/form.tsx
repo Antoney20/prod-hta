@@ -6,7 +6,7 @@ import Navbar from '../components/layouts/navbar'
 import Footer from '../components/layouts/footer'
 import CTA from '../components/home/cta'
 import ContactFormSection from './contactF'
-import { subscribeToNewsletter } from '../api/newsletter'
+
 
 export default function ContactClient() {
   const [email, setEmail] = useState('')
@@ -16,28 +16,7 @@ export default function ContactClient() {
     message: string
   }>({ type: null, message: '' })
 
-  const handleSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault()
 
-    if (!email.trim()) {
-      setSubscriptionStatus({ type: 'error', message: 'Please enter a valid email address.' })
-      return
-    }
-
-    setIsSubscribing(true)
-    setSubscriptionStatus({ type: null, message: '' })
-
-    try {
-      const result = await subscribeToNewsletter({ email })
-      setSubscriptionStatus({ type: result.success ? 'success' : 'error', message: result.message })
-      if (result.success) setEmail('')
-    } catch {
-      setSubscriptionStatus({ type: 'error', message: 'An unexpected error occurred. Please try again.' })
-    } finally {
-      setIsSubscribing(false)
-      setTimeout(() => setSubscriptionStatus({ type: null, message: '' }), 5000)
-    }
-  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -79,10 +58,3 @@ function HeroSection() {
 }
 
 
-interface SubscribeSectionProps {
-  email: string
-  setEmail: (email: string) => void
-  isSubscribing: boolean
-  subscriptionStatus: { type: 'success' | 'error' | null; message: string }
-  handleSubscribe: (e: React.FormEvent) => void
-}

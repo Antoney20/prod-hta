@@ -133,13 +133,13 @@ export default function HeroSection() {
                   transition={{ duration: 0.45 }}
                   className="absolute inset-0"
                 >
-                  <Image
-                    src={heroImages[current].src}
-                    alt={heroImages[current].alt}
-                    fill
-                    className="object-cover"
-                    priority={current === 0}
-                  />
+                 <Image
+                      src={heroImages[current].src}
+                      alt={heroImages[current].alt}
+                      fill
+                      className="object-contain"
+                      priority={current === 0}
+                    />
                 </motion.div>
               </AnimatePresence>
 

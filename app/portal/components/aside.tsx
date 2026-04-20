@@ -32,7 +32,8 @@ import {
   ClipboardCheck,
   BookText,
   ClipboardList,
-  ActivitySquare
+  ActivitySquare,
+  MailCheck
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -216,13 +217,26 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
         { title: "Subscriptions",    href: "/portal/content/subscriptions",    icon: <Bell className="h-4 w-4" /> },
       ],
     },
+
+
+  {
+    title: "Feedback Emails",
+    icon: <MailCheck className="h-5 w-5" />,
+    children: [
+      { title: "Send Emails",     href: "/portal/feedback/home",      icon: <Mail className="h-4 w-4" /> },
+      { title: "Email Templates", href: "/portal/feedback/templates",  icon: <FileText className="h-4 w-4" /> },
+    ],
+  },
+
+
   ];
 
 
   const navigationItems: NavItem[] = isUserOrSwg ? userSwgNavItems : adminNavItems;
 
+
   const bottomNavigationItems: NavItem[] = [
-    { title: "Feedback Box (Grievances)", href: "/portal/feedback",    icon: <Lightbulb className="h-5 w-5" /> },
+    // { title: "Feedback Box (Grievances)", href: "/portal/feedback",    icon: <Lightbulb className="h-5 w-5" /> },
     { title: "Settings",                  href: "/portal/settings",    icon: <Settings className="h-5 w-5" /> },
     { title: "Onboarding Guide",          href: "/portal/on-boarding", icon: <HelpCircle className="h-5 w-5" /> },
   ];

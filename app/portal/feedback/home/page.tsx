@@ -29,7 +29,7 @@ import { DeleteDialog } from "./tt/delete";
 function exportToCsv(rows: InterventionFeedbackStatus[]) {
   const headers = [
     "Reference", "Name", "Email", "Submitted", "System Categories",
-    "Decision", "Decision Date", "Emails Sent", "Is Scored", "Total Score",
+    "Decision", "Decision Date", "Emails Sent", "Is Scored",
   ];
   const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
   const lines = [
@@ -44,7 +44,6 @@ function exportToCsv(rows: InterventionFeedbackStatus[]) {
       escape(iv.decision_date ?? ""),
       escape(iv.feedback_sent_count),
       escape(iv.is_scored ? "Yes" : "No"),
-      escape(iv.total_score),
     ].join(",")),
   ];
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });

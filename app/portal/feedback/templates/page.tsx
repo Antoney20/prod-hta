@@ -587,8 +587,8 @@ const dialogContentStyle: React.CSSProperties = {
   maxWidth: 900, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
 };
 const previewDialogStyle: React.CSSProperties = {
-  background: "#fff", borderRadius: 14, padding: "24px 26px",
-  maxWidth: 900, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+  background: "#fff", borderRadius: 14, padding: "36px 40px",
+  maxWidth: 900, width: "100%", boxShadow: "20px 20px 60px rgba(0,0,0,0.15)",
 };
 const dialogTitleStyle: React.CSSProperties = { fontSize: 18, fontWeight: 700, color: "#111827", margin: 0 };
 const labelStyle: React.CSSProperties = {

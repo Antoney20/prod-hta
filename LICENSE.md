@@ -8,7 +8,7 @@ All rights reserved.
 
 ## About This Software
 
-**BPTAP** (Benefits Package Technical Assessment Platform) is developed by CEMA to support the digitization of Health Technology Assessment (HTA) processes in Kenya, in collaboration with the Ministry of Health (MoH).
+**BPTAP** (Benefits Package Technical Assessment Panel) is developed by CEMA to support the digitization of Health Technology Assessment (HTA) processes in Kenya, in collaboration with the Ministry of Health (MoH).
 
 ---
 

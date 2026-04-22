@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BPTAP — Benefits Package Technical Assessment Platform
 
-## Getting Started
+A digital platform supporting Kenya's Health Technology Assessment (HTA) process, developed by [CEMA](https://cema-africa.uonbi.ac.ke) in collaboration with the Ministry of Health (MoH).
 
-First, run the development server:
+🔗 **Live:** [bptap.health.go.ke](https://bptap.health.go.ke)
+
+---
+
+## What is BPTAP?
+
+BPTAP digitizes the HTA process in Kenya, enabling stakeholders to submit intervention proposals for review and consideration in the national benefits package. It serves citizens, county governments, the Council of Governors, Parliament, health regulators, insurers (including SHA), and the Ministry of Health.
+
+Users can:
+- Submit proposals for new health interventions
+- Support review of existing benefits package entries
+- Participate in evidence-based health prioritization
+
+---
+
+## Tech Stack
+
+- **Framework:** [Next.js 15](https://nextjs.org) 
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+
+---
+
+## Local Setup
 
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Contributing
 
-## Learn More
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on reporting issues, suggesting features, and submitting pull requests.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is source-available. See [LICENSE.md](./LICENSE.md) for terms.  
+© 2026 Center for Epidemiological Modelling and Analysis (CEMA), University of Nairobi.

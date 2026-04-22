@@ -1,6 +1,6 @@
-# BPTAP — Benefits Package Technical Assessment Platform
+# BPTAP — Benefits Package Technical Assessment Panel
 
-A digital platform supporting Kenya's Health Technology Assessment (HTA) process, developed by [CEMA](https://cema-africa.uonbi.ac.ke) in collaboration with the Ministry of Health (MoH).
+A digital platform supporting the digitization of Kenya's Health Technology Assessment (HTA) process, developed by [CEMA](https://cema-africa.uonbi.ac.ke) in collaboration with the Ministry of Health (MoH).
 
 🔗 **Live:** [bptap.health.go.ke](https://bptap.health.go.ke)
 
@@ -8,20 +8,23 @@ A digital platform supporting Kenya's Health Technology Assessment (HTA) process
 
 ## What is BPTAP?
 
-BPTAP digitizes the HTA process in Kenya, enabling stakeholders to submit intervention proposals for review and consideration in the national benefits package. It serves citizens, county governments, the Council of Governors, Parliament, health regulators, insurers (including SHA), and the Ministry of Health.
+BPTAP helps to digitize the HTA process in Kenya, enabling stakeholders to submit intervention proposals for review and consideration in the benefits package. 
 
 Users can:
 - Submit proposals for new health interventions
+- Track status for the subitted interventions
+- Access various resources available
 - Support review of existing benefits package entries
 - Participate in evidence-based health prioritization
+
 
 ---
 
 ## Tech Stack
 
-- **Framework:** [Next.js 15](https://nextjs.org) 
+- **Framework:** [Next.js 15](https://nextjs.org)
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS
+
 
 ---
 

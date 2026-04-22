@@ -1,22 +1,35 @@
 # Contributing to BPTAP
-
-Thank you for your interest in improving BPTAP. This document outlines how to contribute effectively.
-
-> **Note:** BPTAP is a source-available project developed by CEMA for the Ministry of Health, Kenya. Contributions are welcome but subject to review and the terms of the [LICENSE.md](./LICENSE.md).
-
+ 
+Thank you for your interest in contributing to the Benefits Package Technical Assessment Panel (BPTAP). This guide explains how to report issues, propose features, and submit code.
+ 
+> Contributions are subject to the [LICENSE.md](./LICENSE.md) and [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Please read both before contributing.
+ 
 ---
 
-## Ways to Contribute
 
-### Reporting Issues
+## Issues
+ 
+We use GitHub Issues to track bugs and questions.
+ 
+- Search existing issues before opening a new one
+- Use the provided issue templates where available
+- For security vulnerabilities, **do not open a public issue** — see [SECURITY.md](./SECURITY.md)
+---
 
-If you find a bug, please open an issue and include:
 
-- A clear, descriptive title
-- Steps to reproduce the problem
-- Expected vs. actual behaviour
-- Screenshots or error logs if applicable
-- Browser and OS details
+## Pull Requests
+ 
+We welcome pull requests. However, for any significant change (roughly 50+ lines or a new feature), **please open an issue first** to discuss your proposal with the maintainers before writing code. This saves your time and ensures alignment with the platform's direction.
+ 
+Not all features will be accepted. We consider:
+ 
+1. **Necessity** — Can the same outcome be achieved without modifying the core codebase?
+2. **Impact** — Is this useful to a broad set of users?
+3. **Design** — Does the proposed solution have a clean, maintainable interface?
+4. **Overhead** — Does it add complexity for users who don't need it?
+5. **Compatibility** — Does it break existing APIs or workflows?
+When adding to an existing function or component, prefer creating a new, focused version over adding arguments to an existing one. This avoids breaking existing behaviour and keeps the codebase clean.
+ 
 
 ###  Suggesting Features or Improvements
 

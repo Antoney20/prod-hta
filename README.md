@@ -1,4 +1,4 @@
-# BPTAP — Benefits Package and Tariff Assessment Panel
+# BPTAP — Benefits Package and Tariff Advisory Panel
 
 A digital platform supporting the digitization of Kenya's Health Technology Assessment (HTA) process, developed by [CEMA](https://cema-africa.uonbi.ac.ke) in collaboration with the Ministry of Health (MoH).
 

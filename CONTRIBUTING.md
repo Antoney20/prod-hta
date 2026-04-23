@@ -1,6 +1,6 @@
 # Contributing to BPTAP
  
-Thank you for your interest in contributing to the Benefits Package and Tariff Assessment Panel (BPTAP). This guide explains how to report issues, propose features, and submit code.
+Thank you for your interest in contributing to the Benefits Package and Tariff Advisory Panel (BPTAP). This guide explains how to report issues, propose features, and submit code.
  
 > Contributions are subject to the [LICENSE.md](./LICENSE.md) and [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). Please read both before contributing.
  

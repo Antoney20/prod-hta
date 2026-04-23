@@ -1,8 +1,7 @@
 "use client";
 
 import { sanitizeHtml } from "@/app/portal/config/criteria-information/cc/clean";
-import { useRef, useEffect } from "react";
-
+import { useRef, useEffect, useState } from "react";
 
 export interface RichEditorProps {
   value: string;
@@ -13,20 +12,19 @@ export interface RichEditorProps {
   disabled?: boolean;
 }
 
-type ToolbarItem =
-  | { type: "button"; cmd: string; icon: string; style?: React.CSSProperties }
-  | { type: "divider" }
-  | { type: "link" };
+const FONT_SIZES = [
+  { label: "14", value: "3" },
+  { label: "16", value: "4" },
+  { label: "18", value: "5" },
+  { label: "20", value: "6" },
+];
 
-const TOOLBAR: ToolbarItem[] = [
-  { type: "button", cmd: "bold",      icon: "B", style: { fontWeight: 700 } },
-  { type: "button", cmd: "italic",    icon: "I", style: { fontStyle: "italic" } },
-  { type: "button", cmd: "underline", icon: "U", style: { textDecoration: "underline" } },
-  { type: "divider" },
-  { type: "button", cmd: "insertUnorderedList", icon: "• List" },
-  { type: "button", cmd: "insertOrderedList",   icon: "1. List" },
-  { type: "divider" },
-  { type: "link" },
+const BLOCK_FORMATS = [
+  { label: "Paragraph", tag: "p" },
+  { label: "Heading 2", tag: "h2" },
+  { label: "Heading 3", tag: "h3" },
+  { label: "Heading 4", tag: "h4" },
+  { label: "Heading 5", tag: "h5" },
 ];
 
 export function RichEditor({
@@ -39,8 +37,10 @@ export function RichEditor({
 }: RichEditorProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isInternalUpdate = useRef(false);
+  const [blockFormat, setBlockFormat] = useState("p");
+  const [fontSize, setFontSize] = useState("3");
+  const [listOpen, setListOpen] = useState(false);
 
-  // sync external value → DOM (only when value changes externally)
   useEffect(() => {
     if (ref.current && !isInternalUpdate.current) {
       if (ref.current.innerHTML !== value) {
@@ -72,6 +72,19 @@ export function RichEditor({
     }
   };
 
+  const applyBlockFormat = (tag: string) => {
+    if (disabled) return;
+    setBlockFormat(tag);
+    document.execCommand("formatBlock", false, tag);
+    ref.current?.focus();
+  };
+
+  const applyFontSize = (size: string) => {
+    if (disabled) return;
+    setFontSize(size);
+    exec("fontSize", size);
+  };
+
   return (
     <div
       style={{
@@ -94,42 +107,114 @@ export function RichEditor({
           alignItems: "center",
         }}
       >
-        {TOOLBAR.map((item, i) => {
-          if (item.type === "divider") {
-            return (
-              <div
-                key={`div-${i}`}
-                style={{ width: 1, height: 18, background: "#d1d5db", margin: "0 4px" }}
-              />
-            );
-          }
-          if (item.type === "link") {
-            return (
-              <button
-                key="link"
-                type="button"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  const url = prompt("Enter URL");
-                  if (url && /^https?:\/\//i.test(url)) exec("createLink", url);
-                }}
-                style={btnStyle}
-              >
-                Link
-              </button>
-            );
-          }
-          return (
-            <button
-              key={item.cmd}
-              type="button"
-              onMouseDown={(e) => { e.preventDefault(); exec(item.cmd); }}
-              style={{ ...btnStyle, ...item.style }}
-            >
-              {item.icon}
-            </button>
-          );
-        })}
+        {/* Block format dropdown */}
+        <select
+          value={blockFormat}
+          onChange={(e) => applyBlockFormat(e.target.value)}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{ ...selectStyle, minWidth: 100 }}
+          disabled={disabled}
+        >
+          {BLOCK_FORMATS.map((f) => (
+            <option key={f.tag} value={f.tag}>{f.label}</option>
+          ))}
+        </select>
+
+        <div style={dividerStyle} />
+
+        {/* Font size dropdown */}
+        <select
+          value={fontSize}
+          onChange={(e) => applyFontSize(e.target.value)}
+          onMouseDown={(e) => e.stopPropagation()}
+          style={{ ...selectStyle, minWidth: 56 }}
+          disabled={disabled}
+        >
+          {FONT_SIZES.map((s) => (
+            <option key={s.value} value={s.value}>{s.label}</option>
+          ))}
+        </select>
+
+        <div style={dividerStyle} />
+
+        {/* Bold / Italic / Underline */}
+        {[
+          { cmd: "bold",      icon: "B", style: { fontWeight: 700 } },
+          { cmd: "italic",    icon: "I", style: { fontStyle: "italic" as const } },
+          { cmd: "underline", icon: "U", style: { textDecoration: "underline" as const } },
+        ].map(({ cmd, icon, style }) => (
+          <button
+            key={cmd}
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); exec(cmd); }}
+            style={{ ...btnStyle, ...style }}
+            disabled={disabled}
+          >
+            {icon}
+          </button>
+        ))}
+
+        <div style={dividerStyle} />
+
+        {/* Lists — dropdown */}
+        <div style={{ position: "relative" }}>
+          <button
+            type="button"
+            onMouseDown={(e) => { e.preventDefault(); setListOpen((o) => !o); }}
+            style={{ ...btnStyle, display: "flex", alignItems: "center", gap: 4 }}
+            disabled={disabled}
+          >
+            ☰ <span style={{ fontSize: 9, marginTop: 1 }}>▾</span>
+          </button>
+          {listOpen && (
+            <div style={{
+              position: "absolute", top: "calc(100% + 4px)", left: 0,
+              background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6,
+              boxShadow: "0 4px 12px rgba(0,0,0,.1)", zIndex: 100, minWidth: 140,
+            }}>
+              {[
+                { label: "• Bullet list",   cmd: "insertUnorderedList" },
+                { label: "1. Ordered list", cmd: "insertOrderedList" },
+              ].map(({ label, cmd }) => (
+                <button
+                  key={cmd}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    exec(cmd);
+                    setListOpen(false);
+                    ref.current?.focus();
+                  }}
+                  style={{
+                    display: "block", width: "100%", textAlign: "left",
+                    padding: "8px 12px", background: "none", border: "none",
+                    fontSize: 12, color: "#374151", cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f4ff")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={dividerStyle} />
+
+        {/* Link */}
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            const url = prompt("Enter URL");
+            if (url && /^https?:\/\//i.test(url)) exec("createLink", url);
+          }}
+          style={btnStyle}
+          disabled={disabled}
+        >
+          Link
+        </button>
       </div>
 
       {/* ── Editable area ── */}
@@ -139,6 +224,7 @@ export function RichEditor({
         suppressContentEditableWarning
         onInput={handleInput}
         onPaste={handlePaste}
+        onClick={() => setListOpen(false)}
         data-placeholder={placeholder}
         style={{
           minHeight,
@@ -172,4 +258,24 @@ const btnStyle: React.CSSProperties = {
   fontSize: 12,
   color: "#374151",
   lineHeight: 1.6,
+};
+
+const selectStyle: React.CSSProperties = {
+  padding: "2px 6px",
+  border: "1px solid #d1d5db",
+  borderRadius: 4,
+  background: "#fff",
+  cursor: "pointer",
+  fontSize: 12,
+  color: "#374151",
+  lineHeight: 1.6,
+  height: 26,
+};
+
+const dividerStyle: React.CSSProperties = {
+  width: 1,
+  height: 18,
+  background: "#d1d5db",
+  margin: "0 4px",
+  flexShrink: 0,
 };

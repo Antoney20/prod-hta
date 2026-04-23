@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { CriteriaAppraisalTool } from "@/types/new/appraisal";
+import { RichEditor } from "@/components/shared/editor";
+import { sanitizeHtml } from "@/app/portal/config/criteria-information/cc/clean";
 
 
 type FormState = {
@@ -45,7 +47,6 @@ export function AppraisalToolForm({
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const isEdit = !!defaultValues?.id;
  
-  // ── reset on open ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
     onReload?.();
@@ -54,8 +55,8 @@ export function AppraisalToolForm({
       criteria:         defaultValues?.criteria          ?? "",
       description:      defaultValues?.description       ?? "",
       scoring_approach: defaultValues?.scoring_approach  ?? "",
-      score:            defaultValues?.scores != null
-                          ? String(defaultValues.scores)
+      score:            defaultValues?.score != null
+                          ? String(defaultValues.score)
                           : "",
     });
   }, [open, defaultValues]);
@@ -79,9 +80,9 @@ export function AppraisalToolForm({
     if (!validate()) return;
     await onSubmit({
       criteria:         form.criteria.trim(),
-      description:      form.description.trim(),
-      scoring_approach: form.scoring_approach.trim() || undefined,
-      scores:           form.score !== "" ? Number(form.score) : undefined,
+      description:      sanitizeHtml(form.description),
+      scoring_approach: form.scoring_approach ? sanitizeHtml(form.scoring_approach) : undefined,
+      score:           form.score !== "" ? Number(form.score) : undefined,
     });
   };
  
@@ -89,7 +90,7 @@ export function AppraisalToolForm({
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="sm:max-w-lg overflow-y-auto px-4">
         <SheetHeader>
-          <SheetTitle>{isEdit ? "Edit" : "New"} appraisal criteria</SheetTitle>
+          <SheetTitle className="text-xl">{isEdit ? "Edit" : "New"} appraisal criteria</SheetTitle>
           <SheetDescription>
             {isEdit
               ? "Update this criterion and its scoring details."
@@ -111,34 +112,34 @@ export function AppraisalToolForm({
               <p className="text-xs text-destructive">{errors.criteria}</p>
             )}
           </div>
- 
-          <div className="space-y-1.5">
-            <Label>Description <span className="text-destructive">*</span></Label>
-            <Textarea
-              value={form.description}
-              onChange={set("description")}
-              rows={3}
-              placeholder="Describe what this criterion measures..."
-            />
-            {errors.description && (
-              <p className="text-xs text-destructive">{errors.description}</p>
-            )}
-          </div>
- 
-          {/* Scoring Approach */}
-          <div className="space-y-1.5">
-            <Label>Scoring Approach</Label>
-            <Textarea
-              value={form.scoring_approach}
-              onChange={set("scoring_approach")}
-              rows={5}
-              placeholder="How are scores assigned for this criterion?"
-            />
-          </div>
+
+<div className="space-y-1.5">
+  <Label>Description <span className="text-destructive">*</span></Label>
+  <RichEditor
+    value={form.description}
+    onChange={(v) => setForm((f) => ({ ...f, description: v }))}
+    placeholder="Describe what this criterion measures..."
+    minHeight={100}
+    maxHeight={200}
+  />
+  {errors.description && (
+    <p className="text-xs text-destructive">{errors.description}</p>
+  )}
+</div>
+
+<div className="space-y-1.5">
+  <Label>Scoring Approach</Label>
+  <RichEditor
+    value={form.scoring_approach}
+    onChange={(v) => setForm((f) => ({ ...f, scoring_approach: v }))}
+    placeholder="How are scores assigned for this criterion?"
+    minHeight={140}
+    maxHeight={280}
+  />
+</div>
+
  
           <Separator />
- 
-          {/* Score */}
           <div className="space-y-1.5">
             <Label>Score</Label>
             <Input

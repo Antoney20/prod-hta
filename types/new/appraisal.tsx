@@ -1,21 +1,15 @@
 import { ISODateString, UUID } from "@/types/new/shared";
 
-// ─── CriteriaAppraisalTool ────────────────────────────────────────────────────
 
-/**
- * scores is a dict mapping label → numeric weight.
- * e.g. { "Low": 1, "Medium": 2, "High": 3 }
- */
 export interface CriteriaAppraisalTool {
   id:               UUID;
   criteria:         string;
   description:      string;
   scoring_approach: string;
-  scores:           number | null;
+  score:            number | null;  
   created_at:       ISODateString;
 }
 
-// ─── CriteriaAppraisalScore ───────────────────────────────────────────────────
 
 export interface CriteriaAppraisalScore {
   id:                    UUID;
@@ -34,8 +28,6 @@ export interface CriteriaAppraisalScore {
   created_at:            ISODateString;
   updated_at:            ISODateString;
 }
-
-// ─── Payloads ─────────────────────────────────────────────────────────────────
 
 export interface CriteriaAppraisalScoreCreatePayload {
   intervention: UUID;

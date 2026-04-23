@@ -85,26 +85,34 @@ export default function AppraisalToolPage() {
       header: "Criteria",
       cell: (row) => <span className="font-medium">{row.criteria}</span>,
     },
-    {
-      header: "Description",
-      cell: (row) => (
-        <span className="text-sm text-muted-foreground line-clamp-2 max-w-xs">
-          {row.description || "—"}
-        </span>
-      ),
-    },
-    {
-      header: "Scoring Approach",
-      cell: (row) => (
-        <span className="text-sm text-muted-foreground line-clamp-2 max-w-xs">
-          {row.scoring_approach || "—"}
-        </span>
-      ),
-    },
+ {
+  header: "Description",
+  cell: (row) => (
+    <div
+      className="text-sm text-muted-foreground line-clamp-2 max-w-xs prose prose-sm"
+      dangerouslySetInnerHTML={{ __html: row.description || "—" }}
+    />
+  ),
+},
+{
+  header: "Scoring Approach",
+  cell: (row) => (
+    <div
+      className="text-sm text-muted-foreground line-clamp-2 max-w-xs prose prose-sm"
+      dangerouslySetInnerHTML={{ __html: row.scoring_approach || "—" }}
+    />
+  ),
+},
+{
+  header: "Score",
+  cell: (row) => row.score != null         
+    ? <Badge variant="secondary">{row.score}</Badge>
+    : <span className="text-muted-foreground text-sm">—</span>,
+},
     {
       header: "Score",
-      cell: (row) => row.scores != null
-        ? <Badge variant="secondary">{row.scores}</Badge>
+      cell: (row) => row.score != null
+        ? <Badge variant="secondary">{row.score}</Badge>
         : <span className="text-muted-foreground text-sm">—</span>,
     },
     {
@@ -116,12 +124,12 @@ export default function AppraisalToolPage() {
       ),
     },
     {
-      header: "",
+      header: "actions",
       cell: (row) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
+            <Button variant="ghost" className="h-8 border bg-[#27aae1]/1 px-3 text-sm">
+               more actions
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -140,7 +148,6 @@ export default function AppraisalToolPage() {
     },
   ];
  
-  // ── render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
  
@@ -191,14 +198,13 @@ export default function AppraisalToolPage() {
               searchPlaceholder="Search criteria..."
               searchFn={(row, q) =>
                 row.criteria.toLowerCase().includes(q) ||
-                row.description.toLowerCase().includes(q)
+                row.description.replace(/<[^>]*>/g, "").toLowerCase().includes(q)
               }
             />
           )}
         </CardContent>
       </Card>
  
-      {/* Form sheet — passes load so it can refresh on open */}
       <AppraisalToolForm
         open={formOpen}
         onClose={closeForm}
@@ -208,7 +214,6 @@ export default function AppraisalToolPage() {
         onReload={load}
       />
  
-      {/* Delete confirmation */}
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

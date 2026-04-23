@@ -32,6 +32,7 @@ const ROLE_LABELS: Record<string, string> = {
   user: 'User',
   swg: 'SWG',
   content_manager: 'Content Manager',
+  panel: 'Panel',
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -40,6 +41,7 @@ const ROLE_COLORS: Record<string, string> = {
   swg: 'bg-blue-50 text-blue-700 border-blue-200',
   content_manager: 'bg-amber-50 text-amber-700 border-amber-200',
   user: 'bg-slate-50 text-slate-600 border-slate-200',
+  panel: 'bg-green-50 text-green-900 border-green-200',
 };
 
 function RoleBadge({ role }: { role: string }) {
@@ -243,6 +245,7 @@ const openEdit = (m: Member) => {
                     <SelectItem value="secretariat">Secretariat</SelectItem>
                     <SelectItem value="swg">SWG</SelectItem>
                     <SelectItem value="content_manager">Content Manager</SelectItem>
+                     <SelectItem value="panel">Panel</SelectItem>
                     <SelectItem value="user">User</SelectItem>
                   </SelectContent>
                 </Select>

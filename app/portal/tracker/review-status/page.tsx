@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -12,13 +13,17 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, RefreshCw, MoreHorizontal, Pencil, Trash2, ClipboardList } from "lucide-react";
+import { Plus, RefreshCw, MoreHorizontal, Pencil, Trash2, ClipboardList, ArrowUpCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { TopicPriority, TopicPriorityWritePayload } from "@/types/new/topic-prioritization";
-import { createTopicPriority, deleteTopicPriority, getTopicPriorities, updateTopicPriority } from "@/app/api/new/tp";
+import {
+  createTopicPriority, deleteTopicPriority, getTopicPriorities,
+  updateTopicPriority, bulkMoveToPanel,
+} from "@/app/api/new/tp";
 import { Column, DataTable } from "../../config/cc/table";
 import { ReviewStatusForm } from "./form";
 
+const MAX_SELECTION = 20;
 
 export default function ReviewStatusPage() {
   const [records, setRecords] = useState<TopicPriority[]>([]);
@@ -28,9 +33,15 @@ export default function ReviewStatusPage() {
   const [selected, setSelected] = useState<TopicPriority | undefined>();
   const [toDelete, setToDelete] = useState<TopicPriority | null>(null);
 
+  // selection keyed by reference_number — guaranteed unique on every row
+  const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
+  const [panelItems, setPanelItems] = useState<TopicPriority[]>([]);
+  const [panelSubmitting, setPanelSubmitting] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     setRecords(await getTopicPriorities());
+    setSelectedRefs(new Set());
     setLoading(false);
   }, []);
 
@@ -39,6 +50,54 @@ export default function ReviewStatusPage() {
   const openEdit = (r: TopicPriority) => { setSelected(r); setFormOpen(true); };
   const openCreate = () => { setSelected(undefined); setFormOpen(true); };
   const closeForm = () => { setFormOpen(false); setSelected(undefined); };
+
+  const toggleRow = (refNo: string, alreadyMoved: boolean) => {
+    if (alreadyMoved) return;
+    setSelectedRefs((prev) => {
+      const next = new Set(prev);
+      if (next.has(refNo)) {
+        next.delete(refNo);
+      } else {
+        if (next.size >= MAX_SELECTION) {
+          toast.warning(`You can select at most ${MAX_SELECTION} interventions at once.`);
+          return prev;
+        }
+        next.add(refNo);
+      }
+      return next;
+    });
+  };
+
+  const openPanelConfirm = () => {
+    const list = records.filter((r) => selectedRefs.has(r.reference_number));
+    if (list.length === 0) {
+      toast.warning("No valid interventions selected.");
+      return;
+    }
+    setPanelItems(list);
+  };
+
+  const closePanelConfirm = () => {
+    if (!panelSubmitting) setPanelItems([]);
+  };
+
+  const handleBulkMoveToPanel = async () => {
+    setPanelSubmitting(true);
+    // send intervention_id for all — scored-only rows have it explicitly,
+    // status update rows have it via the serializer
+    const interventionIds = panelItems.map((r) => String(r.intervention_id));
+    const result = await bulkMoveToPanel(interventionIds);
+    setPanelSubmitting(false);
+    setPanelItems([]);
+
+    if (result) {
+      toast.success(`${result.updated} intervention(s) moved to panel.`);
+      setSelectedRefs(new Set());
+      await load();
+    } else {
+      toast.error("Failed to move interventions to panel. Please try again.");
+    }
+  };
 
   const handleSubmit = async (values: TopicPriorityWritePayload) => {
     setSubmitting(true);
@@ -69,6 +128,28 @@ export default function ReviewStatusPage() {
   };
 
   const columns: Column<TopicPriority>[] = [
+    {
+      header: "",
+      width: "w-[48px] min-w-[48px]",
+      cell: (row) => {
+        // reference_number is always present on every row — safest key
+        const refNo = row.reference_number;
+        const moved = row.move_to_panel;
+        const checked = moved || selectedRefs.has(refNo);
+
+        return (
+          <div className="flex justify-center">
+            <Checkbox
+              checked={checked}
+              disabled={moved}
+              onCheckedChange={() => toggleRow(refNo, moved)}
+              aria-label={moved ? "Already moved to panel" : `Select ${row.intervention_name}`}
+              className={moved ? "opacity-50 cursor-not-allowed" : ""}
+            />
+          </div>
+        );
+      },
+    },
     {
       header: "Reference",
       width: "w-[160px] min-w-[140px]",
@@ -128,6 +209,18 @@ export default function ReviewStatusPage() {
         ),
     },
     {
+      header: "Panel",
+      width: "w-[90px] min-w-[80px]",
+      cell: (row) =>
+        row.move_to_panel ? (
+          <Badge className="text-xs bg-purple-100 text-purple-700 border-purple-200">
+            ✓ Panel
+          </Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground italic">—</span>
+        ),
+    },
+    {
       header: "Decision Date",
       width: "w-[140px] min-w-[130px]",
       cell: (row) =>
@@ -172,63 +265,139 @@ export default function ReviewStatusPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-blue-100 p-2 rounded-lg">
-            <ClipboardList className="h-5 w-5 text-blue-600" />
+    <>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <ClipboardList className="h-5 w-5 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold">Review Status</h1>
+              <p className="text-sm text-muted-foreground">
+                Track HTA review progress and communicate decisions to submitters
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold">Review Status</h1>
-            <p className="text-sm text-muted-foreground">
-              Track HTA review progress and communicate decisions to submitters
-            </p>
+          <div className="flex gap-2">
+            {selectedRefs.size > 0 && (
+              <Button
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                onClick={openPanelConfirm}
+              >
+                <ArrowUpCircle className="h-4 w-4 mr-2" />
+                Move to Panel ({selectedRefs.size})
+              </Button>
+            )}
+            <Button variant="outline" size="icon" onClick={load} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus className="h-4 w-4 mr-2" />New Status
+            </Button>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={load} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" />New Status
-          </Button>
-        </div>
+
+        {selectedRefs.size > 0 && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-purple-50 border border-purple-200 rounded-md px-3 py-2">
+            <ArrowUpCircle className="h-4 w-4 text-purple-500 shrink-0" />
+            <span>
+              <strong className="text-purple-700">{selectedRefs.size}</strong> intervention
+              {selectedRefs.size > 1 ? "s" : ""} selected
+              {selectedRefs.size === MAX_SELECTION && (
+                <span className="ml-1 text-amber-600">(maximum reached)</span>
+              )}
+            </span>
+            <button
+              className="ml-auto text-xs text-muted-foreground underline hover:text-foreground"
+              onClick={() => setSelectedRefs(new Set())}
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">All Review Records</CardTitle>
+            <CardDescription>{records.length} interventions tracked</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <DataTable
+                data={records}
+                columns={columns}
+                searchPlaceholder="Search by intervention or reference..."
+                searchFn={(row, q) =>
+                  row.intervention_name.toLowerCase().includes(q) ||
+                  row.reference_number.toLowerCase().includes(q) ||
+                  row.system_categories.some((sc) => sc.toLowerCase().includes(q))
+                }
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">All Review Records</CardTitle>
-          <CardDescription>{records.length} interventions tracked</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+      {/* ── Bulk move-to-panel confirmation ── */}
+      <AlertDialog
+        open={panelItems.length > 0}
+        onOpenChange={(v) => !v && closePanelConfirm()}
+      >
+        <AlertDialogContent className="overflow-hidden">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Move to panel?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The following <strong>{panelItems.length}</strong> intervention
+              {panelItems.length > 1 ? "s" : ""} will be marked for panel review.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <ul className="max-h-48 overflow-y-auto divide-y divide-border rounded-md border text-sm">
+            {panelItems.map((r) => (
+              <li
+                key={r.reference_number}
+                className="flex items-center gap-3 px-3 py-2"
+              >
+                <span className="font-mono text-xs text-muted-foreground shrink-0">
+                  {r.reference_number}
+                </span>
+                <span className="truncate text-xs text-foreground">
+                  {r.intervention_name}
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={panelSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={panelSubmitting}
+              onClick={(e) => {
+                e.preventDefault();
+                handleBulkMoveToPanel();
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {panelSubmitting ? "Moving…" : `Confirm (${panelItems.length})`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+
+          {panelSubmitting && (
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-purple-100 overflow-hidden rounded-b-lg">
+              <div className="h-full bg-purple-500 animate-[progress_1.2s_ease-in-out_infinite]" />
             </div>
-          ) : (
-            // DataTable already wraps in its own border/overflow — no extra wrapper needed
-            <DataTable
-              data={records}
-              columns={columns}
-              searchPlaceholder="Search by intervention or reference..."
-              searchFn={(row, q) =>
-                row.intervention_name.toLowerCase().includes(q) ||
-                row.reference_number.toLowerCase().includes(q) ||
-                row.system_categories.some((sc) => sc.toLowerCase().includes(q))
-              }
-            />
           )}
-        </CardContent>
-      </Card>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      <ReviewStatusForm
-        open={formOpen}
-        onClose={closeForm}
-        onSubmit={handleSubmit}
-        defaultValues={selected}
-        isSubmitting={submitting}
-      />
-
+      {/* ── Delete confirmation ── */}
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -250,6 +419,14 @@ export default function ReviewStatusPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+
+      <ReviewStatusForm
+        open={formOpen}
+        onClose={closeForm}
+        onSubmit={handleSubmit}
+        defaultValues={selected}
+        isSubmitting={submitting}
+      />
+    </>
   );
 }

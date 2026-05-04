@@ -4,7 +4,7 @@ import { UserRole } from '@/app/api/auth'
 export const ROLE_HIERARCHY: UserRole[] = [
   'user',
   'swg',
-  'panel',           // add
+  'panel',           
   'content_manager',
   'secretariat',
   'admin',

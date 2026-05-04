@@ -15,6 +15,7 @@ export interface TopicPriority {
   system_categories: string[];
   is_scored: string | null;
   intervention_id:string | null;
+  move_to_panel: boolean;   
 
   created_at: string | null;
   updated_at: string | null;
@@ -34,6 +35,10 @@ export type TopicPriorityWritePayload = {
   feedback?: string;
   notes?: string;
   additional_info?: string;
+};
+
+export type BulkMoveToPanelPayload = {   
+  ids: string[];
 };
 
 export type DecisionTypeWritePayload = Pick<DecisionType, "name" | "description">;

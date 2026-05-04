@@ -74,6 +74,27 @@ export const createDecisionType = async (
   }
 };
 
+
+export const moveToPanel = async (id: string): Promise<TopicPriority | null> => {
+  try {
+    const res = await api.post<TopicPriority>(`/v3/topic-priority/${id}/move-to-panel/`);
+    return res.data;
+  } catch {
+    return null;
+  }
+};
+
+export const bulkMoveToPanel = async (interventionIds: string[]): Promise<{ updated: number } | null> => {
+  try {
+    const res = await api.post<{ updated: number }>(
+      "/v3/topic-priority/bulk-move-to-panel/",
+      { intervention_ids: interventionIds }  
+    );
+    return res.data;
+  } catch {
+    return null;
+  }
+};
 export const updateDecisionType = async (
   id: string,
   body: Partial<DecisionTypeWritePayload>

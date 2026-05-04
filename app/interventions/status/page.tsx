@@ -42,6 +42,7 @@ function stripHtml(html: string): string {
  *
  * 5. Otherwise → "Pending"
  */
+
 function resolveStatus(row: TopicPriority): {
   label: string;
   variant: "decision" | "under-review" | "pending";
@@ -49,19 +50,22 @@ function resolveStatus(row: TopicPriority): {
   const decisionName = row.decision?.name ?? null;
   const isDiscussed =
     decisionName !== null && decisionName.toLowerCase() === "discussed";
+  const isPending =
+    decisionName !== null && decisionName.toLowerCase() === "pending";
 
-  // Real decision (not discussed)
-  if (decisionName && !isDiscussed) {
+  // Real decision (not discussed, not pending sentinel)
+  if (decisionName && !isDiscussed && !isPending) {
     return { label: decisionName, variant: "decision" };
   }
 
-  // Scored, or has a "discussed" decision → under review
-  if (row.is_scored || isDiscussed) {
+  // Scored, discussed, or pending sentinel → all show as Under review
+  if (row.is_scored || isDiscussed || isPending) {
     return { label: "Under review", variant: "under-review" };
   }
 
   return { label: "Pending", variant: "pending" };
 }
+
 
 function DecisionTag({ row }: { row: TopicPriority }) {
   const { label, variant } = resolveStatus(row);
@@ -297,12 +301,14 @@ function FilterSection({
 }
 
 const CAT_PAGE_SIZE = 10;
-
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 interface SidebarFiltersProps {
   filters: FilterState;
   onChange: (f: FilterState) => void;
   categoryCounts: Record<string, number>;
   decisionOptions: { label: string; value: string }[];
+  pageSize: number;                          
+  onPageSizeChange: (n: number) => void;
 }
 
 function SidebarFilters({
@@ -310,6 +316,8 @@ function SidebarFilters({
   onChange,
   categoryCounts,
   decisionOptions,
+  pageSize,
+  onPageSizeChange,
 }: SidebarFiltersProps) {
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [catPage, setCatPage] = useState(1);
@@ -489,6 +497,24 @@ function SidebarFilters({
             </select>
           </div>
         </FilterSection>
+
+            <div>                                             {/* ← add */}
+      <label className="block text-sm font-bold text-gray-900 mb-1">
+        Results per page
+      </label>
+      <select
+        value={pageSize}
+        onChange={(e) => onPageSizeChange(Number(e.target.value))}
+        className="w-full border-2 border-gray-900 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+      >
+        {PAGE_SIZE_OPTIONS.map((n) => (
+          <option key={n} value={n}>
+            {n} per page
+          </option>
+        ))}
+      </select>
+    </div>
+    
       </div>
 
       <div className="mt-5">
@@ -517,7 +543,7 @@ function SidebarFilters({
   );
 }
 
-const PAGE_SIZE = 25;
+// const PAGE_SIZE = 25;
 
 /**
  * Helper — returns the "canonical" filter key for a row, matching the keys
@@ -543,6 +569,20 @@ export default function PublicStatusPage({
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+
+  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
+// inside the component, add:
+const [pageSize, setPageSize] = useState(25);
+
+
+
+// reset page when page size changes:
+const handlePageSizeChange = (n: number) => {
+  setPageSize(n);
+  setPage(1);
+};
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -660,7 +700,8 @@ export default function PublicStatusPage({
     return data;
   }, [records, filters]);
 
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   // Stats use resolveStatus so they reflect the same logic
   const withDecision = records.filter(
@@ -675,6 +716,8 @@ export default function PublicStatusPage({
     onChange: setFilters,
     categoryCounts,
     decisionOptions,
+      pageSize,                      
+  onPageSizeChange: handlePageSizeChange,
   };
 
   const content = (
@@ -775,8 +818,8 @@ export default function PublicStatusPage({
               <p className="text-sm text-gray-600 mb-4">
                 Showing{" "}
                 <strong>
-                  {((page - 1) * PAGE_SIZE + 1).toLocaleString()}–
-                  {Math.min(page * PAGE_SIZE, filtered.length).toLocaleString()}
+                  {((page - 1) * pageSize + 1).toLocaleString()}–
+                  {Math.min(page * pageSize, filtered.length).toLocaleString()}
                 </strong>{" "}
                 of <strong>{filtered.length.toLocaleString()}</strong>{" "}
                 interventions
@@ -817,7 +860,7 @@ export default function PublicStatusPage({
                       <StatusRow
                         key={row.id ?? row.reference_number}
                         row={row}
-                        index={(page - 1) * PAGE_SIZE + idx}
+                        index={(page - 1) * pageSize + idx}
                         expandedId={expandedId}
                         onToggle={handleToggle}
                       />
@@ -827,15 +870,15 @@ export default function PublicStatusPage({
               </div>
 
               <Pagination
-                currentPage={page}
-                totalItems={filtered.length}
-                pageSize={PAGE_SIZE}
-                onPageChange={(p) => {
-                  setPage(p);
-                  setExpandedId(null);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-              />
+  currentPage={page}
+  totalItems={filtered.length}
+  pageSize={pageSize}           
+  onPageChange={(p) => {
+    setPage(p);
+    setExpandedId(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }}
+  />
             </>
           )}
         </div>

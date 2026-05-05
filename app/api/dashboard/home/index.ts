@@ -55,13 +55,7 @@ export const getDecisionStats = async () => {
   return data.decisions;
 };
 
-/**
- * Get system category statistics
- */
-export const getSystemCategoryStats = async () => {
-  const data = await getDashboardData();
-  return data.system_categories;
-};
+
 
 /**
  * Get user statistics (admin only)

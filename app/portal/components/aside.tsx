@@ -119,7 +119,7 @@ const panelNavItems: NavItem[] = [
     icon: <Settings className="h-5 w-5" />,
     children: [
       { type: "link", title: "Tool Info",     href: "/portal/appraisal/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
-      { type: "link", title: "Criteria Info", href: "/portal/appraisal/config/criteria", icon: <BookText className="h-4 w-4" /> },
+      // { type: "link", title: "Criteria Info", href: "/portal/appraisal/config/criteria", icon: <BookText className="h-4 w-4" /> },
     ],
   },
   {
@@ -127,7 +127,7 @@ const panelNavItems: NavItem[] = [
     title: "Scoring",
     icon: <LineChart className="h-5 w-5" />,
     children: [
-      { type: "link", title: "Score Interventions", href: "/portal/appraisal/scoring",         icon: <PenSquare className="h-4 w-4" /> },
+      { type: "link", title: "Score Interventions", href: "/portal/appraisal/scoring/score-intervention",         icon: <PenSquare className="h-4 w-4" /> },
       { type: "link", title: "Scoring Reports",     href: "/portal/appraisal/scoring/reports", icon: <BarChart3 className="h-4 w-4" /> },
     ],
   },

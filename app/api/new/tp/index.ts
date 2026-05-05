@@ -5,6 +5,7 @@ import {
   TopicPriorityResponse,
   DecisionType,
   DecisionTypeWritePayload,
+  UndoMoveToPanelResult,
 } from "@/types/new/topic-prioritization";
 
 
@@ -95,6 +96,24 @@ export const bulkMoveToPanel = async (interventionIds: string[]): Promise<{ upda
     return null;
   }
 };
+
+
+export const undoMoveToPanel = async (
+  id: string
+): Promise<{ success: true; data: UndoMoveToPanelResult } | { success: false; error: string }> => {
+  try {
+    const res = await api.post<UndoMoveToPanelResult>(
+      `/v3/topic-priority/${id}/undo-move-to-panel/`
+    );
+    return { success: true, data: res.data };
+  } catch (err: any) {
+    const message =
+      err?.response?.data?.detail ??
+      "Failed to undo panel move.";
+    return { success: false, error: message };
+  }
+};
+
 export const updateDecisionType = async (
   id: string,
   body: Partial<DecisionTypeWritePayload>

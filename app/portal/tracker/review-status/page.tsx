@@ -1,25 +1,27 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  bulkMoveToPanel,
+  createTopicPriority, deleteTopicPriority, getTopicPriorities,
+  undoMoveToPanel,
+  updateTopicPriority,
+} from "@/app/api/new/tp";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, RefreshCw, MoreHorizontal, Pencil, Trash2, ClipboardList, ArrowUpCircle } from "lucide-react";
-import { toast } from "react-toastify";
 import { TopicPriority, TopicPriorityWritePayload } from "@/types/new/topic-prioritization";
-import {
-  createTopicPriority, deleteTopicPriority, getTopicPriorities,
-  updateTopicPriority, bulkMoveToPanel,
-} from "@/app/api/new/tp";
+import { ArrowUpCircle, ClipboardList, MoreHorizontal, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 import { Column, DataTable } from "../../config/cc/table";
 import { ReviewStatusForm } from "./form";
 
@@ -37,6 +39,11 @@ export default function ReviewStatusPage() {
   const [selectedRefs, setSelectedRefs] = useState<Set<string>>(new Set());
   const [panelItems, setPanelItems] = useState<TopicPriority[]>([]);
   const [panelSubmitting, setPanelSubmitting] = useState(false);
+
+
+  const [toUndoPanel, setToUndoPanel] = useState<TopicPriority | null>(null);
+  const [undoPanelSubmitting, setUndoPanelSubmitting] = useState(false);
+  const [undoPanelError, setUndoPanelError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -113,6 +120,25 @@ export default function ReviewStatusPage() {
       toast.error("Something went wrong.");
     }
     setSubmitting(false);
+  };
+
+
+  const handleUndoMoveToPanel = async () => {
+    if (!toUndoPanel?.id) return;
+    setUndoPanelSubmitting(true);
+    setUndoPanelError(null);
+
+    const result = await undoMoveToPanel(toUndoPanel.id);
+
+    if (result.success) {
+      toast.success(`"${result.data.intervention_name}" removed from panel.`);
+      setToUndoPanel(null);
+      await load();
+    } else {
+      setUndoPanelError(result.error);
+    }
+
+    setUndoPanelSubmitting(false);
   };
 
   const handleDelete = async () => {
@@ -249,6 +275,21 @@ export default function ReviewStatusPage() {
                 <Pencil className="h-4 w-4 mr-2" />
                 {row.id === null ? "Assign Status" : "Edit"}
               </DropdownMenuItem>
+
+
+              {row.move_to_panel && (
+                <DropdownMenuItem
+                  className="text-amber-600"
+                  onClick={() => {
+                    setUndoPanelError(null);
+                    setToUndoPanel(row);
+                  }}
+                >
+                  <ArrowUpCircle className="h-4 w-4 mr-2 rotate-180" />
+                  Undo Move
+                </DropdownMenuItem>
+              )}
+
               {row.id !== null && (
                 <DropdownMenuItem
                   className="text-destructive"
@@ -258,6 +299,7 @@ export default function ReviewStatusPage() {
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
+
           </DropdownMenu>
         </div>
       ),
@@ -396,6 +438,50 @@ export default function ReviewStatusPage() {
           )}
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog
+        open={!!toUndoPanel}
+        onOpenChange={(v) => {
+          if (!v && !undoPanelSubmitting) {
+            setToUndoPanel(null);
+            setUndoPanelError(null);
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove from panel?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{toUndoPanel?.intervention_name}</strong> will be removed from
+              panel review. This can be redone at any time as long as no scores have
+              been submitted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {/* inline error — shown when backend returns 409 or any error */}
+          {undoPanelError && (
+            <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              <span className="mt-0.5 shrink-0">⚠</span>
+              <span>{undoPanelError}</span>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={undoPanelSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={undoPanelSubmitting}
+              onClick={(e) => {
+                e.preventDefault();
+                handleUndoMoveToPanel();
+              }}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {undoPanelSubmitting ? "Removing…" : "Remove from Panel"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {/* ── Delete confirmation ── */}
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>

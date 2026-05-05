@@ -35,7 +35,6 @@ export const getAllInterventionsCount = async (): Promise<number> => {
   }
 };
 
-// ── Criteria tools ────────────────────────────────────────────────────────────
 
 export const getAppraisalCriteria = async (): Promise<CriteriaAppraisalTool[]> => {
   try {

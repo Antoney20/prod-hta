@@ -5,7 +5,6 @@ export interface DecisionType {
 }
 
 export interface TopicPriority {
-  /** null when the row comes from a scored intervention with no status update yet */
   id: string | null;
   reference_number: string;
   intervention_name: string;
@@ -40,5 +39,16 @@ export type TopicPriorityWritePayload = {
 export type BulkMoveToPanelPayload = {   
   ids: string[];
 };
+
+export interface UndoMoveToPanelResult {
+  detail: string;
+  intervention_id: string;
+  intervention_name: string;
+}
+
+export interface UndoMoveToPanelError {
+  detail: string;
+  reason: "has_scores" | "not_on_panel" | "unknown";
+}
 
 export type DecisionTypeWritePayload = Pick<DecisionType, "name" | "description">;

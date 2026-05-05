@@ -70,25 +70,18 @@ function StatCard({
   );
 }
 
-function ScoredBadge({ scored, total }: { scored: number; total: number }) {
-  const prog = scoreProgress(scored, total);
-  if (prog === "full") {
+
+function ScoredBadge({ scored }: { scored: number }) {
+  if (scored > 0) {
     return (
       <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-        <CheckCircle2 className="h-3 w-3" /> Complete
-      </span>
-    );
-  }
-  if (prog === "partial") {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-        <Circle className="h-3 w-3" /> {scored}/{total}
+        <CheckCircle2 className="h-3 w-3" /> Scored
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
-      <Circle className="h-3 w-3" /> Not started
+    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+      <Circle className="h-3 w-3" /> Not scored
     </span>
   );
 }
@@ -568,7 +561,7 @@ export default function PanelAppraisalPage() {
                           </TableCell>
 
                           <TableCell>
-                            <ScoredBadge scored={scoredCount} total={totalCriteria} />
+                         <ScoredBadge scored={scoredCount} />
                           </TableCell>
 
                           <TableCell>
@@ -587,7 +580,7 @@ export default function PanelAppraisalPage() {
                               variant={isScored ? "outline" : "default"}
                               className="h-7 text-xs gap-1"
                               style={!isScored ? { background: BRAND, borderColor: BRAND, color: "#fff" } : undefined}
-                              onClick={() => router.push(`/portal/panel/score/${panelRecord.intervention_id}`)}
+                              onClick={() => router.push(`/portal/appraisal/scoring/score-intervention/${panelRecord.intervention_id}`)}
                             >
                               {prog === "full"
                                 ? <><Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span></>

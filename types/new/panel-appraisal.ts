@@ -1,12 +1,11 @@
 import { SystemCategory } from "./client";
 
-// ── Panel Interventions ───────────────────────────────────────────────────────
-
 export interface PanelIntervention {
   id: string | null;
   intervention_id: string;
   intervention_name: string;
   reference_number?: string;
+  intervention_description: string | null;
   is_scored: boolean;
   move_to_panel: boolean;
   system_categories: string[];
@@ -28,7 +27,6 @@ export interface PanelInterventionResponse {
   results: PanelIntervention[];
 }
 
-// ── Enriched shape used in the page ──────────────────────────────────────────
 
 export interface EnrichedPanelIntervention {
   panelRecord: PanelIntervention;
@@ -41,8 +39,6 @@ export interface PanelCategoryGroup {
   category: SystemCategory;
   interventions: EnrichedPanelIntervention[];
 }
-
-// ── Criteria & scores ─────────────────────────────────────────────────────────
 
 export interface CriteriaAppraisalTool {
   id: string;
@@ -69,7 +65,6 @@ export interface CriteriaAppraisalScore {
   updated_at: string;
 }
 
-// ── Write payloads ────────────────────────────────────────────────────────────
 
 export interface ScorePayload {
   criteria_id: string;
@@ -91,8 +86,6 @@ export interface RescorePayload {
 export interface BulkRescorePayload {
   items: RescorePayload[];
 }
-
-// ── Page-level stats ──────────────────────────────────────────────────────────
 
 export interface PanelStats {
   totalInterventions: number;

@@ -83,7 +83,7 @@ const DEFAULT_PREVIEW: PreviewData = {
   decision_type:   "Approved",
   decision_date:   "15 July 2025",
   feedback:        "Your proposal meets clinical effectiveness and cost criteria. It has been approved for inclusion in the next benefits package review cycle.",
-  bptap:        "Benefits Package and Tariffs Advisory Panel",
+  bptap:        "BPTAP",
   bptap_email:       "hbtap@uonbi.ac.ke",
 };
 
@@ -125,7 +125,6 @@ function renderPreview(template: string, data: PreviewData): string {
   return html;
 }
 
-// ─── CategoryCard ─────────────────────────────────────────────────────────────
 function CategoryCard({ category, onEdit, onDelete }: {
   category: FeedbackCategory;
   onEdit: (c: FeedbackCategory) => void;
@@ -170,7 +169,7 @@ function CategoryCard({ category, onEdit, onDelete }: {
   );
 }
 
-// ─── CategoryForm ─────────────────────────────────────────────────────────────
+
 function CategoryForm({ initial, onSave, isSaving }: {
   initial: FeedbackCategoryCreatePayload;
   onSave: (data: FeedbackCategoryCreatePayload) => void;
@@ -286,12 +285,10 @@ function CategoryForm({ initial, onSave, isSaving }: {
             maxHeight={400}
           />
         </div>
-        <p style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>
-          Body only — header, footer, and base styling are applied automatically server-side.
-        </p>
+       Edit this keenly, use preview to see the details.
       </label>
 
-      {/* Action row */}
+
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 4 }}>
         {/* Preview button */}
         <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
@@ -522,7 +519,6 @@ export default function FeedbackTemplatePage() {
         </DialogContent>
       </Dialog>
 
-      {/* ── Delete dialog ── */}
       <Dialog open={deleteOpen} onOpenChange={o => { setDeleteOpen(o); if (!o) setDeleteTarget(null); }}>
         {deleteTarget && (
           <DeleteDialog category={deleteTarget} onConfirm={handleDelete} isDeleting={isDeleting} />

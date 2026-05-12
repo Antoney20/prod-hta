@@ -2,10 +2,7 @@
 import api from "../../auth";
 import { ScoringReport } from "@/types/new/scoring";
 
-/**
- * Fetch the full scoring report.
- * Optionally filter to specific intervention IDs.
- */
+
 export const getScoringReport = async (
   interventionIds?: string[]
 ): Promise<ScoringReport> => {
@@ -19,10 +16,7 @@ export const getScoringReport = async (
 };
 
 
-/**
- * Fetch the full scoring report.
- * Optionally filter to specific intervention IDs.
- */
+
 export const getAdminScoringReport = async (
   interventionIds?: string[]
 ): Promise<ScoringReport> => {

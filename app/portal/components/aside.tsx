@@ -32,6 +32,9 @@ import {
   MailCheck,
   PenSquare,
   LineChart,
+  NotepadTextDashed,
+  Plus,
+  HomeIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -79,7 +82,7 @@ const sharedTaskManagement: NavItem = {
   icon: <CheckSquare className="h-5 w-5" />,
 };
 
-// ─── User / SWG nav (unchanged) ───────────────────────────────────────────────
+
 
 const userSwgNavItems: NavItem[] = [
   { type: "link", title: "Dashboard", href: "/portal", icon: <Home className="h-5 w-5" /> },
@@ -179,7 +182,7 @@ const adminNavItems: NavItem[] = [
     ],
   },
 
-  // ── Appraisal (Panel) ──────────────────────────────────────────────────────
+
   { type: "divider" },
   { type: "section", title: "Appraisal (Panel)" },
 
@@ -215,6 +218,17 @@ const adminNavItems: NavItem[] = [
       { type: "link", title: "Email Templates", href: "/portal/feedback/templates",icon: <FileText className="h-4 w-4" /> },
     ],
   },
+
+  {
+    type: "group",
+    title: "Activity Tracker",
+    icon: <NotepadTextDashed className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "home",  href: "/portal/activities/", icon: <HomeIcon className="h-4 w-4" /> },
+      { type: "link", title: "Create Task", href: "/portal/activities/#",      icon: <Plus className="h-4 w-4" /> },
+    ],
+  },
+
   {
     type: "group",
     title: "Records",
@@ -268,14 +282,12 @@ const adminNavItems: NavItem[] = [
   sharedTaskManagement,
 ];
 
-// ─── Bottom items (all roles) ─────────────────────────────────────────────────
 
 const bottomNavItems: NavItem[] = [
   { type: "link", title: "Settings",       href: "/portal/settings",    icon: <Settings className="h-5 w-5" /> },
   { type: "link", title: "Onboarding Guide", href: "/portal/on-boarding", icon: <HelpCircle className="h-5 w-5" /> },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 /** Recursively collect every group key from a nav array */
 const collectGroupKeys = (items: NavItem[]): string[] =>
@@ -516,7 +528,6 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
           ))}
         </div>
 
-        {/* User profile footer */}
         {isOpen && user && (
           <div className="shrink-0 p-3 border-t border-gray-200 bg-gray-50">
             <div className="flex items-center space-x-3">

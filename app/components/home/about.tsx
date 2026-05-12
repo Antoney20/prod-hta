@@ -92,7 +92,6 @@ export default function AboutSection() {
         </div>
       </div>
 
-      {/* ── Three pillar cards ── */}
       <div className="container mx-auto px-4 sm:px-6 py-12">
         <motion.div
           initial="hidden"

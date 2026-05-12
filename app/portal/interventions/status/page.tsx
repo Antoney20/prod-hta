@@ -28,10 +28,6 @@ import { ReviewStatusForm } from "../../tracker/review-status/form";
 import Link from "next/link";
 
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function formatDate(str: string | null): string {
   if (!str) return "—";
   try {
@@ -45,10 +41,6 @@ function stripHtml(html: string): string {
   if (!html) return "";
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
-
-// ---------------------------------------------------------------------------
-// Status badge — same logic as public but styled for portal
-// ---------------------------------------------------------------------------
 
 function StatusBadge({ row }: { row: TopicPriority }) {
   if (row.decision) {
@@ -195,10 +187,6 @@ function DetailDrawer({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Summary card
-// ---------------------------------------------------------------------------
-
 function SummaryCard({
   label, value, color,
 }: {
@@ -217,10 +205,6 @@ function SummaryCard({
     </div>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function PortalStatusPage() {
   const [records, setRecords] = useState<TopicPriority[]>([]);

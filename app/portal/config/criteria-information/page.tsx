@@ -21,8 +21,6 @@ import {
 
 interface ModalProps {
   children: React.ReactNode;
-  /** Called when the user clicks the backdrop — may be a no-op if we need to
-   *  show the "unsaved changes" guard first. */
   onBackdropClick: () => void;
 }
 
@@ -39,20 +37,14 @@ function Modal({ children, onBackdropClick }: ModalProps) {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function CriteriaInformationPage() {
   const [data, setData] = useState<CriteriaInformation[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<CriteriaInformation | null>(null);
-
-  // AlertDialog state
   const [guardOpen, setGuardOpen] = useState(false);
-  // Pending close action — stored so we can execute it after the user confirms
   const pendingClose = useRef<(() => void) | null>(null);
-
-  // Ref wired into <CriteriaForm> — lets us ask "are there unsaved changes?"
   const formHasChanges = useRef<() => boolean>(() => false);
 
   const load = useCallback(async () => {
@@ -64,12 +56,6 @@ export default function CriteriaInformationPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // ── Close helpers ─────────────────────────────────────────────────────────
-
-  /**
-   * Attempt to close the modal.  If the form reports unsaved changes, open
-   * the AlertDialog instead and store the intended close action for later.
-   */
   const attemptClose = useCallback((then?: () => void) => {
     const doClose = () => {
       setModalOpen(false);
@@ -97,10 +83,7 @@ export default function CriteriaInformationPage() {
     pendingClose.current = null;
   };
 
-  // ── Modal open helpers ────────────────────────────────────────────────────
-
   const openCreate = () => {
-    // Reset the hasChanges ref for a fresh form
     formHasChanges.current = () => false;
     setEditing(null);
     setModalOpen(true);
@@ -113,7 +96,6 @@ export default function CriteriaInformationPage() {
   };
 
   const handleSuccess = () => {
-    // Save succeeded — close without guard
     setModalOpen(false);
     setEditing(null);
     load();
@@ -127,7 +109,6 @@ export default function CriteriaInformationPage() {
   return (
     <div className="min-h-screen bg-linear-to-b py-12 from-slate-50 to-white">
       <ToastContainer  position="top-right" autoClose={4000} hideProgressBar={false} closeOnClick pauseOnHover />
-      {/* Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="container mx-auto px-6 py-8 flex items-center justify-between">
           <div>
@@ -166,7 +147,7 @@ export default function CriteriaInformationPage() {
             <CriteriaForm
               initial={editing}
               onSuccess={handleSuccess}
-              // Cancel / × button inside the form → go through the guard
+              
               onCancel={() => attemptClose()}
               hasChangesRef={formHasChanges}
             />
@@ -189,7 +170,6 @@ export default function CriteriaInformationPage() {
             <AlertDialogCancel onClick={handleGuardContinue}>
               Continue editing
             </AlertDialogCancel>
-            {/* "Discard" — close the modal and clear the draft */}
             <AlertDialogAction
               onClick={handleGuardDiscard}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"

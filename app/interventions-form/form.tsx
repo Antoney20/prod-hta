@@ -39,7 +39,6 @@ const BenefitsForm: React.FC = () => {
     'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
   ].sort((a, b) => a.localeCompare(b));
 
-  // ── State (unchanged) ────────────────────────────────────────────────────
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
@@ -65,7 +64,6 @@ const BenefitsForm: React.FC = () => {
   const [emailStatus, setEmailStatus] = useState<EmailResponse | null>(null);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
 
-  // ── Reset after success (unchanged) ─────────────────────────────────────
   useEffect(() => {
     if (submitted) {
       const timer = setTimeout(() => {
@@ -100,8 +98,6 @@ const BenefitsForm: React.FC = () => {
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
   const { name, value } = e.target;
 
-  // On keystroke: only strip null bytes and control chars — NO trim()
-  // Full sanitization runs on submit via sanitizeFormData()
   let clean = value;
   if (name === 'phone')      clean = sanitizePhone(value);
 
@@ -121,7 +117,6 @@ const BenefitsForm: React.FC = () => {
   }
 };
 
-  // ── File change: validate immediately, show inline error (replaces alert) 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0] || null;
     const updated = { ...formData, uploadedDocument: file };
@@ -141,11 +136,9 @@ const BenefitsForm: React.FC = () => {
     });
   };
 
-  // ── Submit: sanitize → validate → submit ─────────────────────────────────
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-  // 1. VALIDATE RAW DATA FIRST (no sanitization)
   const newErrors = validateFormData(formData);
   setErrors(newErrors);
 
@@ -159,11 +152,10 @@ const BenefitsForm: React.FC = () => {
     return;
   }
 
-  // 2. SANITIZE ONLY AFTER VALIDATION PASSES
   const clean = sanitizeFormData(formData);
   setFormData(clean);
 
-    // 3. Submit clean, validated data
+
     setIsSubmitting(true);
     try {
       const response = await submitProposal(clean);
@@ -188,7 +180,7 @@ const BenefitsForm: React.FC = () => {
   };
 
 
-  // ── Success screen (unchanged) ────────────────────────────────────────────
+
   if (submitted) {
     return (
       <div className="max-w-4xl mx-auto p-8 bg-white rounded-lg shadow-lg mt-10">
@@ -209,7 +201,6 @@ const BenefitsForm: React.FC = () => {
     );
   }
 
-  // ── Form JSX (completely unchanged from your original) ───────────────────
   return (
     <form onSubmit={handleSubmit} className="container  mx-auto p-6 py-24 bg-white rounded-lg shadow-lg">
       <div className="text-center mb-8">

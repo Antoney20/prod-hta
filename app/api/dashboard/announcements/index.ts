@@ -45,9 +45,7 @@ export const getPinnedAnnouncements = async (): Promise<Announcement[]> => {
   }
 };
 
-/**
- * Get a specific announcement by ID
- */
+
 export const getAnnouncement = async (id: string): Promise<Announcement> => {
   try {
     const response = await api.get(`/v2/proj/announcements/${id}/`);
@@ -57,9 +55,7 @@ export const getAnnouncement = async (id: string): Promise<Announcement> => {
   }
 };
 
-/**
- * Create a new announcement
- */
+
 export const createAnnouncement = async (data: CreateAnnouncementData): Promise<Announcement> => {
   try {
     const formData = new FormData();
@@ -128,9 +124,7 @@ export const deleteAnnouncement = async (id: string): Promise<void> => {
   }
 };
 
-/**
- * Toggle pin status of an announcement (staff only)
- */
+
 export const toggleAnnouncementPin = async (id: string): Promise<Announcement> => {
   try {
     const response = await api.post(`/v2/proj/announcements/${id}/toggle_pin/`);

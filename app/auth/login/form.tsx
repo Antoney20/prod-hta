@@ -111,7 +111,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password Field */}
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
@@ -145,7 +145,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Remember me and Forgot password */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -169,7 +168,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -201,7 +199,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Register Link */}
           <div className="mt-6 text-center">
             <a
               href="/auth/register"
@@ -212,7 +209,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
             By signing in, you agree to our{' '}

@@ -226,7 +226,6 @@ export default function AssignCategoriesPage() {
         />
       </div>
 
-      {/* Table Card */}
       <Card className="border-slate-200 shadow-sm overflow-hidden">
         {/* Table header row */}
         <div className="grid grid-cols-[1.5rem_1fr_auto] gap-x-4 items-center px-6 py-2.5 bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -255,7 +254,6 @@ export default function AssignCategoriesPage() {
           </div>
         )}
 
-        {/* Pagination footer */}
         {!loading && filtered.length > 0 && (
           <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 bg-slate-50/60">
             {/* Page size */}

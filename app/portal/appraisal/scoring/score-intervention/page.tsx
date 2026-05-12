@@ -45,7 +45,6 @@ import {
 const BRAND = "#27aae1";
 const PAGE_SIZE_OPTIONS = [25, 50, 75, 100];
 
-// ── helpers ───────────────────────────────────────────────────────────────────
 
 function scoreProgress(scored: number, total: number) {
   if (total === 0) return null;
@@ -53,8 +52,6 @@ function scoreProgress(scored: number, total: number) {
   if (scored >= total) return "full";
   return "partial";
 }
-
-// ── sub-components ────────────────────────────────────────────────────────────
 
 function StatCard({
   label, value, sub, color,
@@ -121,12 +118,9 @@ function SidebarItem({
   );
 }
 
-// ── main page ─────────────────────────────────────────────────────────────────
-
 export default function PanelAppraisalPage() {
   const router = useRouter();
 
-  // raw data
   const [panelInterventions, setPanelInterventions] = useState<PanelIntervention[]>([]);
   const [categories, setCategories] = useState<SystemCategory[]>([]);
   const [catLinks, setCatLinks] = useState<InterventionSystemCategory[]>([]);
@@ -134,7 +128,6 @@ export default function PanelAppraisalPage() {
   const [myScores, setMyScores] = useState<{ intervention: string; criteria: string }[]>([]);
   const [allInterventionsCount, setAllInterventionsCount] = useState(0);
 
-  // ui state
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [sidebarSearch, setSidebarSearch] = useState("");
@@ -143,7 +136,6 @@ export default function PanelAppraisalPage() {
   const [pageSize, setPageSize] = useState(25);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // ── load ────────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -173,7 +165,6 @@ export default function PanelAppraisalPage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(1); }, [activeCategory, tableSearch, pageSize]);
 
-  // ── derived: enrich ─────────────────────────────────────────────────────────
 
   const totalCriteria = criteria.length;
 
@@ -193,7 +184,6 @@ export default function PanelAppraisalPage() {
     });
   }, [panelInterventions, myScores, totalCriteria]);
 
-  // ── derived: category groups ────────────────────────────────────────────────
 
   const groups = useMemo((): PanelCategoryGroup[] => {
     const panelInterventionIds = new Set(enriched.map((e) => e.panelRecord.intervention_id));
@@ -229,15 +219,12 @@ export default function PanelAppraisalPage() {
     [enriched, categorisedIds]
   );
 
-  // ── stats ───────────────────────────────────────────────────────────────────
-
   const totalAtPanel = enriched.length;
   const totalScoredByMe = enriched.filter((e) => e.scoredCount > 0).length;
   const totalFullyScoredByMe = enriched.filter(
     (e) => e.scoredCount >= totalCriteria && totalCriteria > 0
   ).length;
 
-  // ── active view ─────────────────────────────────────────────────────────────
 
   const activeGroup = useMemo(() => {
     if (activeCategory === "all" || activeCategory === "unassigned") return null;
@@ -263,15 +250,11 @@ export default function PanelAppraisalPage() {
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
 
-  // ── sidebar filtered ────────────────────────────────────────────────────────
-
   const filteredGroups = useMemo(() => {
     if (!sidebarSearch) return groups;
     const q = sidebarSearch.toLowerCase();
     return groups.filter((g) => g.category.name.toLowerCase().includes(q));
   }, [groups, sidebarSearch]);
-
-  // ── pagination numbers ──────────────────────────────────────────────────────
 
   const pageNumbers = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];
@@ -287,8 +270,6 @@ export default function PanelAppraisalPage() {
     return pages;
   }, [page, totalPages]);
 
-  // ── labels ──────────────────────────────────────────────────────────────────
-
   const activeCategoryLabel =
     activeCategory === "all" ? "All Panel Interventions"
     : activeCategory === "unassigned" ? "Unassigned Interventions"
@@ -300,8 +281,6 @@ export default function PanelAppraisalPage() {
     : activeCategory === "unassigned"
       ? "These interventions have not yet been linked to a system category."
     : activeGroup?.category.description ?? "";
-
-  // ── sidebar ─────────────────────────────────────────────────────────────────
 
   const SidebarNav = ({ onSelect }: { onSelect?: () => void }) => (
     <nav className="flex-1 overflow-y-auto divide-y divide-slate-100">
@@ -352,8 +331,6 @@ export default function PanelAppraisalPage() {
       </div>
     </div>
   );
-
-  // ── render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex flex-col gap-5 h-full">
@@ -414,8 +391,6 @@ export default function PanelAppraisalPage() {
           </div>
         </div>
       </div>
-
-      {/* Mobile Sheet */}
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent side="left" className="w-[300px] sm:w-[340px] p-0 flex flex-col">
           <SheetHeader className="px-4 pt-5 pb-0">
@@ -447,16 +422,12 @@ export default function PanelAppraisalPage() {
           className="flex border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm"
           style={{ minHeight: 520 }}
         >
-          {/* Desktop sidebar */}
           <aside className="hidden lg:flex flex-col border-r border-slate-200" style={{ width: "20%" }}>
             <SidebarHeader />
             <SidebarNav />
           </aside>
 
-          {/* Main panel */}
           <div className="flex flex-col flex-1 min-w-0">
-
-            {/* Panel header */}
             <div className="px-4 sm:px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -475,7 +446,6 @@ export default function PanelAppraisalPage() {
                 </div>
               </div>
 
-              {/* Toolbar */}
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 <div className="relative flex-1 min-w-[160px] max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
@@ -505,7 +475,6 @@ export default function PanelAppraisalPage() {
               </div>
             </div>
 
-            {/* Table */}
             <div className="flex-1 overflow-auto">
               {paginatedItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
@@ -598,7 +567,6 @@ export default function PanelAppraisalPage() {
               )}
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="border-t border-slate-100 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 bg-slate-50/40">
                 <p className="text-xs text-slate-500">

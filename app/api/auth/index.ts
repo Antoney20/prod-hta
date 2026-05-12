@@ -96,7 +96,6 @@ export interface AuthResponse {
   errors?: any;
 }
 
-// ==================== REGISTRATION TYPES ====================
 export interface RegisterUserData {
   username: string;
   email: string;
@@ -115,11 +114,11 @@ export interface RegisterMemberData {
   notes: string;
 }
 
-// In-memory token storage as primary source
+// in-memory token storage as primary source
 let memoryAccessToken: string | null = null;
 let memoryRefreshToken: string | null = null;
 
-// Cookie handlers
+// cookie handlers
 const setCookie = (name: string, value: string, days = 7, secure = true) => {
   if (typeof document !== 'undefined') {
     const expires = new Date(Date.now() + days * 864e5).toUTCString();
@@ -203,9 +202,7 @@ const setTokens = (accessToken: string, refreshToken: string) => {
   memoryAccessToken = accessToken;
   memoryRefreshToken = refreshToken;
   
-  // Store access token for 1 day (matching backend config)
   setCookie('access_token_backup', accessToken, 1);
-  // Store refresh token for 10 days (matching backend config)
   setCookie('refresh_token_backup', refreshToken, 10);
 };
 
@@ -288,11 +285,10 @@ export const login = async (usernameOrEmail: string, password: string): Promise<
   }
 };
 
-// ==================== REGISTRATION FUNCTIONS (NEW) ====================
 
 
 /**
- * Register new user with combined user + member data
+ * Register new user here 
  */
 export const registerUser = async (
   userData: RegisterUserData,
@@ -346,7 +342,7 @@ export const registerUser = async (
 };
 
 /**
- * Complete member profile after registration
+ * complete member profile after registration
  */
 export const completeMemberProfile = async (data: RegisterMemberData): Promise<AuthResponse> => {
   try {
@@ -428,7 +424,6 @@ export const logout = async (): Promise<void> => {
     clearTokens();
     
     if (typeof window !== 'undefined') {
-      // Use router.push if using Next.js router, otherwise use window.location
       window.location.href = '/auth/login';
     }
   }
@@ -450,7 +445,7 @@ export const checkAndRefreshAuth = async (): Promise<boolean> => {
     return true;
   }
   
-  // Try to refresh if access token is invalid
+  // try to refresh if access token is invalid
   const newToken = await refreshAccessToken();
   return !!newToken;
 };
@@ -521,7 +516,7 @@ export const useAuth = () => {
     setRefreshToken(getRefreshToken());
   };
   
-  // Enhanced login for React components
+  // Enhanced login 
   const reactLogin = async (usernameOrEmail: string, password: string): Promise<AuthResponse> => {
     const data = await login(usernameOrEmail, password);
     syncTokensToState();
@@ -533,7 +528,6 @@ export const useAuth = () => {
     return data;
   };
 
-  // Enhanced register for React components
   const reactRegister = async (
     userData: RegisterUserData,
     memberData?: RegisterMemberData
@@ -548,7 +542,6 @@ export const useAuth = () => {
     return data;
   };
   
-  // Enhanced logout for React components
   const reactLogout = async (): Promise<void> => {
     await logout();
     setAccessToken(null);
@@ -556,7 +549,6 @@ export const useAuth = () => {
     setUser(null);
   };
   
-  // Initialize authentication state
   useEffect(() => {
     const initAuth = async () => {
       setIsLoading(true);
@@ -568,7 +560,7 @@ export const useAuth = () => {
           setUser(userData);
         } catch (error) {
           console.error('Failed to fetch user data during init:', error);
-          // Don't clear tokens here - let the user continue if possible
+          // pass
         }
       }
       
@@ -578,7 +570,7 @@ export const useAuth = () => {
     initAuth();
   }, []);
   
-  // Periodic token check
+  // token check
   useEffect(() => {
     const checkTokens = () => {
       const currentAccessToken = getAccessToken();

@@ -84,7 +84,6 @@ export const deleteAppraisalCriteria = async (
   }
 };
 
-// ─── CriteriaAppraisalScore ───────────────────────────────────────────────────
 
 export const getAppraisalScores = async (
   interventionId?: string

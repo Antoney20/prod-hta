@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { CriteriaAppraisalTool } from "@/types/new/appraisal";
 import { RichEditor } from "@/components/shared/editor";
 import { sanitizeHtml } from "@/app/portal/config/criteria-information/cc/clean";
@@ -100,7 +100,6 @@ export function AppraisalToolForm({
  
         <form onSubmit={handleSubmit} className="space-y-5 py-6">
  
-          {/* Criteria */}
           <div className="space-y-1.5">
             <Label>Criteria <span className="text-destructive">*</span></Label>
             <Input
@@ -137,8 +136,6 @@ export function AppraisalToolForm({
     maxHeight={280}
   />
 </div>
-
- 
           <Separator />
           <div className="space-y-1.5">
             <Label>Score</Label>

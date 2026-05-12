@@ -47,8 +47,6 @@ export const getAppraisalCriteria = async (): Promise<CriteriaAppraisalTool[]> =
   }
 };
 
-// ── My scores ─────────────────────────────────────────────────────────────────
-
 export const getMyScores = async (
   interventionId?: string
 ): Promise<CriteriaAppraisalScore[]> => {
@@ -63,7 +61,6 @@ export const getMyScores = async (
   }
 };
 
-// ── Write ─────────────────────────────────────────────────────────────────────
 
 export const createScore = async (
   interventionId: string,

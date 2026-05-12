@@ -77,8 +77,6 @@ function ContactFormSection() {
           type: 'success',
           message: result.message
         });
-       
-        // Reset form immediately on success
         resetForm();
         
 
@@ -91,7 +89,6 @@ function ContactFormSection() {
           message: result.message
         });
         
-        // Clear error message after 5 seconds
         setTimeout(() => {
           setSubmitStatus({ type: null, message: '' });
         }, 5000);
@@ -102,7 +99,6 @@ function ContactFormSection() {
         message: 'An unexpected error occurred. Please try again.'
       });
       
-      // Clear error message after 5 seconds
       setTimeout(() => {
         setSubmitStatus({ type: null, message: '' });
       }, 5000);

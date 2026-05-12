@@ -202,11 +202,10 @@ function InterventionSearchInput({ value, onChange, disabled, checking }: Interv
   const select = async (r: InterventionSearchResult) => {
     setOpen(false);
     await onChange(r);
-    // Only update the query text if onChange didn't block (duplicate check passes)
-    // The parent sets selectedIntervention only on success, so we sync from the value prop
+
   };
 
-  // Keep query text in sync with value prop (handles blocked/rejected selections)
+
   useEffect(() => {
     if (value) {
       setQuery(`${value.reference_number} — ${value.intervention_name}`);
@@ -256,7 +255,6 @@ function InterventionSearchInput({ value, onChange, disabled, checking }: Interv
   );
 }
 
-// ── Small helpers ────────────────────────────────────────────────────────────
 
 function SectionTitle({ label, description, required, badge }: { label: string; description?: string; required?: boolean; badge?: React.ReactNode }) {
   return (
@@ -297,7 +295,6 @@ function SubmitBanner({ state, onDismiss }: { state: SubmitState; onDismiss?: ()
   );
 }
 
-// ── HTML field keys that need sanitization before save ────────────────────────
 
 const HTML_FIELD_KEYS = new Set<keyof FormState>([
   "brief_info", "clinical_effectiveness", "burden_of_disease", "population",
@@ -325,8 +322,6 @@ function formIsEmpty(form: FormState): boolean {
   }
   return true;
 }
-
-// ── Public API ───────────────────────────────────────────────────────────────
 
 export interface CriteriaFormProps {
   initial?: CriteriaInformation | null;
@@ -375,7 +370,7 @@ export function CriteriaForm({ initial, onSuccess, onCancel, hasChangesRef }: Cr
     if (hasChangesRef) hasChangesRef.current = hasChanges;
   }, [hasChanges, hasChangesRef]);
 
-  // ── auto-save draft on every form change ─────────────────────────────────
+
   useEffect(() => {
     if (formIsEmpty(form)) {
       clearDraft(editId);
@@ -384,7 +379,6 @@ export function CriteriaForm({ initial, onSuccess, onCancel, hasChangesRef }: Cr
     saveDraft(form, editId);
   }, [form, editId]);
 
-  // ── load categories when intervention changes ─────────────────────────────
   useEffect(() => {
     if (!form.intervention) { setCategories([]); return; }
     getInterventionCategories(form.intervention).then((res: any) => {

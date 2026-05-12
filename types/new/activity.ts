@@ -2,7 +2,7 @@
 import type { Member } from "@/types/dashboard/members";
 import { ISODateString } from "./shared";
 
-export type UrgencyLevel = "low" | "medium" | "high" | "critical";
+export type UrgencyLevel = "low" | "medium" | "high" | "urgent";
 export type ActivityStatus = "pending" | "in_progress" | "completed" | "cancelled";
 
 

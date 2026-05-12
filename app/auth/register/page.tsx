@@ -48,9 +48,21 @@ const RegisterForm = () => {
     if (!userData.first_name) newErrors.first_name = 'First name is required';
     if (!userData.last_name) newErrors.last_name = 'Last name is required';
 
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+const validateStep2 = () => {
+  const newErrors: Record<string, string> = {};
+
+  if (!memberData.organization) newErrors.organization = 'Organization is required';
+  if (!memberData.phone_number) newErrors.phone_number = 'Phone number is required';
+
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
+
 
   const handleNext = () => {
     if (validateStep1()) {
@@ -61,6 +73,7 @@ const RegisterForm = () => {
 
   const handleSubmit = async () => {
     try {
+      if (!validateStep2()) return; 
       setLoading(true);
       setErrors({});
 
@@ -377,7 +390,9 @@ const RegisterForm = () => {
                     onChange={(e) => setMemberData({ ...memberData, organization: e.target.value })}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Ministry of Health"
+              
                   />
+                  {errors.organization && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.organization}</p>}
                 </div>
               </div>
 
@@ -391,7 +406,9 @@ const RegisterForm = () => {
                     onChange={(e) => setMemberData({ ...memberData, phone_number: e.target.value })}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="+254 700 000 000"
+                    required
                   />
+                  {errors.phone_number && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.phone_number}</p>}
                 </div>
               </div>
 

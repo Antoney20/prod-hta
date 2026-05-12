@@ -58,7 +58,7 @@ export function ActivityForm({ open, onClose, onSubmit, isSubmitting }: Props) {
             <Input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder="e.g. Q3 Planning Review"
+              placeholder="e.g. Activity 2 : HTA Analysis"
             />
             {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
           </div>

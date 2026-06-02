@@ -9,7 +9,7 @@ import {
   UpdateScoringWindowData,
  ScoringWindow } from '@/types/new/manage-scoring';
 
-const BASE = '/v1/scoring-windows/';
+const BASE = '/v3/scoring-windows/';
 
 
 function unwrap<T>(res: { data: { success: boolean; message: string; data: T | null } }): T {

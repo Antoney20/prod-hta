@@ -35,6 +35,7 @@ import {
   NotepadTextDashed,
   Plus,
   HomeIcon,
+  AlertCircleIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -179,6 +180,7 @@ const adminNavItems: NavItem[] = [
     children: [
       { type: "link", title: "Review Status",  href: "/portal/tracker/review-status", icon: <ActivitySquare className="h-4 w-4" /> },
       { type: "link", title: "Decision Types", href: "/portal/tracker/decision",      icon: <Gavel className="h-4 w-4" /> },
+      { type: "link", title: "Manage Scoring Timelines", href: "/portal/tracker/manage-scoring",      icon: <AlertCircleIcon className="h-4 w-4" /> },
     ],
   },
 

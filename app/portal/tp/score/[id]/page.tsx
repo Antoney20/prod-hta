@@ -29,6 +29,9 @@ import { getCriteriaInfoByIntervention } from "@/app/api/new/criteria-info";
 import { ScoringWizard } from "./wizard";
 import { ActiveCriteriaPanel, BasicInfoPanel, NoCriteriaPanel } from "./details";
 import { useGlobalUser } from "@/app/context/guard";
+import { ScoringLevel, ScoringWindow } from "@/types/new/manage-scoring";
+import { getScoringWindows } from "@/app/api/new/manage-scoring";
+import { ScoringWindowStatus } from "./scoring_status";
 
 export default function InterventionScoringPage() {
   const { id } = useParams<{ id: string }>();
@@ -44,28 +47,53 @@ export default function InterventionScoringPage() {
   const [drafts, setDrafts] = useState<Record<string, DraftScore>>({});
   const [activeCriteriaLabel, setActiveCriteriaLabel] = useState<string>("");
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [scoringWindow, setScoringWindow] = useState<ScoringWindow | null>(null);
 
   const STORAGE_KEY = `scoring-drafts:${id}`;
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [p, toolList, scoreList, criteriaList] = await Promise.all([
-        getSubmittedProposalById(id),
-        getSelectionTools(),
-        getInterventionScores(id),
-        getCriteriaInfoByIntervention(id),
-      ]);
-      setProposal(p);
-      setTools(toolList);
-      setSavedScores(scoreList);
-      setCriteriaInfoList(criteriaList);
-    } catch {
-      toast.error("Failed to load.");
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  // const load = useCallback(async () => {
+  //   setLoading(true);
+  //   try {
+  //     const [p, toolList, scoreList, criteriaList] = await Promise.all([
+  //       getSubmittedProposalById(id),
+  //       getSelectionTools(),
+  //       getInterventionScores(id),
+  //       getCriteriaInfoByIntervention(id),
+  //     ]);
+  //     setProposal(p);
+  //     setTools(toolList);
+  //     setSavedScores(scoreList);
+  //     setCriteriaInfoList(criteriaList);
+  //   } catch {
+  //     toast.error("Failed to load.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [id]);
+
+
+const load = useCallback(async () => {
+  setLoading(true);
+  try {
+    const [p, toolList, scoreList, criteriaList, windows] = await Promise.all([
+      getSubmittedProposalById(id),
+      getSelectionTools(),
+      getInterventionScores(id),
+      getCriteriaInfoByIntervention(id),
+      getScoringWindows({ intervention: id, level: ScoringLevel.PANEL }),
+    ]);
+    setProposal(p);
+    setTools(toolList);
+    setSavedScores(scoreList);
+    setCriteriaInfoList(criteriaList);
+    setScoringWindow(windows[0] ?? null);
+  } catch {
+    toast.error("Failed to load.");
+  } finally {
+    setLoading(false);
+  }
+}, [id]);
+
 
   useEffect(() => {
     load();
@@ -236,6 +264,7 @@ const handleSubmitAll = async () => {
           </Button>
         </div>
       </div>
+      {/* <ScoringWindowStatus scoringWindow={scoringWindow} /> */}
 
       {!hasCriteriaInfo && <NoCriteriaPanel />}
 

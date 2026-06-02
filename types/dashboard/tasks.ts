@@ -57,11 +57,12 @@ export interface CreateTaskData {
   description?: string;
   notes?: string;
   priority?: PriorityLevel;
-  due_date?: string; // ISO date string
+  due_date?: string;
   progress?: number;
   position_x?: number;
   position_y?: number;
-  assigned_user_ids?: number[]; // Array of user IDs to assign
+  assigned_user_ids?: number[];
+  send_email_alert?: boolean;
 }
 
 export interface UpdateTaskData {

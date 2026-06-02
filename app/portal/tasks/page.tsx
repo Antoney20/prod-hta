@@ -1,361 +1,237 @@
 'use client';
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Circle, CheckCircle, AlertTriangle, Calendar, User, X } from 'lucide-react';
+import { Plus, Circle, CheckCircle, AlertTriangle, Calendar, User, Eye, Edit2, Trash2, X } from 'lucide-react';
 import { completeTask, getMyTasks, updateTask, deleteTask as deleteTaskAPI, createTask } from '@/app/api/dashboard/tasks';
 import { getUsers } from '@/app/api/dashboard/proposals';
 import { PriorityLevel, TaskStatus, Task, CustomUser } from '@/types/dashboard/tasks';
 import { Button } from '@/components/ui/button';
 import CreateTaskDialog from './create';
-import TaskActions from './actions';
 import ViewTaskDialog from './view';
 import EditTaskDialog from './edit';
 import DeleteTaskDialog from './delete';
 
-const getPriorityColor = (priority: PriorityLevel) => {
-  switch (priority) {
-    case PriorityLevel.URGENT:
-      return 'text-red-600 bg-red-100';
-    case PriorityLevel.HIGH:
-      return 'text-orange-600 bg-orange-100';
-    case PriorityLevel.MEDIUM:
-      return 'text-yellow-600 bg-yellow-100';
-    case PriorityLevel.LOW:
-      return 'text-green-600 bg-green-100';
-    default:
-      return 'text-gray-800 bg-gray-100';
-  }
+const MAX_SELECTION = 3;
+
+const priorityStyles: Record<string, string> = {
+  urgent: 'text-red-700 bg-red-50 border-red-200',
+  high:   'text-orange-700 bg-orange-50 border-orange-200',
+  medium: 'text-yellow-700 bg-yellow-50 border-yellow-200',
+  low:    'text-green-700 bg-green-50 border-green-200',
 };
 
 const navigationItems = [
-  { key: 'my_tasks', label: 'My Tasks', icon: User },
-  { key: 'today', label: 'Today', icon: Calendar },
-  { key: 'tomorrow', label: 'Tomorrow', icon: Calendar },
+  { key: 'my_tasks',  label: 'My Tasks',  icon: User },
+  { key: 'today',     label: 'Today',     icon: Calendar },
+  { key: 'tomorrow',  label: 'Tomorrow',  icon: Calendar },
   { key: 'completed', label: 'Completed', icon: CheckCircle },
-  { key: 'overdue', label: 'Overdue', icon: AlertTriangle },
+  { key: 'overdue',   label: 'Overdue',   icon: AlertTriangle },
 ];
 
-const getDateString = (daysOffset: number): string => {
-  const date = new Date();
-  date.setDate(date.getDate() + daysOffset);
-  return date.toISOString().split('T')[0];
+const getDateString = (offset: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toISOString().split('T')[0];
 };
 
-const getDateDisplayName = (dateStr: string): string => {
-  const today = getDateString(0);
-  const tomorrow = getDateString(1);
-  const yesterday = getDateString(-1);
-  
-  if (dateStr === today) return 'Today';
-  if (dateStr === tomorrow) return 'Tomorrow';
-  if (dateStr === yesterday) return 'Yesterday';
-  
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-};
-
-const sortDates = (dates: string[]): string[] => {
-  const today = getDateString(0);
-  const tomorrow = getDateString(1);
-  const yesterday = getDateString(-1);
-  
-  return dates.sort((a, b) => {
-    if (a === today) return -1;
-    if (b === today) return 1;
-    
-    if (a === tomorrow) return -1;
-    if (b === tomorrow) return 1;
-    
-    if (a === yesterday) return -1;
-    if (b === yesterday) return 1;
-    
-    return new Date(a).getTime() - new Date(b).getTime();
-  });
+const formatDate = (iso?: string | null) => {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [activeFilter, setActiveFilter] = useState<string>('my_tasks');
   const [showAddTask, setShowAddTask] = useState(false);
   const [availableUsers, setAvailableUsers] = useState<CustomUser[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const [viewTask, setViewTask] = useState<Task | null>(null);
-  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [viewTask, setViewTask]         = useState<Task | null>(null);
+  const [editTask, setEditTask]         = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
 
-  // Fetch tasks
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
-    const fetchTasks = async () => {
+    (async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setLoading(true); setError(null);
         const data = await getMyTasks();
         setTasks(Array.isArray(data) ? data : (data as any)?.results || []);
-      } catch (error) {
-        setError('Failed to fetch tasks. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
+      } catch { setError('Failed to fetch tasks. Please try again.'); }
+      finally { setLoading(false); }
+    })();
   }, []);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      if (!showAddTask && !editTask) return;
-
+    if (!showAddTask && !editTask) return;
+    (async () => {
       try {
-        const response = await getUsers();
-        setAvailableUsers(Array.isArray(response) ? response : (response as any)?.results || []);
-      } catch (error) {
-        setError('Failed to load users. Please try again.');
-      }
-    };
-
-    fetchUsers();
+        const res = await getUsers();
+        setAvailableUsers(Array.isArray(res) ? res : (res as any)?.results || []);
+      } catch { setError('Failed to load users. Please try again.'); }
+    })();
   }, [showAddTask, editTask]);
 
+  // Clear selection when filter changes
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [activeFilter]);
+
   const filteredTasks = useMemo(() => {
-    const today = getDateString(0);
+    const today    = getDateString(0);
     const tomorrow = getDateString(1);
 
     switch (activeFilter) {
       case 'my_tasks':
-        return tasks.filter(task => task.status !== TaskStatus.COMPLETED);
+        return tasks.filter(t => t.status !== TaskStatus.COMPLETED);
       case 'today':
-        return tasks.filter(
-          task => task.due_date && task.due_date.split('T')[0] === today && task.status !== TaskStatus.COMPLETED
-        );
+        return tasks.filter(t => t.due_date?.split('T')[0] === today && t.status !== TaskStatus.COMPLETED);
       case 'tomorrow':
-        return tasks.filter(
-          task => task.due_date && task.due_date.split('T')[0] === tomorrow && task.status !== TaskStatus.COMPLETED
-        );
+        return tasks.filter(t => t.due_date?.split('T')[0] === tomorrow && t.status !== TaskStatus.COMPLETED);
       case 'completed':
-        return tasks.filter(task => task.status === TaskStatus.COMPLETED);
+        return tasks.filter(t => t.status === TaskStatus.COMPLETED);
       case 'overdue':
-        return tasks.filter(task => task.is_overdue && task.status !== TaskStatus.COMPLETED);
+        return tasks.filter(t => t.is_overdue && t.status !== TaskStatus.COMPLETED);
       default:
         return tasks;
     }
   }, [tasks, activeFilter]);
 
-  const groupedTasks = useMemo(() => {
-    if (activeFilter === 'completed') {
-      return { [activeFilter]: filteredTasks };
+  const getFilterCount = useCallback((filter: string) => {
+    const today    = getDateString(0);
+    const tomorrow = getDateString(1);
+    switch (filter) {
+      case 'my_tasks':  return tasks.filter(t => t.status !== TaskStatus.COMPLETED).length;
+      case 'today':     return tasks.filter(t => t.due_date?.split('T')[0] === today && t.status !== TaskStatus.COMPLETED).length;
+      case 'tomorrow':  return tasks.filter(t => t.due_date?.split('T')[0] === tomorrow && t.status !== TaskStatus.COMPLETED).length;
+      case 'completed': return tasks.filter(t => t.status === TaskStatus.COMPLETED).length;
+      case 'overdue':   return tasks.filter(t => t.is_overdue && t.status !== TaskStatus.COMPLETED).length;
+      default: return 0;
     }
-    
-    if (activeFilter === 'overdue') {
-      const grouped: { [key: string]: Task[] } = {};
-      
-      filteredTasks.forEach(task => {
-        const dateKey = task.due_date ? task.due_date.split('T')[0] : 'no-date';
-        if (!grouped[dateKey]) {
-          grouped[dateKey] = [];
-        }
-        grouped[dateKey].push(task);
-      });
-      
-      return grouped;
-    }
-
-    const grouped: { [key: string]: Task[] } = {};
-    
-    filteredTasks.forEach(task => {
-      const dateKey = task.due_date ? task.due_date.split('T')[0] : 'no-date';
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = [];
-      }
-      grouped[dateKey].push(task);
-    });
-
-    Object.keys(grouped).forEach(dateKey => {
-      grouped[dateKey].sort((a, b) => {
-        // Overdue tasks first
-        if (a.is_overdue && !b.is_overdue) return -1;
-        if (!a.is_overdue && b.is_overdue) return 1;
-        
-        // Then by priority
-        const priorityOrder = {
-          [PriorityLevel.URGENT]: 4,
-          [PriorityLevel.HIGH]: 3,
-          [PriorityLevel.MEDIUM]: 2,
-          [PriorityLevel.LOW]: 1
-        };
-        
-        return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
-      });
-    });
-
-    return grouped;
-  }, [filteredTasks, activeFilter]);
-
-  // Get sorted date keys
-  const sortedDateKeys = useMemo(() => {
-    const dateKeys = Object.keys(groupedTasks).filter(key => key !== 'no-date' && key !== 'completed' && key !== 'overdue');
-    const sorted = sortDates(dateKeys);
-    
-    if (groupedTasks['no-date']) {
-      sorted.push('no-date');
-    }
-    
-    if (groupedTasks['completed']) {
-      return ['completed'];
-    }
-    if (groupedTasks['overdue']) {
-      return sorted.length > 0 ? sorted : Object.keys(groupedTasks);
-    }
-    
-    return sorted;
-  }, [groupedTasks]);
-
-  const handleTaskClick = useCallback((task: Task) => {
-    if (task.status !== TaskStatus.COMPLETED) {
-      setTaskToComplete(task);
-    }
-  }, []);
+  }, [tasks]);
 
   const handleCompleteTask = useCallback(async (taskId: string) => {
     try {
-      const updatedTask = await completeTask(taskId);
-      setTasks(prevTasks =>
-        prevTasks.map(task => (task.id === taskId ? updatedTask : task))
-      );
-    } catch (error) {
-      setError('Failed to complete task. Please try again.');
-      throw error;
-    }
+      const updated = await completeTask(taskId);
+      setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
+    } catch { setError('Failed to complete task. Please try again.'); }
   }, []);
 
-  // Handle task creation
   const handleCreateTask = useCallback(async (taskData: any) => {
     try {
-      const createdTask = await createTask(taskData);
-      setTasks(prevTasks => [createdTask, ...prevTasks]);
+      const created = await createTask(taskData);
+      setTasks(prev => [created, ...prev]);
       setShowAddTask(false);
-      return createdTask;
-    } catch (error) {
-      setError('Failed to create task. Please try again.');
-      throw error;
-    }
+      return created;
+    } catch (e) { setError('Failed to create task. Please try again.'); throw e; }
   }, []);
 
   const handleUpdateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
     try {
-      const updatedTask = await updateTask(taskId, updates);
-      setTasks(prevTasks =>
-        prevTasks.map(task => (task.id === taskId ? updatedTask : task))
-      );
-      return updatedTask;
-    } catch (error) {
-      setError('Failed to update task. Please try again.');
-      throw error;
-    }
+      const updated = await updateTask(taskId, updates);
+      setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
+      return updated;
+    } catch (e) { setError('Failed to update task. Please try again.'); throw e; }
   }, []);
 
-  // Handle task deletion
   const handleDeleteTask = useCallback(async (taskId: string) => {
     try {
       await deleteTaskAPI(taskId);
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    } catch (error) {
-      setError('Failed to delete task. Please try again.');
-      throw error;
-    }
+      setTasks(prev => prev.filter(t => t.id !== taskId));
+      setSelectedIds(prev => {
+        const next = new Set(prev);
+        next.delete(taskId);
+        return next;
+      });
+    } catch (e) { setError('Failed to delete task. Please try again.'); throw e; }
   }, []);
 
-  const getFilterCount = useCallback(
-    (filter: string) => {
-      const today = getDateString(0);
-      const tomorrow = getDateString(1);
-
-      switch (filter) {
-        case 'my_tasks':
-          return tasks.filter(task => task.status !== TaskStatus.COMPLETED).length;
-        case 'today':
-          return tasks.filter(
-            task => task.due_date && task.due_date.split('T')[0] === today && task.status !== TaskStatus.COMPLETED
-          ).length;
-        case 'tomorrow':
-          return tasks.filter(
-            task => task.due_date && task.due_date.split('T')[0] === tomorrow && task.status !== TaskStatus.COMPLETED
-          ).length;
-        case 'completed':
-          return tasks.filter(task => task.status === TaskStatus.COMPLETED).length;
-        case 'overdue':
-          return tasks.filter(task => task.is_overdue && task.status !== TaskStatus.COMPLETED)
-            .length;
-        default:
-          return 0;
+  // Selection helpers
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < MAX_SELECTION) {
+        next.add(id);
       }
-    },
-    [tasks]
-  );
+      return next;
+    });
+  }, []);
 
-  const getAssignedUsersText = (task: Task): string => {
-    if (!task.assignments || task.assignments.length === 0) return '';
-    
-    const usernames = task.assignments
-      .map(assignment => assignment.user?.username)
-      .filter(Boolean);
-    
-    return usernames.join(', ');
-  };
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleBulkComplete = useCallback(async () => {
+    const ids = Array.from(selectedIds);
+    for (const id of ids) {
+      const t = tasks.find(x => x.id === id);
+      if (t && t.status !== TaskStatus.COMPLETED) {
+        await handleCompleteTask(id);
+      }
+    }
+    clearSelection();
+  }, [selectedIds, tasks, handleCompleteTask, clearSelection]);
+
+  const handleBulkView = useCallback(() => {
+    if (selectedIds.size !== 1) return;
+    const id = Array.from(selectedIds)[0];
+    const task = tasks.find(t => t.id === id);
+    if (task) setViewTask(task);
+  }, [selectedIds, tasks]);
+
+  const handleBulkDelete = useCallback(() => {
+    if (selectedIds.size !== 1) return;
+    const id = Array.from(selectedIds)[0];
+    const task = tasks.find(t => t.id === id);
+    if (task) setTaskToDelete(task);
+  }, [selectedIds, tasks]);
+
+  const assignedNames = (t: Task) =>
+    t.assignments?.map(a => a.user?.username).filter(Boolean).join(', ') || '—';
+
+  const selectionCount = selectedIds.size;
+  const canSelectMore  = selectionCount < MAX_SELECTION;
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-white border-b border-gray-200 px-1 sm:px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto space-y-4 sm:space-y-0">
+      {/* Header */}
+      <div className="border-b border-gray-200 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto gap-4">
           <Button
             onClick={() => setShowAddTask(true)}
-            className="flex items-center space-x-2 bg-[#27aae1] text-white hover:bg-[#1e8bb8] mx-2 sm:mx-0"
+            className="flex items-center space-x-2 bg-[#27aae1] text-white hover:bg-[#1e8bb8]"
           >
             <Plus size={16} />
             <span className="font-medium">Add Task</span>
           </Button>
-          
+
           <nav className="overflow-x-auto">
-            <div className="flex items-center space-x-2 sm:space-x-6 px-2 sm:px-0 pb-2 sm:pb-0">
+            <div className="flex items-center gap-2 sm:gap-3">
               {navigationItems.map(item => {
                 const Icon = item.icon;
                 const count = getFilterCount(item.key);
                 const isActive = activeFilter === item.key;
-
                 return (
                   <Button
                     key={item.key}
                     variant={isActive ? 'default' : 'ghost'}
-                    onClick={() => {
-                      setActiveFilter(item.key);
-                      setCurrentPage(1);
-                    }}
-                    className={`flex items-center space-x-2 whitespace-nowrap flex-shrink-0 text-xs sm:text-sm ${
+                    onClick={() => setActiveFilter(item.key)}
+                    className={`flex items-center gap-2 whitespace-nowrap text-xs sm:text-sm ${
                       isActive
-                        ? 'bg-[#27aae1] text-white shadow-sm'
+                        ? 'bg-[#27aae1] text-white'
                         : 'text-gray-700 hover:bg-gray-100 hover:text-[#27aae1]'
-                    } ${item.key === 'overdue' && count > 0 ? 'hover:text-[#fe7105]' : ''}`}
+                    }`}
                   >
-                    <Icon size={14} className="sm:size-4" />
+                    <Icon size={14} />
                     <span className="font-medium">{item.label}</span>
                     {count > 0 && (
-                      <span
-                        className={`text-xs px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full ${
-                          isActive
-                            ? 'bg-white/20 text-white'
-                            : item.key === 'overdue'
-                            ? 'bg-[#fe7105] text-white'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}
-                      >
-                        {count}
-                      </span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        isActive ? 'bg-white/20 text-white'
+                        : item.key === 'overdue' ? 'bg-[#fe7105] text-white'
+                        : 'bg-gray-200 text-gray-700'
+                      }`}>{count}</span>
                     )}
                   </Button>
                 );
@@ -365,146 +241,199 @@ const TasksPage = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-0 sm:px-6 py-4 sm:py-8">
+      {/* Body */}
+      <div className=" mx-auto  py-6">
+        {/* Bulk action toolbar */}
+        {selectionCount > 0 && (
+          <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900">
+                {selectionCount} selected
+              </span>
+              <span className="text-xs text-gray-500">
+                (max {MAX_SELECTION})
+              </span>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                size="sm"
+                onClick={handleBulkComplete}
+                className="flex items-center gap-1.5 bg-green-600 text-white hover:bg-green-700"
+              >
+                <CheckCircle size={14} />
+                Mark Complete
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkView}
+                disabled={selectionCount !== 1}
+                title={selectionCount !== 1 ? 'Select exactly 1 task to view' : 'View task'}
+                className="flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Eye size={14} />
+                View
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBulkDelete}
+                disabled={selectionCount !== 1}
+                title={selectionCount !== 1 ? 'Select exactly 1 task to delete' : 'Delete task'}
+                className="flex items-center gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 size={14} />
+                Delete
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={clearSelection}
+                title="Clear selection"
+                className="h-8 w-8 p-0"
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          </div>
+        )}
+
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#27aae1]"></div>
-            <span className="ml-3 text-gray-800">Loading tasks...</span>
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#27aae1]" />
+            <span className="ml-3 text-gray-700">Loading tasks...</span>
           </div>
         ) : error ? (
-          <div className="text-center py-12 mx-2">
-            <AlertTriangle className="mx-auto h-12 w-12 text-[#fe7105] mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Tasks</h3>
-            <p className="text-gray-800 mb-4">{error}</p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="bg-[#27aae1] text-white hover:bg-[#1e8bb8]"
-            >
+          <div className="text-center py-16">
+            <AlertTriangle className="mx-auto h-10 w-10 text-[#fe7105] mb-3" />
+            <h3 className="text-base font-medium text-gray-900 mb-2">Error Loading Tasks</h3>
+            <p className="text-gray-700 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()} className="bg-[#27aae1] text-white hover:bg-[#1e8bb8]">
               Retry
             </Button>
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-12 mx-2">
-            <Circle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {activeFilter === 'completed' ? 'No completed tasks yet' : 'No tasks found'}
-            </h3>
-            <p className="text-gray-800">
-              {activeFilter === 'today'
-                ? 'You have no tasks due today. Great job!'
-                : activeFilter === 'tomorrow'
-                ? 'You have no tasks due tomorrow. Great job!'
-                : activeFilter === 'overdue'
-                ? 'No overdue tasks. You\'re all caught up!'
-                : 'Get started by creating your first task.'}
-            </p>
+          <div className="text-center py-16">
+            <Circle className="mx-auto h-10 w-10 text-gray-400 mb-3" />
+            <h3 className="text-base font-medium text-gray-900 mb-1">No tasks found</h3>
+            <p className="text-sm text-gray-600">Get started by creating your first task.</p>
           </div>
         ) : (
-          <div className="space-y-4 sm:space-y-2">
-            {sortedDateKeys.map(dateKey => {
-              const tasksForDate = groupedTasks[dateKey];
-              const isOverdueSection = dateKey !== 'no-date' && dateKey !== 'completed' && tasksForDate.some(task => task.is_overdue);
-              
-              return (
-                <div key={dateKey} className="space-y-3 sm:space-y-4 mx-2 sm:mx-0">
-                  <div className={`flex items-center space-x-2 pb-2 border-b-2 ${
-                    isOverdueSection ? 'border-[#fe7105]' : 'border-gray-200'
-                  }`}>
-                    <h2 className={`text-base sm:text-lg font-semibold ${
-                      isOverdueSection ? 'text-[#fe7105]' : 'text-gray-800'
-                    }`}>
-                      {dateKey === 'no-date' 
-                        ? 'No Due Date' 
-                        : dateKey === 'completed' 
-                        ? 'Completed Tasks'
-                        : getDateDisplayName(dateKey)}
-                    </h2>
-                    <span className={`text-xs sm:text-sm px-2 py-1 rounded-full ${
-                      isOverdueSection 
-                        ? 'bg-[#fe7105] text-white' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {tasksForDate.length}
-                    </span>
-                    {isOverdueSection && (
-                      <AlertTriangle size={14} className="sm:size-4 text-[#fe7105]" />
-                    )}
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {tasksForDate.map((task) => (
-                      <div
+          <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-3 w-10">
+                      <span className="sr-only">Select</span>
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-12">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Title</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Priority</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Due Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Assigned To</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Created By</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {filteredTasks.map((task, idx) => {
+                    const isDone     = task.status === TaskStatus.COMPLETED;
+                    const isSelected = selectedIds.has(task.id);
+                    const disabled   = !isSelected && !canSelectMore;
+                    return (
+                      <tr
                         key={task.id}
-                        className={`flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-white border rounded-lg hover:shadow-sm transition-all duration-200 group ${
-                          task.is_overdue 
-                            ? 'border-[#fe7105] hover:border-[#fe7105]' 
-                            : 'border-gray-200 hover:border-[#27aae1]'
+                        className={`transition-colors ${
+                          isSelected ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-gray-50'
                         }`}
                       >
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleTaskClick(task)}
-                          disabled={task.status === TaskStatus.COMPLETED}
-                          className={`flex-shrink-0 w-5 h-5 rounded-full border-2 ${
-                            task.status === TaskStatus.COMPLETED
-                              ? 'bg-green-500 border-green-500 text-white cursor-not-allowed'
-                              : task.is_overdue
-                              ? 'border-[#fe7105] hover:border-[#fe7105] group-hover:border-[#fe7105]'
-                              : 'border-gray-300 hover:border-[#27aae1] group-hover:border-[#27aae1]'
-                          }`}
-                          title={task.status === TaskStatus.COMPLETED ? 'Task completed' : 'Click to mark as complete'}
-                        >
-                          {task.status === TaskStatus.COMPLETED && (
-                            <CheckCircle size={16} className="text-white" />
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            disabled={disabled}
+                            onChange={() => toggleSelect(task.id)}
+                            title={disabled ? `Max ${MAX_SELECTION} selected` : 'Select task'}
+                            className="w-4 h-4 accent-[#27aae1] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{idx + 1}</td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className={`text-sm font-medium max-w-xs truncate ${
+                            isDone ? 'text-gray-400 line-through'
+                            : task.is_overdue ? 'text-[#fe7105]'
+                            : 'text-gray-900'
+                          }`}>
+                            {task.title}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex text-xs px-2 py-1 rounded-full border ${priorityStyles[task.priority] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>
+                            {task.priority}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {isDone ? (
+                            <span className="inline-flex text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">Completed</span>
+                          ) : task.is_overdue ? (
+                            <span className="inline-flex text-xs px-2 py-1 rounded-full bg-[#fe7105] text-white">Overdue</span>
+                          ) : (
+                            <span className="inline-flex text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-700">{task.status}</span>
                           )}
-                        </Button>
-                        <div className="flex-grow min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                            <h3
-                              className={`font-medium text-sm sm:text-base truncate ${
-                                task.status === TaskStatus.COMPLETED 
-                                  ? 'text-gray-500 line-through' 
-                                  : task.is_overdue
-                                  ? 'text-[#fe7105]'
-                                  : 'text-gray-900'
-                              }`}
-                            >
-                              {task.title}
-                            </h3>
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full border flex-shrink-0 ${getPriorityColor(task.priority)}`}
-                            >
-                              {task.priority}
-                            </span>
-                            {task.is_overdue && (
-                              <span className="text-xs px-2 py-1 rounded-full bg-[#fe7105] text-white flex-shrink-0">
-                                Overdue
-                              </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{formatDate(task.due_date)}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap max-w-[200px] truncate">{assignedNames(task)}</td>
+                        <td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">{task.created_by?.username || '—'}</td>
+                        <td className="px-4 py-3 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {!isDone && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleCompleteTask(task.id)}
+                                title="Mark complete"
+                                className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+                              >
+                                <CheckCircle size={16} />
+                              </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setViewTask(task)}
+                              title="View"
+                              className="h-8 w-8 text-gray-600 hover:bg-gray-100 hover:text-[#27aae1]"
+                            >
+                              <Eye size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditTask(task)}
+                              title="Edit"
+                              className="h-8 w-8 text-gray-600 hover:bg-gray-100 hover:text-[#27aae1]"
+                            >
+                              <Edit2 size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setTaskToDelete(task)}
+                              title="Delete"
+                              className="h-8 w-8 text-gray-600 hover:bg-red-50 hover:text-red-600"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
                           </div>
-                          {task.description && (
-                            <p className="text-xs sm:text-sm text-gray-800 mt-1 line-clamp-2">{task.description}</p>
-                          )}
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-2 text-xs text-gray-500 space-y-1 sm:space-y-0">
-                            <span>
-                              Created by: {task.created_by?.username || 'Unknown'}
-                            </span>
-                            
-                          </div>
-                        </div>
-                        <TaskActions
-                          task={task}
-                          onEdit={setEditTask}
-                          onView={setViewTask}
-                          onDelete={setTaskToDelete}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -514,13 +443,11 @@ const TasksPage = () => {
           onSubmit={handleCreateTask}
           availableUsers={availableUsers}
         />
-
         <ViewTaskDialog
           task={viewTask}
           isOpen={!!viewTask}
           onClose={() => setViewTask(null)}
         />
-
         <EditTaskDialog
           task={editTask}
           isOpen={!!editTask}
@@ -528,71 +455,12 @@ const TasksPage = () => {
           onUpdate={handleUpdateTask}
           availableUsers={availableUsers}
         />
-
         <DeleteTaskDialog
           task={taskToDelete}
           isOpen={!!taskToDelete}
           onClose={() => setTaskToDelete(null)}
           onConfirm={handleDeleteTask}
         />
-
-        {taskToComplete && (
-          <div className="fixed inset-0 backdrop-brightness-40 flex items-center justify-center z-50 p-2 sm:p-4">
-            <div className="bg-white rounded-lg w-full max-w-md">
-              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Complete Task</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTaskToComplete(null)}
-                  className="hover:bg-gray-100"
-                >
-                  <X size={20} className="text-gray-500" />
-                </Button>
-              </div>
-              
-              <div className="p-4 sm:p-6">
-                <div className="flex items-start space-x-3 mb-4">
-                  <CheckCircle className="h-8 w-8 text-green-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">Mark this task as completed?</h3>
-                    <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                      <p className="font-medium text-gray-900">{taskToComplete.title}</p>
-                      {taskToComplete.description && (
-                        <p className="text-sm text-gray-800 mt-1 line-clamp-2">{taskToComplete.description}</p>
-                      )}
-               
-                    </div>
-                    <p className="text-sm text-gray-800">
-                      This will mark the task as completed and move it to your completed tasks.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end space-y-2 sm:space-y-0 sm:space-x-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setTaskToComplete(null)}
-                    className="w-full sm:w-auto"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      await handleCompleteTask(taskToComplete.id);
-                      setTaskToComplete(null);
-                    }}
-                    className="flex items-center justify-center space-x-2 w-full sm:w-auto bg-green-600 text-white hover:bg-green-700"
-                  >
-                    <CheckCircle size={16} />
-                    <span>Mark Complete</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

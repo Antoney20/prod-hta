@@ -5,6 +5,8 @@ import Link from "next/link";
 import { PublicProposal } from "@/types/new/public";
 import { Pagination } from "./pagination";
 import { FilterState } from "./filters";
+import { htmlToText } from "@/components/shared/text";
+
 
 interface InterventionsTableProps {
   proposals: PublicProposal[];
@@ -88,6 +90,8 @@ function ErrorState({
 }
 
 function InterventionRow({ proposal: p }: { proposal: PublicProposal }) {
+  const beneficiaryText = htmlToText(p.beneficiary);
+
   return (
     <tr className="border-b border-gray-200 hover:bg-[#f8f8f8] transition-colors group">
       <td className="py-4 px-4 align-top">
@@ -116,8 +120,8 @@ function InterventionRow({ proposal: p }: { proposal: PublicProposal }) {
       </td>
 
       <td className="py-4 px-4 align-top hidden xl:table-cell">
-        <span className="text-sm text-gray-600 line-clamp-2 max-w-xs">
-          {p.beneficiary ?? "—"}
+        <span className="text-sm text-gray-600 line-clamp-2 max-w-xs" title={beneficiaryText || undefined}>
+          {beneficiaryText || "—"}
         </span>
       </td>
 
@@ -146,7 +150,7 @@ export function InterventionsTable({
         (p) =>
           p.intervention_name?.toLowerCase().includes(q) ||
           p.reference_number?.toLowerCase().includes(q) ||
-          p.beneficiary?.toLowerCase().includes(q) ||
+          htmlToText(p.beneficiary).toLowerCase().includes(q) ||
           p.intervention_type?.toLowerCase().includes(q)
       );
     }

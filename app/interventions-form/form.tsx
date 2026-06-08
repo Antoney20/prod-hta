@@ -4,18 +4,26 @@ import React, { useState, ChangeEvent, useEffect } from 'react';
 import type { FormErrors, FormData, EmailResponse } from '../services/types';
 import { ApiResponse, submitProposal } from '../api/interventions';
 import { sanitizeEmail, sanitizeFormData, sanitizePhone, sanitizeText, validateField, validateFormData } from './validate';
+import RichEditor from '@/components/shared/editor';
 
+
+const RICH_FIELDS: (keyof FormData)[] = ['justification', 'expectedImpact', 'additionalInfo'];
+
+const stripHtml = (html: string): string => {
+  if (!html) return '';
+  if (typeof window === 'undefined') return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').trim();
+  const el = document.createElement('div');
+  el.innerHTML = html;
+  return (el.textContent || '').replace(/\u00a0/g, ' ').trim();
+};
+
+const isBlankHtml = (html: string): boolean => stripHtml(html).length === 0;
 
 
 const FieldError: React.FC<{ message?: string }> = ({ message }) =>
   message ? (
     <p role="alert" className="mt-1 text-sm text-red-600 flex items-center gap-1">
-      <svg
-        className="h-4 w-4 shrink-0"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        aria-hidden="true"
-      >
+      <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path
           fillRule="evenodd"
           d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
@@ -25,7 +33,6 @@ const FieldError: React.FC<{ message?: string }> = ({ message }) =>
       {message}
     </p>
   ) : null;
- 
 
 
 const BenefitsForm: React.FC = () => {
@@ -39,7 +46,7 @@ const BenefitsForm: React.FC = () => {
     'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
   ].sort((a, b) => a.localeCompare(b));
 
-  const [formData, setFormData] = useState<FormData>({
+  const blank = (): FormData => ({
     name: '',
     phone: '',
     email: '',
@@ -51,12 +58,13 @@ const BenefitsForm: React.FC = () => {
     beneficiary: '',
     justification: '',
     expectedImpact: '',
-    additionalInfo: '',  
-    uploadedDocument: null, 
+    additionalInfo: '',
+    uploadedDocument: null,
     signature: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
   });
 
+  const [formData, setFormData] = useState<FormData>(blank);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitted, setSubmitted] = useState<boolean>(false);
@@ -64,26 +72,25 @@ const BenefitsForm: React.FC = () => {
   const [emailStatus, setEmailStatus] = useState<EmailResponse | null>(null);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
 
+  const handleRichChange = (name: keyof FormData) => (val: string) => {
+    setFormData((prev) => ({ ...prev, [name]: val }));
+    setFormTouched(true);
+    // clear a "required" error as soon as the editor has real content
+    setErrors((prev) => {
+      if (!prev[name]) return prev;
+      if (!isBlankHtml(val)) {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      }
+      return prev;
+    });
+  };
+
   useEffect(() => {
     if (submitted) {
       const timer = setTimeout(() => {
-        setFormData({
-          name: '',
-          phone: '',
-          email: '',
-          profession: '',
-          organization: '',
-          county: '',
-          interventionName: '',
-          interventionType: '',
-          beneficiary: '',
-          justification: '',
-          expectedImpact: '',
-          additionalInfo: '',  
-          uploadedDocument: null, 
-          signature: '',
-          date: new Date().toISOString().split('T')[0]
-        });
+        setFormData(blank());
         setErrors({});
         setSubmitted(false);
         setFormTouched(false);
@@ -96,26 +103,25 @@ const BenefitsForm: React.FC = () => {
 
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>): void => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  let clean = value;
-  if (name === 'phone')      clean = sanitizePhone(value);
+    let clean = value;
+    if (name === 'phone') clean = sanitizePhone(value);
 
+    const updated = { ...formData, [name]: clean } as FormData;
+    setFormData(updated);
+    setFormTouched(true);
 
-  const updated = { ...formData, [name]: clean } as FormData;
-  setFormData(updated);
-  setFormTouched(true);
-
-  if (errors[name as keyof FormData]) {
-    const fieldErr = validateField(name as keyof FormData, updated);
-    setErrors(prev => {
-      const next = { ...prev };
-      if (fieldErr) next[name as keyof FormData] = fieldErr;
-      else delete next[name as keyof FormData];
-      return next;
-    });
-  }
-};
+    if (errors[name as keyof FormData]) {
+      const fieldErr = validateField(name as keyof FormData, updated);
+      setErrors((prev) => {
+        const next = { ...prev };
+        if (fieldErr) next[name as keyof FormData] = fieldErr;
+        else delete next[name as keyof FormData];
+        return next;
+      });
+    }
+  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0] || null;
@@ -124,11 +130,11 @@ const BenefitsForm: React.FC = () => {
     setFormTouched(true);
 
     const fieldErr = validateField('uploadedDocument', updated);
-    setErrors(prev => {
+    setErrors((prev) => {
       const next = { ...prev };
       if (fieldErr) {
         next.uploadedDocument = fieldErr;
-        e.target.value = ''; // reset native input on error
+        e.target.value = '';
       } else {
         delete next.uploadedDocument;
       }
@@ -139,28 +145,43 @@ const BenefitsForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
 
-  const newErrors = validateFormData(formData);
-  setErrors(newErrors);
+    // validate against plain text for the rich fields so empty markup
+    // (e.g. "<p><br></p>") is correctly treated as empty.
+    const forValidation: FormData = { ...formData };
+    RICH_FIELDS.forEach((f) => {
+      if (typeof forValidation[f] === 'string') {
+        (forValidation[f] as unknown) = stripHtml(forValidation[f] as string);
+      }
+    });
 
-  if (Object.keys(newErrors).length > 0) {
-    const firstErrorField = Object.keys(newErrors)[0];
-    const errorElement = document.querySelector(`[name="${firstErrorField}"]`);
-    if (errorElement) {
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      (errorElement as HTMLElement).focus();
+    const newErrors = validateFormData(forValidation);
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      const firstErrorField = Object.keys(newErrors)[0];
+      // native inputs expose [name]; the RichEditor exposes [data-field]
+      const errorElement = document.querySelector(
+        `[name="${firstErrorField}"], [data-field="${firstErrorField}"]`
+      );
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (errorElement as HTMLElement).focus();
+      }
+      return;
     }
-    return;
-  }
 
-  const clean = sanitizeFormData(formData);
-  setFormData(clean);
-
+    const clean = sanitizeFormData(formData);
+    // Preserve the editor's sanitized HTML — sanitizeFormData would otherwise
+    // flatten the tags and we'd lose all formatting. (Re-sanitize on the
+    RICH_FIELDS.forEach((f) => {
+      (clean[f] as unknown) = formData[f];
+    });
+    setFormData(clean);
 
     setIsSubmitting(true);
     try {
       const response = await submitProposal(clean);
       setApiResponse(response);
-
       if (response.success) {
         setSubmitted(true);
         if (response.submission_id) {
@@ -171,14 +192,13 @@ const BenefitsForm: React.FC = () => {
       setApiResponse({
         success: false,
         message: 'An unexpected error occurred. Please try again.',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     } finally {
       setIsSubmitting(false);
       setFormTouched(false);
     }
   };
-
 
 
   if (submitted) {
@@ -202,7 +222,7 @@ const BenefitsForm: React.FC = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="container  mx-auto p-6 py-24 bg-white rounded-lg shadow-lg">
+    <form onSubmit={handleSubmit} className="container mx-auto p-6 py-24 bg-white ">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">REPUBLIC OF KENYA</h1>
         <h2 className="text-xl font-semibold text-gray-700 mt-2">SOCIAL HEALTH INSURANCE ACT, 2023</h2>
@@ -223,14 +243,12 @@ const BenefitsForm: React.FC = () => {
               placeholder="Enter your full name"
               aria-required="true"
               aria-invalid={!!errors.name}
-              aria-describedby={errors.name ? "name-error" : undefined}
+              aria-describedby={errors.name ? 'name-error' : undefined}
               className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
-            {errors.name && (
-              <p id="name-error" className="text-sm text-red-600 mt-1">{errors.name}</p>
-            )}
+            <FieldError message={errors.name} />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="phone-input">2. Phone number</label>
@@ -243,12 +261,10 @@ const BenefitsForm: React.FC = () => {
                 placeholder="+254 712 345 678"
                 aria-required="true"
                 aria-invalid={!!errors.phone}
-                aria-describedby={errors.phone ? "phone-error" : undefined}
+                aria-describedby={errors.phone ? 'phone-error' : undefined}
                 className={`w-full px-4 py-2 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
-              {errors.phone && (
-                <p id="phone-error" className="text-sm text-red-600 mt-1">{errors.phone}</p>
-              )}
+              <FieldError message={errors.phone} />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email-input">Email address</label>
@@ -261,12 +277,10 @@ const BenefitsForm: React.FC = () => {
                 placeholder="Enter your email address"
                 aria-required="true"
                 aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? "email-error" : undefined}
+                aria-describedby={errors.email ? 'email-error' : undefined}
                 className={`w-full px-4 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
               />
-              {errors.email && (
-                <p id="email-error" className="text-sm text-red-600 mt-1">{errors.email}</p>
-              )}
+              <FieldError message={errors.email} />
             </div>
           </div>
         </div>
@@ -283,14 +297,12 @@ const BenefitsForm: React.FC = () => {
               placeholder="Enter your profession"
               aria-required="true"
               aria-invalid={!!errors.profession}
-              aria-describedby={errors.profession ? "profession-error" : undefined}
+              aria-describedby={errors.profession ? 'profession-error' : undefined}
               className={`w-full px-4 py-2 border ${errors.profession ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
-            {errors.profession && (
-              <p id="profession-error" className="text-sm text-red-600 mt-1">{errors.profession}</p>
-            )}
+            <FieldError message={errors.profession} />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="organization-input">4. Organization</label>
             <input
@@ -302,14 +314,12 @@ const BenefitsForm: React.FC = () => {
               placeholder="Enter your organization"
               aria-required="true"
               aria-invalid={!!errors.organization}
-              aria-describedby={errors.organization ? "organization-error" : undefined}
+              aria-describedby={errors.organization ? 'organization-error' : undefined}
               className={`w-full px-4 py-2 border ${errors.organization ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
-            {errors.organization && (
-              <p id="organization-error" className="text-sm text-red-600 mt-1">{errors.organization}</p>
-            )}
+            <FieldError message={errors.organization} />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="county-input">5. County</label>
             <input
@@ -322,17 +332,15 @@ const BenefitsForm: React.FC = () => {
               placeholder="Select a county"
               aria-required="true"
               aria-invalid={!!errors.county}
-              aria-describedby={errors.county ? "county-error" : undefined}
+              aria-describedby={errors.county ? 'county-error' : undefined}
               className={`w-full px-4 py-2 border ${errors.county ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
             />
             <datalist id="counties-list">
-              {counties.map(county => (
+              {counties.map((county) => (
                 <option key={county} value={county} />
               ))}
             </datalist>
-            {errors.county && (
-              <p id="county-error" className="text-sm text-red-600 mt-1">{errors.county}</p>
-            )}
+            <FieldError message={errors.county} />
           </div>
         </div>
 
@@ -347,18 +355,16 @@ const BenefitsForm: React.FC = () => {
             placeholder="Provide a name for the intervention.."
             aria-required="true"
             aria-invalid={!!errors.interventionName}
-            aria-describedby={errors.interventionName ? "interventionName-error" : undefined}
+            aria-describedby={errors.interventionName ? 'interventionName-error' : undefined}
             className={`w-full px-4 py-2 border ${errors.interventionName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
-          {errors.interventionName && (
-            <p id="interventionName-error" className="text-sm text-red-600 mt-1">{errors.interventionName}</p>
-          )}
+          <FieldError message={errors.interventionName} />
         </div>
 
         <fieldset>
           <legend className="block text-sm font-medium text-gray-700 mb-1.5">7. Type of intervention</legend>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4" role="radiogroup" aria-labelledby="interventionType-label">
-            {['Health Service', 'Vaccine', 'Drug', 'Medical Device', 'Other'].map(type => (
+            {['Health Service', 'Vaccine', 'Drug', 'Medical Device', 'Other'].map((type) => (
               <div key={type} className="flex items-center">
                 <input
                   type="radio"
@@ -368,7 +374,7 @@ const BenefitsForm: React.FC = () => {
                   checked={formData.interventionType === type}
                   onChange={handleChange}
                   aria-invalid={!!errors.interventionType}
-                  aria-describedby={errors.interventionType ? "interventionType-error" : undefined}
+                  aria-describedby={errors.interventionType ? 'interventionType-error' : undefined}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                 />
                 <label htmlFor={type.replace(' ', '')} className="ml-2 text-sm text-gray-700">
@@ -377,14 +383,12 @@ const BenefitsForm: React.FC = () => {
               </div>
             ))}
           </div>
-          {errors.interventionType && (
-            <p id="interventionType-error" className="text-sm text-red-600 mt-1">{errors.interventionType}</p>
-          )}
+          <FieldError message={errors.interventionType} />
         </fieldset>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="beneficiary-input">
-            8. Proposed beneficiary for the proposed intervention 
+            8. Proposed beneficiary for the proposed intervention
             <span className="text-gray-500 italic text-xs ml-1">e.g., sickle cell patients</span>
           </label>
           <input
@@ -396,68 +400,64 @@ const BenefitsForm: React.FC = () => {
             placeholder="e.g. sickle cell patients"
             aria-required="true"
             aria-invalid={!!errors.beneficiary}
-            aria-describedby={errors.beneficiary ? "beneficiary-error" : undefined}
+            aria-describedby={errors.beneficiary ? 'beneficiary-error' : undefined}
             className={`w-full px-4 py-2 border ${errors.beneficiary ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
-          {errors.beneficiary && (
-            <p id="beneficiary-error" className="text-sm text-red-600 mt-1">{errors.beneficiary}</p>
-          )}
+          <FieldError message={errors.beneficiary} />
+        </div> */}
+         <div>
+          <RichEditor
+            name="beneficiary-input"
+            label=" 8. Proposed beneficiary for the proposed intervention"
+            required
+            invalid={!!errors.beneficiary}
+            value={formData.beneficiary}
+            onChange={handleRichChange('beneficiary')}
+            placeholder="e.g., sickle cell patients…"
+          />
+          <FieldError message={errors.beneficiary} />
         </div>
 
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="justification-textarea">9. Reasons/justification for proposal of the intervention</label>
-          <textarea
-            id="justification-textarea"
+          <RichEditor
             name="justification"
+            label="9. Reasons/justification for proposal of the intervention"
+            required
+            invalid={!!errors.justification}
             value={formData.justification}
-            onChange={handleChange}
-            rows={4}
-            aria-required="true"
-            aria-invalid={!!errors.justification}
-            aria-describedby={errors.justification ? "justification-error" : undefined}
-            className={`w-full px-4 py-2 border ${errors.justification ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-          ></textarea>
-          {errors.justification && (
-            <p id="justification-error" className="text-sm text-red-600 mt-1">{errors.justification}</p>
-          )}
+            onChange={handleRichChange('justification')}
+            placeholder="Explain why this intervention is being proposed…"
+          />
+          <FieldError message={errors.justification} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expectedImpact-textarea">10. Anticipated/Expected impact if the proposed intervention is included in the benefits package</label>
-          <textarea
-            id="expectedImpact-textarea"
+          <RichEditor
             name="expectedImpact"
+            label="10. Anticipated/Expected impact if the proposed intervention is included in the benefits package"
+            required
+            invalid={!!errors.expectedImpact}
             value={formData.expectedImpact}
-            onChange={handleChange}
-            rows={5}
-            aria-required="true"
-            aria-invalid={!!errors.expectedImpact}
-            aria-describedby={errors.expectedImpact ? "expectedImpact-error" : undefined}
-            className={`w-full px-4 py-2 border ${errors.expectedImpact ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-          ></textarea>
-          {errors.expectedImpact && (
-            <p id="expectedImpact-error" className="text-sm text-red-600 mt-1">{errors.expectedImpact}</p>
-          )}
+            onChange={handleRichChange('expectedImpact')}
+            minHeight={180}
+            placeholder="Describe the expected impact…"
+          />
+          <FieldError message={errors.expectedImpact} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-1" htmlFor="additionalInfo-textarea">
-            11. Any additional information that you may want to provide about the intervention?
-            <span className="text-gray-500 italic text-xs ml-1">*(You may attach a document in pdf format)*</span>
-          </label>
-          <textarea
-            id="additionalInfo-textarea"
+          <RichEditor
             name="additionalInfo"
+            label="11. Any additional information that you may want to provide about the intervention?"
+            hint="You may attach a document in PDF format."
+            invalid={!!errors.additionalInfo}
             value={formData.additionalInfo}
-            onChange={handleChange}
-            rows={3}
-            placeholder="Optional: Provide any additional information about the intervention..."
-            aria-required="false"
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          ></textarea>
-          {errors.additionalInfo && (
-            <p className="text-sm text-red-600 mt-1">{errors.additionalInfo}</p>
-          )}
+            onChange={handleRichChange('additionalInfo')}
+            minHeight={120}
+            placeholder="Optional: provide any additional information about the intervention…"
+          />
+          <FieldError message={errors.additionalInfo} />
         </div>
 
         <div>
@@ -483,8 +483,6 @@ const BenefitsForm: React.FC = () => {
                     className="sr-only"
                   />
                 </label>
-     
-
               </div>
               <p className="text-xs text-gray-500">PDF, XLSX or DOCX up to 10MB</p>
               {formData.uploadedDocument && (
@@ -498,7 +496,7 @@ const BenefitsForm: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => {
-                      setFormData(prev => ({ ...prev, uploadedDocument: null }));
+                      setFormData((prev) => ({ ...prev, uploadedDocument: null }));
                       const fileInput = document.getElementById('document-upload') as HTMLInputElement;
                       if (fileInput) fileInput.value = '';
                     }}
@@ -508,9 +506,7 @@ const BenefitsForm: React.FC = () => {
                   </button>
                 </div>
               )}
-              {errors.uploadedDocument && (
-                <p className="text-sm text-red-600 mt-1">{errors.uploadedDocument}</p>
-              )}
+              <FieldError message={errors.uploadedDocument} />
             </div>
           </div>
         </div>
@@ -527,18 +523,16 @@ const BenefitsForm: React.FC = () => {
               placeholder="Type your full name as signature"
               aria-required="true"
               aria-invalid={!!errors.signature}
-              aria-describedby={errors.signature ? "signature-error" : "signature-help"}
-              className={`w-full px-4 py-2 border ${errors.signature ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-handwriting`}
+              aria-describedby={errors.signature ? 'signature-error' : 'signature-help'}
+              className={`w-full px-4 py-2 border ${errors.signature ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
               style={{ fontFamily: 'cursive' }}
             />
-            {errors.signature && (
-              <p id="signature-error" className="text-sm text-red-600 mt-1">{errors.signature}</p>
-            )}
+            <FieldError message={errors.signature} />
             <p id="signature-help" className="text-xs text-gray-500 mt-1">
               By typing your name above, you acknowledge that this constitutes your electronic signature.
             </p>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="date-input">Date</label>
             <input
@@ -548,18 +542,22 @@ const BenefitsForm: React.FC = () => {
               value={formData.date}
               onChange={handleChange}
               aria-required="true"
-              className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
+
+        {apiResponse && !apiResponse.success && (
+          <p role="alert" className="text-sm text-red-600 text-center">{apiResponse.message}</p>
+        )}
 
         <div className="text-center mt-10">
           <p className="text-sm text-gray-500 italic mb-6">N.B. The form has to be duly filled for an intervention to be considered for selection</p>
           <button
             type="submit"
             disabled={isSubmitting}
-            aria-label={isSubmitting ? "Submitting form" : "Submit form"}
-            className={`px-6 py-3 text-white rounded-md font-medium ${formTouched ? 'bg-[#1d8fc3] hover:bg-[#27aae1]' : 'bg-gray-800'} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200`}
+            aria-label={isSubmitting ? 'Submitting form' : 'Submit form'}
+            className={`px-8 py-2 text-white font-medium ${formTouched ? 'bg-[#1d8fc3] hover:bg-[#27aae1]' : 'bg-gray-800'} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200`}
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center" aria-hidden="true">

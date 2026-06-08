@@ -10,6 +10,9 @@ import { TAB_HERO_CONFIG, GUIDANCE_TABS, TabId } from "./cc/config";
 import { InterventionsTable } from "./cc/table";
 import PublicStatusPage from "./status/page";
 
+const CONTAINER = "mx-auto w-full container px-4 sm:px-6 lg:px-8";
+const ACCENT = "#1d70b8";
+
 function TabNav({
   activeTab,
   onTabChange,
@@ -18,33 +21,31 @@ function TabNav({
   onTabChange: (tab: TabId) => void;
 }) {
   return (
-    <div className="border-b-2  p-2 border-t-2 border-gray-900">
-      <nav
-        className="flex gap-3"
-        role="tablist"
-        aria-label="Interventions sections"
-      >
-        {GUIDANCE_TABS.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              role="tab"
-              aria-selected={isActive}
-              type="button"
-              onClick={() => onTabChange(tab.id as TabId)}
-              className={`relative px-5 py-3   text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d70b8] ${
-                isActive
-                  ? "bg-[#1d70b8]  text-white"
-                  : "text-black  bg-gray-200 hover:bg-[#e8f0fb]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+    <nav
+      role="tablist"
+      aria-label="Interventions sections"
+      className="flex flex-wrap border border-gray-900 divide-x divide-gray-900"
+    >
+      {GUIDANCE_TABS.map((tab) => {
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            role="tab"
+            aria-selected={isActive}
+            type="button"
+            onClick={() => onTabChange(tab.id as TabId)}
+            className={`px-5 py-3 text-sm font-bold transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#1d70b8] ${
+              isActive
+                ? "bg-[#1d70b8] text-white"
+                : "bg-white text-gray-900 hover:bg-gray-100"
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -63,34 +64,41 @@ function Hero({
   const config = TAB_HERO_CONFIG[activeTab];
 
   return (
-    <div className="bg-white mt-8 py-6 lg:h-55  h-75 border-gray-200 ">
-      <div className="container mx-auto px-4 py-8 ">
-        {config.badge && (
-          <p className="text-xs font-bold text-[#1d70b8] uppercase tracking-widest mb-2">
-            {config.badge}
-          </p>
-        )}
-        <h1 className="text-3xl font-bold tracking-tight leading-tight mb-3 text-gray-900">
-          {config.title}
-        </h1>
-        <p className="text-base text-gray-700  leading-relaxed line-clamp-5">
-          {config.description}
-        </p>
+    <section className="border-b border-gray-200 bg-white">
+      <div className={`${CONTAINER} py-10 sm:py-14`}>
+        <div className="max-w-3xl mt-8">
+          {/* {config.badge && (
+            <div className="mb-3 flex items-center gap-3">
+              <span className="h-px w-8" style={{ backgroundColor: ACCENT }} />
+              <span className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: ACCENT }}>
+                {config.badge}
+              </span>
+            </div>
+          )} */}
 
-        {stats && stats.length > 0 && (
-          <div className="mt-5 flex flex-wrap gap-6 pt-4 border-t border-gray-200">
-            {stats.map((s) => (
-              <div key={s.label}>
-                <span className="text-xl font-extrabold text-gray-900">
-                  {s.value.toLocaleString()}
-                </span>
-                <span className="ml-1.5 text-sm text-gray-500">{s.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
+          <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900 sm:text-4xl">
+            {config.title}
+          </h1>
+
+          <p className="mt-4 text-base leading-relaxed text-gray-700">
+            {config.description}
+          </p>
+
+          {stats && stats.length > 0 && (
+            <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3 border-t border-gray-200 pt-5">
+              {stats.map((s) => (
+                <div key={s.label} className="flex items-baseline">
+                  <span className="text-xl font-extrabold text-gray-900">
+                    {s.value.toLocaleString()}
+                  </span>
+                  <span className="ml-1.5 text-sm text-gray-500">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -164,33 +172,23 @@ function InterventionsPageInner({
       <Navbar />
       <Hero activeTab={activeTab} stats={heroStats} />
 
-      <div className="container mx-auto px-3 py-8 mt-6">
+      {/* Tabs */}
+      <div className={`${CONTAINER} pt-8`}>
         <TabNav activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
 
       {/* Main content */}
-      <div className="container mx-auto px-2 py-8">
+      <div className={`${CONTAINER} py-8`}>
         {activeTab === "interventions" && (
           <>
-
-            <div className="lg:hidden mb-4">
+            <div className="mb-4 lg:hidden">
               <button
                 type="button"
                 onClick={() => setMobileFilterOpen(true)}
-                className="flex items-center gap-2 text-sm font-semibold text-gray-900 border-2 border-gray-900 px-4 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+                className="flex items-center gap-2 border-2 border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h8m-8 6h16"
-                  />
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
                 </svg>
                 Filter results
               </button>
@@ -203,30 +201,21 @@ function InterventionsPageInner({
                   onClick={() => setMobileFilterOpen(false)}
                   aria-hidden="true"
                 />
-                <aside className="relative ml-auto w-80 bg-white h-full overflow-y-auto shadow-2xl flex flex-col">
-                  <div className="flex items-center justify-between px-4 py-4 border-b-2 border-gray-900">
+                <aside className="relative ml-auto flex h-full w-80 max-w-[85%] flex-col overflow-y-auto bg-white shadow-2xl">
+                  <div className="flex items-center justify-between border-b-2 border-gray-900 px-4 py-4">
                     <h2 className="font-bold text-gray-900">Filters</h2>
                     <button
                       type="button"
                       onClick={() => setMobileFilterOpen(false)}
                       className="p-1 text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+                      aria-label="Close filters"
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
-                  <div className="p-4 flex-1">
+                  <div className="flex-1 p-4">
                     <InterventionFilters
                       filters={filters}
                       typeCounts={typeCounts}
@@ -238,11 +227,8 @@ function InterventionsPageInner({
             )}
 
             {/* Desktop: sidebar + table */}
-            <div className="flex gap-8 items-start">
-              <aside
-                className="hidden lg:block shrink-0 sticky top-6"
-                style={{ width: "25%" }}
-              >
+            <div className="flex items-start gap-8">
+              <aside className="sticky top-8 hidden w-1/4 shrink-0 lg:block">
                 <InterventionFilters
                   filters={filters}
                   typeCounts={typeCounts}
@@ -250,7 +236,7 @@ function InterventionsPageInner({
                 />
               </aside>
 
-              <div className="flex-1 min-w-0">
+              <div className="min-w-0 flex-1">
                 <InterventionsTable
                   proposals={proposals}
                   filters={filters}

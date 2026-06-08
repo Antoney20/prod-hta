@@ -6,6 +6,10 @@ import { useParams } from "next/navigation";
 import { PublicProposal } from "@/types/new/public";
 import { getPublicProposals } from "@/app/api/public";
 import Navbar from "@/app/components/layouts/navbar";
+import { htmlToText, RichText } from "@/components/shared/text";
+
+
+const CONTAINER = "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8";
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return "—";
@@ -19,29 +23,6 @@ function formatDate(dateStr: string): string {
     return dateStr;
   }
 }
-
-
-// function DetailRow({
-//   label,
-//   value,
-//   wide = false,
-// }: {
-//   label: string;
-//   value: React.ReactNode;
-//   wide?: boolean;
-// }) {
-//   return (
-//     <div
-//       className={`py-4 border-b border-gray-200 ${
-//         wide ? "sm:col-span-2" : ""
-//       } sm:grid sm:grid-cols-3 sm:gap-4`}
-//     >
-//       <dt className="text-sm font-bold text-gray-700 mb-1 sm:mb-0">{label}</dt>
-//       <dd className="text-sm text-gray-900 sm:col-span-2">{value ?? "—"}</dd>
-//     </div>
-//   );
-// }
-
 
 function DetailRow({
   label,
@@ -63,23 +44,17 @@ function DetailRow({
 
   return (
     <div
-      className={`py-4 border-b border-gray-200 ${
-        wide ? "sm:col-span-2" : ""
-      } sm:grid sm:grid-cols-3 sm:gap-4`}
+      className={`py-4 border-b border-gray-200 ${wide ? "sm:col-span-2" : ""} sm:grid sm:grid-cols-3 sm:gap-4`}
     >
-      <dt className="text-sm font-bold text-gray-700 mb-1 sm:mb-0">
-        {label}
-      </dt>
-      <dd className="text-sm text-gray-900 sm:col-span-2">
-        {value}
-      </dd>
+      <dt className="text-sm font-bold text-gray-700 mb-1 sm:mb-0">{label}</dt>
+      <dd className="text-sm text-gray-900 sm:col-span-2">{value}</dd>
     </div>
   );
 }
 
 function TypeBadge({ type }: { type: string }) {
   return (
-    <span className="inline-block bg-blue-50 text-[#1d70b8] text-xs font-semibold px-2.5 py-1 border border-blue-200">
+    <span className="inline-block border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-[#1d70b8]">
       {type}
     </span>
   );
@@ -87,13 +62,13 @@ function TypeBadge({ type }: { type: string }) {
 
 function LoadingSkeleton() {
   return (
-    <div className="animate-pulse max-w-3xl">
-      <div className="h-8 bg-gray-200 rounded w-2/3 mb-4" />
-      <div className="h-4 bg-gray-100 rounded w-1/3 mb-8" />
+    <div className="max-w-3xl animate-pulse">
+      <div className="mb-4 h-8 w-2/3 bg-gray-200" />
+      <div className="mb-8 h-4 w-1/3 bg-gray-100" />
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="py-4 border-b border-gray-200 sm:grid sm:grid-cols-3 sm:gap-4">
-          <div className="h-4 bg-gray-200 rounded w-1/3 mb-2 sm:mb-0" />
-          <div className="h-4 bg-gray-100 rounded w-2/3 sm:col-span-2" />
+        <div key={i} className="border-b border-gray-200 py-4 sm:grid sm:grid-cols-3 sm:gap-4">
+          <div className="mb-2 h-4 w-1/3 bg-gray-200 sm:mb-0" />
+          <div className="h-4 w-2/3 bg-gray-100 sm:col-span-2" />
         </div>
       ))}
     </div>
@@ -102,26 +77,25 @@ function LoadingSkeleton() {
 
 function NotFound({ refNo }: { refNo: string }) {
   return (
-    <div className="py-16 text-center max-w-lg mx-auto">
-      <div className="text-5xl font-black text-gray-200 mb-4">404</div>
-      <h2 className="text-xl font-bold text-gray-900 mb-2">Intervention not found</h2>
-      <p className="text-sm text-gray-500 mb-6">
+    <div className="mx-auto max-w-lg py-16 text-center">
+      <div className="mb-4 text-5xl font-black text-gray-200">404</div>
+      <h2 className="mb-2 text-xl font-bold text-gray-900">Intervention not found</h2>
+      <p className="mb-6 text-sm text-gray-500">
         No intervention with reference number{" "}
-        <code className="bg-gray-100 px-1.5 py-0.5 rounded font-mono text-gray-800">
+        <code className="border border-gray-200 bg-gray-100 px-1.5 py-0.5 font-mono text-gray-800">
           {refNo}
         </code>{" "}
         could be found.
       </p>
       <Link
         href="/interventions"
-        className="inline-block bg-[#1d70b8] text-white text-sm font-semibold px-5 py-2 hover:bg-[#003078] transition-colors focus:outline-none focus:ring-2 focus:ring-[#1d70b8] focus:ring-offset-2"
+        className="inline-block bg-[#1d70b8] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#003078] focus:outline-none focus:ring-2 focus:ring-[#1d70b8] focus:ring-offset-2"
       >
         ← Back to all interventions
       </Link>
     </div>
   );
 }
-
 
 export default function InterventionDetailPage() {
   const params = useParams();
@@ -168,123 +142,104 @@ export default function InterventionDetailPage() {
 
   return (
     <>
-    <Navbar/>
-    <div className="min-h-screen bg-white mt-8 py-6">
-      <div className=" border-gray-200 bg-white py-6">
-        <div className="container mx-auto px-4 sm:px-6 py-2 border-b">
-          <nav className="flex items-center gap-1 text-sm flex-wrap" aria-label="Breadcrumb">
-            <a href="/" className="text-[#1d70b8] underline hover:text-[#003078]">Home</a>
-            <span className="text-gray-400 mx-1">›</span>
-            <a href="/interventions" className="text-[#1d70b8] underline hover:text-[#003078]">All Proposals</a>
-            <span className="text-gray-400 mx-1">›</span>
-            <Link href="/interventions" className="text-[#1d70b8] underline hover:text-[#003078]">
-              Submitted
-            </Link>
-            <span className="text-gray-400 mx-1">›</span>
-            <span className="text-gray-700 truncate max-w-xs">{refNo}</span>
-          </nav>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4  py-8">
-        {isLoading && <LoadingSkeleton />}
-
-        {error && (
-          <div className="border-l-4 border-red-600 bg-red-50 px-6 py-4 max-w-xl">
-            <p className="text-red-800 font-bold text-sm">Failed to load intervention</p>
-            <p className="text-red-700 text-sm mt-1">{error}</p>
+      <Navbar />
+      <div className="min-h-screen bg-white">
+        {/* Breadcrumb */}
+        <div className="border-b border-gray-200 bg-white">
+          <div className={`${CONTAINER} py-3`}>
+            <nav className="flex flex-wrap items-center gap-1 text-sm" aria-label="Breadcrumb">
+              <Link href="/" className="text-[#1d70b8] underline hover:text-[#003078]">Home</Link>
+              <span className="mx-1 text-gray-400">›</span>
+              <Link href="/interventions" className="text-[#1d70b8] underline hover:text-[#003078]">All Proposals</Link>
+              <span className="mx-1 text-gray-400">›</span>
+              <span className="max-w-xs truncate text-gray-700">{refNo}</span>
+            </nav>
           </div>
-        )}
+        </div>
 
-        {notFound && <NotFound refNo={refNo} />}
+        <div className={`${CONTAINER} py-10 sm:py-12`}>
+          {isLoading && <LoadingSkeleton />}
 
-        {!isLoading && !error && proposal && (
-          <div className="max-w-7xl">
-
-            <Link
-              href="/interventions"
-              className="inline-flex items-center gap-1.5 text-sm text-[#1d70b8] underline hover:text-[#003078] mb-6 focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to all interventions
-            </Link>
-
-            {/* Title block */}
-            <div className="border-b-2 border-gray-900 pb-6 mb-0">
-              <div className="flex items-start gap-3 flex-wrap mb-2">
-                <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 border border-gray-300">
-                  {proposal.reference_number}
-                </span>
-                {proposal.intervention_type && (
-                  <TypeBadge type={proposal.intervention_type} />
-                )}
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight leading-snug mt-3">
-                {proposal.intervention_name ?? "Unnamed Intervention"}
-              </h1>
-              <p className="text-sm text-gray-500 mt-2">
-                Submitted {formatDate(proposal.date)}
-              </p>
+          {error && (
+            <div className="max-w-xl border-l-4 border-red-600 bg-red-50 px-6 py-4">
+              <p className="text-sm font-bold text-red-800">Failed to load intervention</p>
+              <p className="mt-1 text-sm text-red-700">{error}</p>
             </div>
+          )}
 
-            {/* Detail fields */}
-            <dl className="divide-y divide-gray-200">
-              <DetailRow label="Reference number" value={
-                <code className="font-mono text-sm">{proposal.reference_number}</code>
-              } />
+          {notFound && <NotFound refNo={refNo} />}
 
-              <DetailRow label="Type" value={
-                proposal.intervention_type
-                  ? <TypeBadge type={proposal.intervention_type} />
-                  : null
-              } />
-
-              <DetailRow label="Date submitted" value={formatDate(proposal.date)} />
-
-              <DetailRow
-                label="Beneficiary"
-                value={proposal.beneficiary}
-                wide
-              />
-
-              <DetailRow
-                label="Justification"
-                value={
-                    <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
-                      {proposal.justification}
-                    </p>
-                }
-                wide
-              />
-
-              <DetailRow
-                label="Expected impact"
-                value={
-                  proposal.expected_impact ? (
-                    <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-line">
-                      {proposal.expected_impact}
-                    </p>
-                  ) : null
-                }
-                wide
-              />
-            </dl>
-
-            {/* Footer actions */}
-            <div className="mt-10 pt-6 border-t-2 border-gray-900 flex flex-wrap gap-3">
+          {!isLoading && !error && proposal && (
+            <div>
               <Link
                 href="/interventions"
-                className="inline-block border-2 border-gray-900 text-gray-900 text-sm font-semibold px-5 py-2 hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+                className="mb-6 inline-flex items-center gap-1.5 text-sm text-[#1d70b8] underline hover:text-[#003078] focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
               >
-                ← All interventions
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to all interventions
               </Link>
+
+              {/* Title block */}
+              <div className="border-b-2 border-gray-900 pb-6">
+                <div className="mb-2 flex flex-wrap items-start gap-3">
+                  <span className="border border-gray-300 bg-gray-100 px-2 py-1 font-mono text-sm text-gray-500">
+                    {proposal.reference_number}
+                  </span>
+                  {proposal.intervention_type && <TypeBadge type={proposal.intervention_type} />}
+                </div>
+                <h1 className="mt-3 text-2xl font-extrabold leading-snug tracking-tight text-gray-900 sm:text-3xl">
+                  {proposal.intervention_name ?? "Unnamed Intervention"}
+                </h1>
+                <p className="mt-2 text-sm text-gray-500">Submitted {formatDate(proposal.date)}</p>
+              </div>
+
+              {/* Detail fields */}
+              <dl className="divide-y divide-gray-200">
+                <DetailRow
+                  label="Reference number"
+                  value={<code className="font-mono text-sm">{proposal.reference_number}</code>}
+                />
+
+                <DetailRow
+                  label="Type"
+                  value={proposal.intervention_type ? <TypeBadge type={proposal.intervention_type} /> : null}
+                />
+
+                <DetailRow label="Date submitted" value={formatDate(proposal.date)} />
+                <DetailRow label="Beneficiary" value= {<RichText html={proposal.beneficiary} />}/>
+
+                <DetailRow
+                  label="Justification"
+                  value={<RichText html={proposal.justification} className="text-gray-900" />}
+                  wide
+                />
+
+                <DetailRow
+                  label="Expected impact"
+                  value={
+                    htmlToText(proposal.expected_impact).length > 0 ? (
+                      <RichText html={proposal.expected_impact} className="text-gray-900" />
+                    ) : null
+                  }
+                  wide
+                />
+              </dl>
+
+              {/* Footer actions */}
+              <div className="mt-10 flex flex-wrap gap-3 border-t-2 border-gray-900 pt-6">
+                <Link
+                  href="/interventions"
+                  className="inline-block border-2 border-gray-900 px-5 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+                >
+                  ← All interventions
+                </Link>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
     </>
   );
 }

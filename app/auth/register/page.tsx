@@ -1,15 +1,27 @@
 'use client'
 import React, { useState } from 'react';
-import { User, Mail, Lock, Building2, Phone, MapPin, Briefcase, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { User, Mail, Lock, Building2, Phone, MapPin, Briefcase, ArrowRight, ArrowLeft, CheckCircle, Loader2, AlertCircle, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { registerUser, RegisterUserData, RegisterMemberData } from '@/app/api/auth';
+
+const ASSESSMENT_GROUPS = [
+  'Artemis Health Networks',
+  'Fountain Projects and Research Office',
+  'Health Economics Research Unit',
+  'KEMRI-Wellcome Trust Research Programme',
+  'KAVI-Institute of Clinical Research, University of Nairobi',
+  'Kenyatta University',
+  'Kenya Medical Training College',
+  'Strathmore University',
+  'The University of Nairobi - CEMA'
+];
 
 const RegisterForm = () => {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [userData, setUserData] = useState<RegisterUserData>({
     username: '',
     email: '',
@@ -18,8 +30,10 @@ const RegisterForm = () => {
     first_name: '',
     last_name: '',
     country: '',
+    assessment_group: false,
+    assessment_group_name: '',
   });
-  
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
 
@@ -48,21 +62,43 @@ const RegisterForm = () => {
     if (!userData.first_name) newErrors.first_name = 'First name is required';
     if (!userData.last_name) newErrors.last_name = 'Last name is required';
 
+    // only required when the user says they're part of the assessment group
+    if (userData.assessment_group && !userData.assessment_group_name) {
+      newErrors.assessment_group_name = 'Please select your assessment group';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-const validateStep2 = () => {
-  const newErrors: Record<string, string> = {};
+  const validateStep2 = () => {
+    const newErrors: Record<string, string> = {};
 
-  if (!memberData.organization) newErrors.organization = 'Organization is required';
-  if (!memberData.phone_number) newErrors.phone_number = 'Phone number is required';
+    if (!memberData.organization) newErrors.organization = 'Organization is required';
+    if (!memberData.phone_number) newErrors.phone_number = 'Phone number is required';
 
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
+  const toggleAssessmentGroup = () => {
+    setUserData((prev) => {
+      const next = !prev.assessment_group;
+      return {
+        ...prev,
+        assessment_group: next,
+        // clear the selection when turning the group off
+        assessment_group_name: next ? prev.assessment_group_name : '',
+      };
+    });
+    // drop any stale error when toggling off
+    setErrors((prev) => {
+      if (!prev.assessment_group_name) return prev;
+      const n = { ...prev };
+      delete n.assessment_group_name;
+      return n;
+    });
+  };
 
   const handleNext = () => {
     if (validateStep1()) {
@@ -73,7 +109,7 @@ const validateStep2 = () => {
 
   const handleSubmit = async () => {
     try {
-      if (!validateStep2()) return; 
+      if (!validateStep2()) return;
       setLoading(true);
       setErrors({});
 
@@ -90,8 +126,8 @@ const validateStep2 = () => {
             errorMap[key] = Array.isArray(errorValue) ? errorValue[0] : errorValue;
           });
           setErrors(errorMap);
-          
-          if (Object.keys(errorMap).some(key => ['email', 'username', 'password', 'password_confirm', 'first_name', 'last_name'].includes(key))) {
+
+          if (Object.keys(errorMap).some(key => ['email', 'username', 'password', 'password_confirm', 'first_name', 'last_name', 'assessment_group', 'assessment_group_name'].includes(key))) {
             setStep(1);
             showToast('error', 'Please check your account information');
           } else {
@@ -115,7 +151,7 @@ const validateStep2 = () => {
         showToast('error', 'Image size must be less than 5MB');
         return;
       }
-      
+
       if (!file.type.startsWith('image/')) {
         showToast('error', 'Please select a valid image file');
         return;
@@ -141,8 +177,8 @@ const validateStep2 = () => {
       type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
     }`;
     toast.innerHTML = `
-      ${type === 'success' 
-        ? '<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>' 
+      ${type === 'success'
+        ? '<svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'
         : '<svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"></circle><line x1="15" y1="9" x2="9" y2="15" stroke-width="2"></line><line x1="9" y1="9" x2="15" y2="15" stroke-width="2"></line></svg>'}
       <span class="${type === 'success' ? 'text-green-800' : 'text-red-800'} font-medium">${message}</span>
     `;
@@ -155,7 +191,6 @@ const validateStep2 = () => {
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-
         </div>
 
         <div className="mb-8">
@@ -182,7 +217,7 @@ const validateStep2 = () => {
           {step === 1 ? (
             <div className="space-y-5">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Basic Information</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
@@ -195,7 +230,7 @@ const validateStep2 = () => {
                       className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                         errors.first_name ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500'
                       }`}
-                      placeholder="John"
+                      placeholder="First name"
                     />
                   </div>
                   {errors.first_name && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.first_name}</p>}
@@ -212,7 +247,7 @@ const validateStep2 = () => {
                       className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 ${
                         errors.last_name ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500'
                       }`}
-                      placeholder="Doe"
+                      placeholder="Last name"
                     />
                   </div>
                   {errors.last_name && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.last_name}</p>}
@@ -252,6 +287,65 @@ const validateStep2 = () => {
                 </div>
                 {errors.username && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.username}</p>}
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Part of HTA Assessment Group
+                </label>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={toggleAssessmentGroup}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      userData.assessment_group ? 'bg-orange-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        userData.assessment_group ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+
+                  <span className="text-sm text-gray-700">
+                    {userData.assessment_group ? 'Yes' : 'No'}
+                  </span>
+                </div>
+              </div>
+
+              {/* shown only when the assessment-group toggle is on */}
+              {userData.assessment_group && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Assessment Group *</label>
+                  <div className="relative">
+                    <Users size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <select
+                      value={userData.assessment_group_name ?? ''}
+                      onChange={(e) => {
+                        setUserData({ ...userData, assessment_group_name: e.target.value });
+                        setErrors((prev) => {
+                          if (!prev.assessment_group_name) return prev;
+                          const n = { ...prev };
+                          delete n.assessment_group_name;
+                          return n;
+                        });
+                      }}
+                      className={`w-full pl-10 pr-4 py-2.5 border rounded-lg bg-white focus:outline-none focus:ring-2 ${
+                        errors.assessment_group_name ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-orange-500'
+                      } ${userData.assessment_group_name ? 'text-gray-900' : 'text-gray-400'}`}
+                    >
+                      <option value="" disabled>Select your assessment group</option>
+                      {ASSESSMENT_GROUPS.map((group) => (
+                        <option key={group} value={group} className="text-gray-900">
+                          {group}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.assessment_group_name && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.assessment_group_name}</p>}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
@@ -390,10 +484,9 @@ const validateStep2 = () => {
                     onChange={(e) => setMemberData({ ...memberData, organization: e.target.value })}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Ministry of Health"
-              
                   />
-                  {errors.organization && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.organization}</p>}
                 </div>
+                {errors.organization && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.organization}</p>}
               </div>
 
               <div>
@@ -408,8 +501,8 @@ const validateStep2 = () => {
                     placeholder="+254 700 000 000"
                     required
                   />
-                  {errors.phone_number && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.phone_number}</p>}
                 </div>
+                {errors.phone_number && <p className="mt-1 text-xs text-red-600 flex items-center gap-1"><AlertCircle size={12} />{errors.phone_number}</p>}
               </div>
 
               <div>

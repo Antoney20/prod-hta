@@ -1,281 +1,597 @@
 "use client";
 
-import { sanitizeHtml } from "@/app/portal/config/criteria-information/cc/clean";
-import { useRef, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+/* ------------------------------------------------------------------ */
+/* Brand                                                              */
+/* ------------------------------------------------------------------ */
+const ACCENT = "#27aae1";       
+const ACCENT_DARK = "#1d8fc3";  // brand blue (matches submit base)
+const ACCENT_TINT = "#e9f7fc";  // light fill for active buttons
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                            */
+/* ------------------------------------------------------------------ */
+export function isBlankHtml(html: string): boolean {
+  if (!html) return true;
+  const text = html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/\u00a0/g, " ")
+    .trim();
+  return text.length === 0;
+}
+
+function sanitizeHtml(html: string): string {
+  if (typeof window === "undefined") return html;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  tpl.content.querySelectorAll("script,style,iframe,object,embed,link,meta,noscript").forEach((n) => n.remove());
+  tpl.content.querySelectorAll("*").forEach((el) => {
+    [...el.attributes].forEach((a) => {
+      const name = a.name.toLowerCase();
+      if (name.startsWith("on")) el.removeAttribute(a.name);
+      else if (name === "style" || name === "class") el.removeAttribute(a.name);
+      else if ((name === "href" || name === "src") && /^\s*javascript:/i.test(a.value)) el.removeAttribute(a.name);
+    });
+    if (el.tagName === "A") {
+      el.setAttribute("rel", "noopener noreferrer nofollow");
+      el.setAttribute("target", "_blank");
+    }
+  });
+  return tpl.innerHTML;
+}
+
+function normalizeUrl(raw: string): string | null {
+  const v = raw.trim();
+  if (!v) return null;
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^mailto:/i.test(v)) return v;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return null; 
+  return `https://${v}`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/* Content styles for the contentEditable region. Injected once.       */
+/* Necessary because Tailwind preflight strips list bullets + heading  */
+/* sizing, so the editor's own output would otherwise be invisible.    */
+const STYLE_ID = "fo-editor-styles";
+function ensureStyles() {
+  if (typeof document === "undefined" || document.getElementById(STYLE_ID)) return;
+  const el = document.createElement("style");
+  el.id = STYLE_ID;
+  el.textContent = `
+.fo-editor { position: relative; line-height: 1.55; font: inherit; }
+.fo-editor:focus { outline: none; }
+.fo-editor[data-empty="true"]::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  color: #9ca3af;
+  pointer-events: none;
+}
+.fo-editor h2 { font-size: 1.125rem; font-weight: 600; margin: .55em 0 .25em; }
+.fo-editor h3 { font-size: 1.05rem;  font-weight: 600; margin: .55em 0 .25em; }
+.fo-editor h4 { font-size: 1rem;     font-weight: 600; margin: .55em 0 .25em; }
+.fo-editor p  { margin: .25em 0; }
+.fo-editor ul { list-style: disc;    padding-left: 1.5rem; margin: .35em 0; }
+.fo-editor ol { list-style: decimal; padding-left: 1.5rem; margin: .35em 0; }
+.fo-editor li { margin: .12em 0; }
+.fo-editor blockquote {
+  border-left: 3px solid ${ACCENT};
+  padding-left: .75rem;
+  margin: .5em 0;
+  color: #475569;
+  font-style: italic;
+}
+.fo-editor a { color: ${ACCENT_DARK}; text-decoration: underline; }
+`;
+  document.head.appendChild(el);
+}
+
+/* ------------------------------------------------------------------ */
+/* Toolbar primitives                                                 */
+/* ------------------------------------------------------------------ */
+function ToolButton({
+  label,
+  active,
+  disabled,
+  onApply,
+  children,
+}: {
+  label: string;
+  active?: boolean;
+  disabled?: boolean;
+  onApply: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={!!active}
+      disabled={disabled}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onApply();
+      }}
+      className={cn(
+        "grid h-7 min-w-[28px] place-items-center rounded border px-1.5 text-xs leading-none transition-colors",
+        active
+          ? "border-[#27aae1] bg-[#e9f7fc] text-[#1576a3]"
+          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+        disabled && "pointer-events-none opacity-40",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Divider() {
+  return <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-gray-200" />;
+}
+
+const BLOCKS = [
+  { tag: "p", label: "Paragraph", short: "P" },
+  { tag: "h2", label: "Heading 2", short: "H2" },
+  { tag: "h3", label: "Heading 3", short: "H3" },
+  { tag: "h4", label: "Heading 4", short: "H4" },
+];
+
+interface LinkState {
+  open: boolean;
+  url: string;
+  text: string;
+  editing: boolean;
+  hasSelection: boolean;
+  error: string | null;
+}
+const CLOSED_LINK: LinkState = { open: false, url: "", text: "", editing: false, hasSelection: false, error: null };
+
+/* ------------------------------------------------------------------ */
+/* Editor                                                             */
+/* ------------------------------------------------------------------ */
 export interface RichEditorProps {
   value: string;
   onChange: (val: string) => void;
+  name?: string;          // mirrored to data-field so the form can find/scroll to it
+  label?: string;
+  hint?: string;
+  required?: boolean;
+  invalid?: boolean;      // drives the red error border/ring
   placeholder?: string;
   minHeight?: number;
   maxHeight?: number;
   disabled?: boolean;
 }
 
-const FONT_SIZES = [
-  { label: "14", value: "3" },
-  { label: "16", value: "4" },
-  { label: "18", value: "5" },
-  { label: "20", value: "6" },
-];
-
-const BLOCK_FORMATS = [
-  { label: "Paragraph", tag: "p" },
-  { label: "Heading 2", tag: "h2" },
-  { label: "Heading 3", tag: "h3" },
-  { label: "Heading 4", tag: "h4" },
-  { label: "Heading 5", tag: "h5" },
-];
-
 export function RichEditor({
   value,
   onChange,
-  placeholder = "Start typing…",
-  minHeight = 120,
-  maxHeight = 320,
+  name,
+  label,
+  hint,
+  required,
+  invalid = false,
+  placeholder = "Start typing",
+  minHeight = 150,
+  maxHeight = 360,
   disabled = false,
 }: RichEditorProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInternalUpdate = useRef(false);
-  const [blockFormat, setBlockFormat] = useState("p");
-  const [fontSize, setFontSize] = useState("3");
-  const [listOpen, setListOpen] = useState(false);
+  const isInternal = useRef(false);
+  const hintId = useId();
+
+  const [active, setActive] = useState({ bold: false, italic: false, underline: false, ul: false, ol: false });
+  const [block, setBlock] = useState("p");
+
+  const [link, setLink] = useState<LinkState>(CLOSED_LINK);
+  const linkWrapRef = useRef<HTMLDivElement>(null);
+  const linkInputRef = useRef<HTMLInputElement>(null);
+  const savedRange = useRef<Range | null>(null);
+  const linkAnchor = useRef<HTMLAnchorElement | null>(null);
+
+  useEffect(() => ensureStyles(), []);
+
+  const markEmpty = () => {
+    if (ref.current) ref.current.dataset.empty = String(isBlankHtml(ref.current.innerHTML));
+  };
+
+  // keep DOM in sync with external value
+  useEffect(() => {
+    if (ref.current && !isInternal.current && ref.current.innerHTML !== value) {
+      ref.current.innerHTML = value ?? "";
+    }
+    markEmpty();
+    isInternal.current = false;
+  }, [value]);
+
+  const sync = useCallback(() => {
+    isInternal.current = true;
+    markEmpty();
+    onChange(ref.current?.innerHTML ?? "");
+  }, [onChange]);
+
+  const refreshActive = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || !ref.current || !ref.current.contains(sel.anchorNode)) return;
+    setActive({
+      bold: document.queryCommandState("bold"),
+      italic: document.queryCommandState("italic"),
+      underline: document.queryCommandState("underline"),
+      ul: document.queryCommandState("insertUnorderedList"),
+      ol: document.queryCommandState("insertOrderedList"),
+    });
+    let node: Node | null = sel.anchorNode;
+    let found = "p";
+    while (node && node !== ref.current) {
+      if (node.nodeType === 1) {
+        const t = (node as Element).tagName.toLowerCase();
+        if (["p", "h2", "h3", "h4", "blockquote", "li"].includes(t)) {
+          found = t;
+          break;
+        }
+      }
+      node = node.parentNode;
+    }
+    setBlock(found);
+  }, []);
 
   useEffect(() => {
-    if (ref.current && !isInternalUpdate.current) {
-      if (ref.current.innerHTML !== value) {
-        ref.current.innerHTML = value ?? "";
-      }
-    }
-    isInternalUpdate.current = false;
-  }, [value]);
+    document.addEventListener("selectionchange", refreshActive);
+    return () => document.removeEventListener("selectionchange", refreshActive);
+  }, [refreshActive]);
 
   const exec = (cmd: string, val?: string) => {
     if (disabled) return;
-    document.execCommand(cmd, false, val);
     ref.current?.focus();
+    document.execCommand(cmd, false, val);
+    sync();
+    refreshActive();
   };
 
-  const handleInput = () => {
-    isInternalUpdate.current = true;
-    onChange(ref.current?.innerHTML ?? "");
+  const applyBlock = (tag: string) => {
+    if (disabled) return;
+    ref.current?.focus();
+    document.execCommand("formatBlock", false, block === tag ? "p" : tag);
+    sync();
+    refreshActive();
   };
+
+  /* ---- link popover ---- */
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    savedRange.current =
+      sel && sel.rangeCount > 0 && ref.current?.contains(sel.anchorNode) ? sel.getRangeAt(0).cloneRange() : null;
+  };
+  const restoreSelection = () => {
+    const sel = window.getSelection();
+    if (sel && savedRange.current) {
+      sel.removeAllRanges();
+      sel.addRange(savedRange.current);
+    }
+  };
+  const anchorUnderCursor = (): HTMLAnchorElement | null => {
+    const sel = window.getSelection();
+    let node: Node | null = sel?.anchorNode ?? null;
+    while (node && node !== ref.current) {
+      if (node.nodeType === 1 && (node as Element).tagName === "A") return node as HTMLAnchorElement;
+      node = node.parentNode;
+    }
+    return null;
+  };
+  const closeLink = useCallback(() => {
+    setLink(CLOSED_LINK);
+    linkAnchor.current = null;
+    savedRange.current = null;
+  }, []);
+
+  const openLinkEditor = () => {
+    if (disabled) return;
+    if (link.open) {
+      closeLink();
+      return;
+    }
+    saveSelection();
+    const sel = window.getSelection();
+    const selectedText = sel ? sel.toString() : "";
+    const existing = anchorUnderCursor();
+    linkAnchor.current = existing;
+    setLink({
+      open: true,
+      url: existing?.getAttribute("href") ?? "",
+      text: existing ? existing.textContent ?? "" : selectedText,
+      editing: !!existing,
+      hasSelection: !!selectedText || !!existing,
+      error: null,
+    });
+  };
+
+  const applyLink = () => {
+    const url = normalizeUrl(link.url);
+    if (!url) {
+      setLink((s) => ({ ...s, error: "Enter a valid URL (https://…) or email." }));
+      linkInputRef.current?.focus();
+      return;
+    }
+    ref.current?.focus();
+
+    if (link.editing && linkAnchor.current) {
+      linkAnchor.current.setAttribute("href", url);
+      linkAnchor.current.setAttribute("rel", "noopener noreferrer nofollow");
+      linkAnchor.current.setAttribute("target", "_blank");
+      const t = link.text.trim();
+      if (t) linkAnchor.current.textContent = t;
+      sync();
+      refreshActive();
+      closeLink();
+      return;
+    }
+
+    restoreSelection();
+    const sel = window.getSelection();
+    const collapsed = !sel || sel.isCollapsed;
+
+    if (collapsed) {
+      const text = escapeHtml(link.text.trim() || url);
+      document.execCommand(
+        "insertHTML",
+        false,
+        `<a href="${escapeHtml(url)}" rel="noopener noreferrer nofollow" target="_blank">${text}</a>`,
+      );
+    } else {
+      document.execCommand("createLink", false, url);
+      const a = anchorUnderCursor();
+      if (a) {
+        a.setAttribute("rel", "noopener noreferrer nofollow");
+        a.setAttribute("target", "_blank");
+      }
+    }
+    sync();
+    refreshActive();
+    closeLink();
+  };
+
+  const removeLink = () => {
+    ref.current?.focus();
+    if (link.editing && linkAnchor.current) {
+      const range = document.createRange();
+      range.selectNodeContents(linkAnchor.current);
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    } else {
+      restoreSelection();
+    }
+    document.execCommand("unlink");
+    sync();
+    refreshActive();
+    closeLink();
+  };
+
+  useEffect(() => {
+    if (!link.open) return;
+    const id = window.setTimeout(() => {
+      linkInputRef.current?.focus();
+      linkInputRef.current?.select();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [link.open]);
+
+  useEffect(() => {
+    if (!link.open) return;
+    const onDown = (e: MouseEvent) => {
+      if (linkWrapRef.current && !linkWrapRef.current.contains(e.target as Node)) closeLink();
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeLink();
+        ref.current?.focus();
+      }
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [link.open, closeLink]);
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const html  = e.clipboardData.getData("text/html");
+    const html = e.clipboardData.getData("text/html");
     const plain = e.clipboardData.getData("text/plain");
-    if (html) {
-      document.execCommand("insertHTML", false, sanitizeHtml(html));
-    } else if (plain) {
-      document.execCommand("insertText", false, plain);
-    }
+    if (html) document.execCommand("insertHTML", false, sanitizeHtml(html));
+    else if (plain) document.execCommand("insertText", false, plain);
+    sync();
   };
 
-  const applyBlockFormat = (tag: string) => {
-    if (disabled) return;
-    setBlockFormat(tag);
-    document.execCommand("formatBlock", false, tag);
-    ref.current?.focus();
-  };
-
-  const applyFontSize = (size: string) => {
-    if (disabled) return;
-    setFontSize(size);
-    exec("fontSize", size);
-  };
+  const inputCls =
+    "mt-1 w-full rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800 outline-none focus:border-[#27aae1] focus:ring-2 focus:ring-[#27aae1]";
 
   return (
-    <div
-      style={{
-        border: "1px solid #d1d5db",
-        borderRadius: 8,
-        overflow: "hidden",
-        background: disabled ? "#f9fafb" : "#fff",
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
-      {/* ── Toolbar ── */}
+    <div className="flex flex-col gap-1">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+          {required && <span className="text-red-500"> *</span>}
+        </label>
+      )}
+
       <div
-        style={{
-          display: "flex",
-          gap: 2,
-          padding: "6px 10px",
-          borderBottom: "1px solid #e5e7eb",
-          background: "#f9fafb",
-          flexWrap: "wrap",
-          alignItems: "center",
-        }}
+        className={cn(
+          "rounded-md border bg-white transition-colors",
+          invalid
+            ? "border-red-500 focus-within:ring-2 focus-within:ring-red-500"
+            : "border-gray-300 focus-within:border-[#27aae1] focus-within:ring-2 focus-within:ring-[#27aae1]",
+          disabled && "opacity-60",
+        )}
       >
-        {/* Block format dropdown */}
-        <select
-          value={blockFormat}
-          onChange={(e) => applyBlockFormat(e.target.value)}
-          onMouseDown={(e) => e.stopPropagation()}
-          style={{ ...selectStyle, minWidth: 100 }}
-          disabled={disabled}
+        {/* toolbar */}
+        <div
+          role="toolbar"
+          aria-label="Text formatting"
+          className="flex flex-wrap items-center gap-1 rounded-t-md border-b border-gray-200 bg-gray-50 px-2 py-1.5"
         >
-          {BLOCK_FORMATS.map((f) => (
-            <option key={f.tag} value={f.tag}>{f.label}</option>
+          {BLOCKS.map((b) => (
+            <ToolButton key={b.tag} label={b.label} active={block === b.tag} disabled={disabled} onApply={() => applyBlock(b.tag)}>
+              {b.short}
+            </ToolButton>
           ))}
-        </select>
 
-        <div style={dividerStyle} />
+          <Divider />
 
-        {/* Font size dropdown */}
-        <select
-          value={fontSize}
-          onChange={(e) => applyFontSize(e.target.value)}
-          onMouseDown={(e) => e.stopPropagation()}
-          style={{ ...selectStyle, minWidth: 56 }}
-          disabled={disabled}
-        >
-          {FONT_SIZES.map((s) => (
-            <option key={s.value} value={s.value}>{s.label}</option>
-          ))}
-        </select>
+          <ToolButton label="Bold" active={active.bold} disabled={disabled} onApply={() => exec("bold")}>
+            <span className="font-bold">B</span>
+          </ToolButton>
+          <ToolButton label="Italic" active={active.italic} disabled={disabled} onApply={() => exec("italic")}>
+            <span className="italic">I</span>
+          </ToolButton>
+          <ToolButton label="Underline" active={active.underline} disabled={disabled} onApply={() => exec("underline")}>
+            <span className="underline">U</span>
+          </ToolButton>
 
-        <div style={dividerStyle} />
+          <Divider />
 
-        {/* Bold / Italic / Underline */}
-        {[
-          { cmd: "bold",      icon: "B", style: { fontWeight: 700 } },
-          { cmd: "italic",    icon: "I", style: { fontStyle: "italic" as const } },
-          { cmd: "underline", icon: "U", style: { textDecoration: "underline" as const } },
-        ].map(({ cmd, icon, style }) => (
-          <button
-            key={cmd}
-            type="button"
-            onMouseDown={(e) => { e.preventDefault(); exec(cmd); }}
-            style={{ ...btnStyle, ...style }}
-            disabled={disabled}
-          >
-            {icon}
-          </button>
-        ))}
+          <ToolButton label="Bullet list" active={active.ul} disabled={disabled} onApply={() => exec("insertUnorderedList")}>
+            &bull;&nbsp;&equiv;
+          </ToolButton>
+          <ToolButton label="Numbered list" active={active.ol} disabled={disabled} onApply={() => exec("insertOrderedList")}>
+            1.
+          </ToolButton>
+          <ToolButton label="Quote" active={block === "blockquote"} disabled={disabled} onApply={() => applyBlock("blockquote")}>
+            &ldquo;
+          </ToolButton>
 
-        <div style={dividerStyle} />
+          <Divider />
 
-        {/* Lists — dropdown */}
-        <div style={{ position: "relative" }}>
-          <button
-            type="button"
-            onMouseDown={(e) => { e.preventDefault(); setListOpen((o) => !o); }}
-            style={{ ...btnStyle, display: "flex", alignItems: "center", gap: 4 }}
-            disabled={disabled}
-          >
-            ☰ <span style={{ fontSize: 9, marginTop: 1 }}>▾</span>
-          </button>
-          {listOpen && (
-            <div style={{
-              position: "absolute", top: "calc(100% + 4px)", left: 0,
-              background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6,
-              boxShadow: "0 4px 12px rgba(0,0,0,.1)", zIndex: 100, minWidth: 140,
-            }}>
-              {[
-                { label: "• Bullet list",   cmd: "insertUnorderedList" },
-                { label: "1. Ordered list", cmd: "insertOrderedList" },
-              ].map(({ label, cmd }) => (
-                <button
-                  key={cmd}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    exec(cmd);
-                    setListOpen(false);
-                    ref.current?.focus();
-                  }}
-                  style={{
-                    display: "block", width: "100%", textAlign: "left",
-                    padding: "8px 12px", background: "none", border: "none",
-                    fontSize: 12, color: "#374151", cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f4ff")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* link button + anchored popover */}
+          <div ref={linkWrapRef} className="relative">
+            <ToolButton label={link.editing ? "Edit link" : "Add link"} active={link.open} disabled={disabled} onApply={openLinkEditor}>
+              Link
+            </ToolButton>
+
+            {link.open && (
+              <div
+                role="dialog"
+                aria-label="Insert link"
+                className="absolute right-0 top-[calc(100%+8px)] z-30 w-72 rounded-md border border-gray-200 bg-white p-3 shadow-lg"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <div className="flex flex-col gap-2.5">
+                  <label className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                    URL
+                    <input
+                      ref={linkInputRef}
+                      type="text"
+                      inputMode="url"
+                      value={link.url}
+                      placeholder="https://example.com"
+                      onChange={(e) => setLink((s) => ({ ...s, url: e.target.value, error: null }))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          applyLink();
+                        }
+                      }}
+                      className={cn(inputCls, "normal-case tracking-normal")}
+                    />
+                  </label>
+
+                  {!link.hasSelection && (
+                    <label className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                      Link text
+                      <input
+                        type="text"
+                        value={link.text}
+                        placeholder="Text to display"
+                        onChange={(e) => setLink((s) => ({ ...s, text: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            applyLink();
+                          }
+                        }}
+                        className={cn(inputCls, "normal-case tracking-normal")}
+                      />
+                    </label>
+                  )}
+
+                  {link.error && <p className="text-xs text-red-600">{link.error}</p>}
+
+                  <div className="flex items-center gap-2 pt-0.5">
+                    {link.editing && (
+                      <button
+                        type="button"
+                        onClick={removeLink}
+                        className="rounded border border-gray-300 bg-white px-2 py-1 text-[11px] font-medium text-gray-600 transition-colors hover:bg-gray-100"
+                      >
+                        Remove
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeLink();
+                        ref.current?.focus();
+                      }}
+                      className="ml-auto rounded border border-gray-300 bg-white px-2 py-1 text-[11px] font-medium text-gray-600 transition-colors hover:bg-gray-100"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={applyLink}
+                      className="rounded bg-[#1d8fc3] px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-[#27aae1]"
+                    >
+                      {link.editing ? "Update" : "Apply"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <ToolButton label="Clear formatting" disabled={disabled} onApply={() => exec("removeFormat")}>
+            Clear
+          </ToolButton>
         </div>
 
-        <div style={dividerStyle} />
-
-        {/* Link */}
-        <button
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            const url = prompt("Enter URL");
-            if (url && /^https?:\/\//i.test(url)) exec("createLink", url);
-          }}
-          style={btnStyle}
-          disabled={disabled}
-        >
-          Link
-        </button>
+        {/* editable region */}
+        <div
+          ref={ref}
+          data-field={name}
+          className="fo-editor px-3 py-2.5 text-sm text-gray-800"
+          contentEditable={!disabled}
+          suppressContentEditableWarning
+          role="textbox"
+          aria-multiline="true"
+          aria-label={label}
+          aria-invalid={invalid || undefined}
+          aria-describedby={hint ? hintId : undefined}
+          data-placeholder={placeholder}
+          tabIndex={0}
+          onInput={sync}
+          onKeyUp={refreshActive}
+          onMouseUp={refreshActive}
+          onPaste={handlePaste}
+          style={{ minHeight, maxHeight, overflowY: "auto" }}
+        />
       </div>
 
-      {/* ── Editable area ── */}
-      <div
-        ref={ref}
-        contentEditable={!disabled}
-        suppressContentEditableWarning
-        onInput={handleInput}
-        onPaste={handlePaste}
-        onClick={() => setListOpen(false)}
-        data-placeholder={placeholder}
-        style={{
-          minHeight,
-          maxHeight,
-          padding: "10px 12px",
-          outline: "none",
-          fontSize: 13,
-          color: "#111827",
-          lineHeight: 1.7,
-          overflowY: "auto",
-        }}
-      />
-
-      <style>{`
-        [contenteditable]:empty:before {
-          content: attr(data-placeholder);
-          color: #9ca3af;
-          pointer-events: none;
-        }
-      `}</style>
+      {hint && (
+        <p id={hintId} className="mt-1 text-xs leading-relaxed text-gray-500">
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
 
-const btnStyle: React.CSSProperties = {
-  padding: "2px 8px",
-  border: "1px solid #d1d5db",
-  borderRadius: 4,
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 12,
-  color: "#374151",
-  lineHeight: 1.6,
-};
-
-const selectStyle: React.CSSProperties = {
-  padding: "2px 6px",
-  border: "1px solid #d1d5db",
-  borderRadius: 4,
-  background: "#fff",
-  cursor: "pointer",
-  fontSize: 12,
-  color: "#374151",
-  lineHeight: 1.6,
-  height: 26,
-};
-
-const dividerStyle: React.CSSProperties = {
-  width: 1,
-  height: 18,
-  background: "#d1d5db",
-  margin: "0 4px",
-  flexShrink: 0,
-};
+export default RichEditor;

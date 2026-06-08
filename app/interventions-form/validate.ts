@@ -1,8 +1,6 @@
 import { validateEmail } from "@/lib/email";
 import type { FormData } from "@/types/form";
 
-// ─── Sanitization ────────────────────────────────────────────────────────────
-
 /**
  * Allowed HTML tags in text fields.
  * Extend this list if you need more (e.g. "table", "td", "tr").
@@ -180,7 +178,7 @@ export function validateFormData(data: FormData): FormErrors {
 
   if (!data.beneficiary.trim()) {
     errors.beneficiary = "Beneficiary information is required.";
-  } else if (data.beneficiary.trim().length > 600) {
+  } else if (data.beneficiary.trim().length > 2000) {
     errors.beneficiary = "Beneficiary description too long.";
   } else if (hasInjection(data.beneficiary)) {
     errors.beneficiary = "Beneficiary field contains invalid characters.";
@@ -190,7 +188,7 @@ export function validateFormData(data: FormData): FormErrors {
     errors.justification = "Justification is required.";
   } else if (data.justification.trim().length < 10) {
     errors.justification = "Please provide a more detailed justification.";
-  } else if (data.justification.trim().length > 3000) {
+  } else if (data.justification.trim().length > 10000) {
     errors.justification = "Justification too long.";
   } else if (hasInjection(data.justification)) {
     errors.justification = "Justification contains invalid characters.";
@@ -200,13 +198,13 @@ export function validateFormData(data: FormData): FormErrors {
     errors.expectedImpact = "Expected impact is required.";
   } else if (data.expectedImpact.trim().length < 10) {
     errors.expectedImpact = "Please describe the expected impact in more detail.";
-  } else if (data.expectedImpact.trim().length > 3000) {
+  } else if (data.expectedImpact.trim().length > 1000) {
     errors.expectedImpact = "Expected impact too long.";
   } else if (hasInjection(data.expectedImpact)) {
     errors.expectedImpact = "Expected impact field contains invalid characters.";
   }
 
-  if (data.additionalInfo && data.additionalInfo.trim().length > 2000) {
+  if (data.additionalInfo && data.additionalInfo.trim().length > 10000) {
     errors.additionalInfo = "Additional information too long.";
   } else if (data.additionalInfo && hasInjection(data.additionalInfo)) {
     errors.additionalInfo = "Additional information contains invalid characters.";

@@ -22,32 +22,31 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-    verification: {
+  verification: {
     google: "D0TeHRYuJqPMFxLbOlh6kR6MAkSElpgiXE6GOv_yARw",
   },
   category: "Healthcare",
 };
 
-
+// one container, used everywhere → consistent edges + tight mobile gutters
+const CONTAINER = "mx-auto w-full container px-4 sm:px-6 lg:px-8";
 
 export default function Page() {
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex min-h-screen flex-col bg-white">
       <Navbar />
 
-
-      <section className="bg-white">
-
-
-        <div className="container mx-auto px-2  border-b border-gray-900  py-12 mt-8">
-          <div className="max-w-5xl">
+      {/* Hero */}
+      <section className="border-b border-gray-200 bg-white">
+        <div className={`${CONTAINER} py-10 mt-8 sm:py-14`}>
+          <div className="max-w-3xl">
      
 
-            <h1 className="text-3xl  font-extrabold text-gray-900 tracking-tight leading-tight mb-5">
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-4xl">
               Interventions Proposal
             </h1>
 
-            <p className="text-lg  text-gray-900 leading-relaxed">
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
               Submit your proposals for health interventions and contribute to strengthening
               healthcare systems in Kenya.
             </p>
@@ -55,88 +54,96 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-6 py-12">
-          <div className="grid md:grid-cols-2 border border-gray-200 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+      {/* Info cards */}
+      <section className="border-b border-gray-200 bg-white">
+        <div className={`${CONTAINER} py-10 sm:py-14`}>
+          <div className="grid border border-gray-200 sm:grid-cols-2 divide-y divide-gray-200 sm:divide-x sm:divide-y-0">
+            {[
+              {
+                no: '01',
+                Icon: Users,
+                title: 'Who Can Submit Proposals?',
+                body: (
+                  <>
+                    The relevant stakeholders including the Authority, policy makers, the academia,
+                    members of the public, health professional associations, civil society
+                    organizations involved in matters of health, the Kenya Medical Supplies Authority
+                    and the county governments may propose interventions for inclusion in the benefits
+                    packages under regulation.
+                  </>
+                ),
+              },
+              {
+                no: '02',
+                Icon: MessageSquare,
+                title: 'How to Submit Your Proposal',
+                body: (
+                  <>
+                    The proposals will be received by the BPTAP secretariat through various channels
+                    including direct requests by the Panel to key stakeholders; scheduled stakeholder
+                    meetings or forums; or digital platforms including{' '}
+                    <Link
+                      href="mailto:hbtap@uonbi.ac.ke"
+                      className="font-semibold text-[#27aae1] underline underline-offset-2 transition-colors hover:text-[#1a8fc4]"
+                    >
+                      hbtap@uonbi.ac.ke
+                    </Link>
+                    {' '}or by filling the form below.
+                  </>
+                ),
+              },
+            ].map(({ no, Icon, title, body }) => (
+              <article
+                key={no}
+                className="group relative flex flex-col gap-5 overflow-hidden bg-white p-6 transition-colors duration-200 hover:bg-[#f8fcff] sm:p-8"
+              >
+                <span className="absolute left-0 right-0 top-0 h-0.5 -translate-x-full bg-[#27aae1] transition-transform duration-300 group-hover:translate-x-0" />
 
-            <div className="group bg-white p-8 flex flex-col gap-5 hover:bg-[#f8fcff] transition-colors duration-200 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#27aae1] -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-
-              <div className="flex items-center justify-between">
-                <span className="text-4xl font-black text-gray-100 select-none leading-none">01</span>
-                <div className="w-10 h-10 flex items-center justify-center border border-gray-200 group-hover:border-[#27aae1] group-hover:bg-[#27aae1]/5 transition-colors duration-200">
-                  <Users className="w-5 h-5 text-[#27aae1]" strokeWidth={1.75} />
+                <div className="flex items-center justify-between">
+                  <span className="select-none text-4xl font-black leading-none text-gray-100">{no}</span>
+                  <span className="flex h-10 w-10 items-center justify-center border border-gray-200 transition-colors duration-200 group-hover:border-[#27aae1] group-hover:bg-[#27aae1]/5">
+                    <Icon className="h-5 w-5 text-[#27aae1]" strokeWidth={1.75} />
+                  </span>
                 </div>
-              </div>
 
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">
-                  Who Can Submit Proposals?
-                </h2>
-                <p className="text-lg  leading-relaxed">
-                  The relevant stakeholders including the Authority, policy makers, the academia,
-                  members of the public, health professional associations, civil society
-                  organizations involved in matters of health, the Kenya Medical Supplies Authority
-                  and the county governments may propose interventions for inclusion in the benefits
-                  packages under regulation.
-                </p>
-              </div>
-            </div>
-
-            {/* How to submit */}
-            <div className="group bg-white p-8 flex flex-col gap-5 hover:bg-[#f8fcff] transition-colors duration-200 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#27aae1] -translate-x-full group-hover:translate-x-0 transition-transform duration-300" />
-
-              <div className="flex items-center justify-between">
-                <span className="text-4xl font-black text-gray-100 select-none leading-none">02</span>
-                <div className="w-10 h-10 flex items-center justify-center border border-gray-200 group-hover:border-[#27aae1] group-hover:bg-[#27aae1]/5 transition-colors duration-200">
-                  <MessageSquare className="w-5 h-5 text-[#27aae1]" strokeWidth={1.75} />
+                <div>
+                  <h2 className="mb-2 text-lg font-bold text-gray-900 sm:text-xl">{title}</h2>
+                  <p className="text-sm leading-relaxed text-gray-600 sm:text-base">{body}</p>
                 </div>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">
-                  How to Submit Your Proposal
-                </h2>
-                <p className="text-lg text-gray-700 leading-relaxed">
-                  The proposals will be received by the BPTAP secretariat through various channels
-                  including direct requests by the Panel to key stakeholders; scheduled stakeholder
-                  meetings or forums; or digital platforms including{' '}
-                  <Link
-                    href="mailto:hbtap@uonbi.ac.ke"
-                    className="text-[#27aae1] underline hover:text-[#1a8fc4] font-semibold transition-colors"
-                  >
-                    hbtap@uonbi.ac.ke
-                  </Link>
-                  {' '}or by filling the form below.
-                </p>
-              </div>
-            </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-[#f8f9fa] border-b border-gray-200 flex-1">
-         <ScrollToForm>
-        <div className="container mx-auto px-4 sm:px-6 py-6">
-          <div className="mb-10">
-     
-            <h2 className="text-xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
-              Submit Your Proposal
-            </h2>
-            <p className="text-lg text-gray-600">
-              Complete the form below to submit your intervention proposal.
-            </p>
-          </div>
+      {/* Form */}
+      <section className="flex-1 border-b border-gray-200 ">
+        <ScrollToForm>
+          <div className={`${CONTAINER} py-10 sm:py-14`}>
+            <div className="mb-8">
+              <div className="mb-3 flex items-center gap-3">
+                <span className="h-px w-8 bg-[#27aae1]" />
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#27aae1]">
+                  Proposal Form
+                </span>
+              </div>
+              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
+                Submit Your Proposal
+              </h2>
+              <p className="mt-2 text-base text-gray-600 sm:text-lg">
+                Complete the form below to submit your intervention proposal.
+              </p>
+            </div>
 
-          <div className="bg-white border border-gray-200 p-6 sm:p-10">
-            <BenefitsForm />
+            {/* wrapper padding tightened on mobile so the form isn't double-boxed */}
+            <div className="">
+              <BenefitsForm />
+            </div>
           </div>
-        </div>
         </ScrollToForm>
       </section>
 
       <Footer />
     </div>
-  )
+  );
 }

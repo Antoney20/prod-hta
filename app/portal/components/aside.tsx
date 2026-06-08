@@ -144,6 +144,31 @@ const panelNavItems: NavItem[] = [
 ];
 
 
+const assessmentGroupNavItems: NavItem[] = [
+  { type: "link", title: "Dashboard", href: "/portal", icon: <Home className="h-5 w-5" /> },
+  sharedInterventions,
+
+  { type: "divider" },
+  { type: "section", title: "Assessment Group" },
+
+  {
+    type: "group",
+    title: "Evidence",
+    icon: <FileText className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
+      { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
+    ],
+  },
+
+  { type: "divider" },
+  { type: "section", title: "Common" },
+
+  sharedCalendarEvents,
+  sharedTaskManagement,
+];
+
+
 const adminNavItems: NavItem[] = [
   { type: "link", title: "Dashboard",    href: "/portal",             icon: <Home className="h-5 w-5" /> },
   sharedInterventions,
@@ -184,6 +209,18 @@ const adminNavItems: NavItem[] = [
     ],
   },
 
+  { type: "divider" },
+  { type: "section", title: "Assessment Group" },
+
+  {
+    type: "group",
+    title: "Evidence",
+    icon: <FileText className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
+      { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
+    ],
+  },
 
   { type: "divider" },
   { type: "section", title: "Appraisal (Panel)" },
@@ -207,7 +244,6 @@ const adminNavItems: NavItem[] = [
     ],
   },
 
-  // ── Admin Tools ────────────────────────────────────────────────────────────
   { type: "divider" },
   { type: "section", title: "Admin Tools" },
 
@@ -309,13 +345,15 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
 
   const isUserOrSwg = role === "user" || role === "swg";
   const isPanel     = role === "panel";
+  const isAssessmentGroup = role === "assessment_group";
 
   // For panel and swg/user — start all groups open (they have limited nav).
   // For admin/secretariat — start all collapsed (too many groups to dump open).
   const initialExpanded =
     isUserOrSwg ? collectGroupKeys(userSwgNavItems) :
-    isPanel     ? collectGroupKeys(panelNavItems)   :
-    [];
+    isPanel     ? collectGroupKeys(panelNavItems)  :
+    isAssessmentGroup ? collectGroupKeys(assessmentGroupNavItems) :
+  [];
 
   const [expandedItems, setExpandedItems] = useState<string[]>(initialExpanded);
 
@@ -348,7 +386,9 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
   const navigationItems: NavItem[] =
     isUserOrSwg ? userSwgNavItems :
     isPanel     ? panelNavItems   :
-    adminNavItems;
+    isAssessmentGroup ? assessmentGroupNavItems :
+  adminNavItems;
+
 
   const isActive = (href: string) => {
     if (pathname === href) return true;
@@ -497,6 +537,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
     if (role === "content_manager") return "Content Manager";
     if (role === "panel")           return "Panel Member";
     if (role === "swg")             return "SWG Member";
+    if (role === "assessment_group") return "Assessment Group";
     return "Member";
   };
 

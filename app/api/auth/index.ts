@@ -2,12 +2,12 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import { useState, useEffect } from 'react';
 
-// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// const API_URL = `${process.env.API_URL || API_BASE_URL}`;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_URL = `${process.env.API_URL || API_BASE_URL}`;
 
-const API_URL = '/api';  
+// const API_URL = '/api';  
 
-export type UserRole = 'admin' | 'secretariat' | 'content_manager' | 'user' | 'swg' | 'panel';
+export type UserRole = 'admin' | 'secretariat' | 'content_manager' | 'user' | 'swg' | 'panel'| 'assessment_group';
 
 
 const api = axios.create({
@@ -50,6 +50,8 @@ export interface User {
   is_staff: boolean;
   is_superuser: boolean;
   is_email_verified: boolean;
+  assessment_group?: boolean;
+  assessment_group_name: string | null;
   status: string;
   is_blocked: boolean;
   last_login: string;
@@ -105,6 +107,8 @@ export interface RegisterUserData {
   last_name: string;
   country: string;
   profile_image?: File | null;
+  assessment_group?: boolean;
+  assessment_group_name?:string;
 }
 
 export interface RegisterMemberData {

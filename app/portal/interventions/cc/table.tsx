@@ -4,6 +4,7 @@
 import { useRouter } from "next/navigation";
 import { FileText, ExternalLink } from "lucide-react";
 import { SubmittedProposal } from "@/types/dashboard/submittedProposals";
+import { htmlToText } from "@/components/shared/text";
 
 interface InterventionsTableProps {
   proposals: SubmittedProposal[];
@@ -74,6 +75,8 @@ function DocumentLinks({ documents }: { documents?: SubmittedProposal["documents
 const TH = "px-2 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TD = "px-2 py-2 align-top";
 
+
+
 export function InterventionsTable({
   proposals,
   page,
@@ -81,6 +84,7 @@ export function InterventionsTable({
 }: InterventionsTableProps) {
   const router = useRouter();
 
+  
   return (
     <div className="overflow-x-auto  border border-slate-200 shadow-sm bg-white">
       <table className="w-full text-sm">
@@ -140,7 +144,7 @@ export function InterventionsTable({
 
                 <td className={TD}>
                   <p className="text-xs text-slate-700 line-clamp-2 max-w-90">
-                    {p.beneficiary ?? "—"}
+                   {htmlToText(p.beneficiary) ?? "—"}
                   </p>
                 </td>
 

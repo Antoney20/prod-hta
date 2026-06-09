@@ -349,9 +349,9 @@ const Navbar = ({ isSidebarOpen, onSidebarToggle }: NavbarProps) => {
             <Link href="/portal/announcements" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#27aae1] hover:bg-[#27aae1]/10 rounded-lg transition-colors">
               <Megaphone className="h-4 w-4 mr-2" /> Announcements
             </Link>
-            <Link href="/portal/polls" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#27aae1] hover:bg-[#27aae1]/10 rounded-lg transition-colors">
+            {/* <Link href="/portal/polls" className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-[#27aae1] hover:bg-[#27aae1]/10 rounded-lg transition-colors">
               <VoteIcon className="h-4 w-4 mr-2" /> Polls
-            </Link>
+            </Link> */}
           </div>
 
           {/* Right — actions */}

@@ -170,7 +170,7 @@ export function ProposalForm({ open, onClose, onSubmit, program, defaultValues, 
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto backdrop-blur-sm">
+      <DialogContent className="sm:max-w-3xl lg:max-w-5xl  min-h-[90vh]  max-h-[90vh] overflow-y-auto backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle>
             {editing ? "Edit Evidence" : "Upload Evidence"}

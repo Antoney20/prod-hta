@@ -62,10 +62,10 @@ const sharedNationalPrograms: NavItem = {
   icon: <ClipboardList className="h-5 w-5" />,
   children: [
     { type: "link", title: "National Programs",      href: "/portal/national-programs",           icon: <ActivitySquare className="h-4 w-4" /> },
-    { type: "link", title: "Intervention Proposals", href: "/portal/national-programs/proposals",  icon: <Gavel className="h-4 w-4" /> },
+    { type: "link", title: "Interventions Proposals", href: "/portal/national-programs/proposals",  icon: <Gavel className="h-4 w-4" /> },
+     { type: "link", title: "Upload(Bulk) Proposals ", href: "/portal/national-programs/upload",  icon: <SlidersHorizontal  className="h-4 w-4" /> },
   ],
 };
-
 
 const sharedInterventions: NavItem = {
   type: "link",
@@ -106,6 +106,7 @@ const userSwgNavItems: NavItem[] = [
       { type: "link", title: "Status Update",  href: "/portal/interventions/status", icon: <SlidersHorizontal className="h-4 w-4" /> },
     ],
   },
+  sharedNationalPrograms,
   {
     type: "group",
     title: "Topic Prioritization",
@@ -149,6 +150,7 @@ const assessmentGroupNavItems: NavItem[] = [
 const panelNavItems: NavItem[] = [
   { type: "link", title: "Dashboard",    href: "/portal",             icon: <Home className="h-5 w-5" /> },
   sharedInterventions,
+  sharedNationalPrograms,
 
   { type: "divider" },
   { type: "section", title: "Appraisal (Panel)" },
@@ -188,6 +190,7 @@ const adminNavItems: NavItem[] = [
 
 
   sharedInterventions,
+  sharedNationalPrograms,
 
 
   { type: "divider" },

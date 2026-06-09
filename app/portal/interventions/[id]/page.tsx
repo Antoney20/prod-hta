@@ -16,6 +16,7 @@ import {
 import type { SubmittedProposal } from "@/types/dashboard/submittedProposals";
 import { getSubmittedProposals } from "@/app/api/dashboard/submitted-proposals";
 import RichText, { htmlToText } from "@/components/shared/text";
+import { useAuth } from "@/app/api/auth";
 
 
 const BLUE = "#27aae1";
@@ -129,6 +130,8 @@ function ErrorState({ message, onBack }: { message: string; onBack: () => void }
 }
 
 export default function TrackerDetailPage() {
+  const { user } = useAuth();
+  const canViewDocuments = user?.role === "admin" || user?.role === "secretariat";
   const router = useRouter();
   const params = useParams();
   const trackerId = params?.id as string;
@@ -268,8 +271,10 @@ export default function TrackerDetailPage() {
               </dl>
             </section>
 
-            {/* Documents */}
-            {hasDocuments && (
+
+
+
+            {hasDocuments && canViewDocuments && (
               <section className="bg-white p-5 sm:p-6">
                 <SectionTitle>
                   Attached Documents

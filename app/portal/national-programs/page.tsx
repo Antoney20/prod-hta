@@ -19,11 +19,14 @@ import {
 import { NationalProgram, NationalProgramPayload } from "@/types/new/program";
 import { DeleteDialog } from "./cc/delete";
 import { ProgramForm } from "./cc/form";
+import { useAuth } from "@/app/api/auth";
 
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TD = "px-3 py-3 align-middle";
 
 export default function NationalProgramsPage() {
+  const { user } = useAuth();
+  const canManage = user?.role === "admin" || user?.role === "secretariat";
   const router = useRouter();
   const [programs, setPrograms] = useState<NationalProgram[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +126,7 @@ export default function NationalProgramsPage() {
               <th className={`${TH} w-20 text-center`}>Fields</th>
               <th className={`${TH} w-24`}>Status</th>
               <th className={`${TH} w-48`}>Reference Template</th>
-              <th className={`${TH} w-20 text-right`} />
+               {canManage &&<th className={`${TH} w-20 text-right`} > Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -144,6 +147,7 @@ export default function NationalProgramsPage() {
                     </Badge>
                   </td>
                   <td className={`${TD} font-mono text-xs text-slate-500`}>{p.reference_template ?? `INTERV-${p.code}`}</td>
+                   {canManage && (
                   <td className={`${TD} text-right`}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -162,6 +166,7 @@ export default function NationalProgramsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
+                   )}
                 </tr>
               ))
             )}

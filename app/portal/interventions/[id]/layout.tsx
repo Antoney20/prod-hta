@@ -3,7 +3,7 @@ import RoleGuard from "@/app/context/role";
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   return (<>
-   <RoleGuard minimumRole="user">
+   <RoleGuard minimumRole="assessment">
       {children}
      </RoleGuard>
     </>

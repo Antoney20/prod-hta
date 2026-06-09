@@ -13,7 +13,7 @@ export interface FormData {
   signature: string;
   date: string;
   additionalInfo: string;
-  uploadedDocument: File | null; 
+  uploaded_documents: File[];
 }
 
 export interface FormErrors {

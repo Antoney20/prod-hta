@@ -56,6 +56,16 @@ type NavItem =
   | { type: "section"; title: string }
   | { type: "divider" };
 
+const sharedNationalPrograms: NavItem = {
+  type: "group",
+  title: "National Programs",
+  icon: <ClipboardList className="h-5 w-5" />,
+  children: [
+    { type: "link", title: "National Programs",      href: "/portal/national-programs",           icon: <ActivitySquare className="h-4 w-4" /> },
+    { type: "link", title: "Intervention Proposals", href: "/portal/national-programs/proposals",  icon: <Gavel className="h-4 w-4" /> },
+  ],
+};
+
 
 const sharedInterventions: NavItem = {
   type: "link",
@@ -110,6 +120,32 @@ const userSwgNavItems: NavItem[] = [
 
 
 
+const assessmentGroupNavItems: NavItem[] = [
+  { type: "link", title: "Dashboard", href: "/portal", icon: <Home className="h-5 w-5" /> },
+  sharedInterventions,
+  sharedNationalPrograms,
+
+  { type: "divider" },
+  { type: "section", title: "Assessment Group" },
+
+  {
+    type: "group",
+    title: "Evidence",
+    icon: <FileText className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "Upload Evidence",   href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
+      { type: "link", title: "Available Evidence", href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
+    ],
+  },
+
+  { type: "divider" },
+  { type: "section", title: "Common" },
+
+  sharedCalendarEvents,
+  sharedTaskManagement,
+];
+
+
 const panelNavItems: NavItem[] = [
   { type: "link", title: "Dashboard",    href: "/portal",             icon: <Home className="h-5 w-5" /> },
   sharedInterventions,
@@ -144,33 +180,13 @@ const panelNavItems: NavItem[] = [
 ];
 
 
-const assessmentGroupNavItems: NavItem[] = [
-  { type: "link", title: "Dashboard", href: "/portal", icon: <Home className="h-5 w-5" /> },
-  sharedInterventions,
 
-  { type: "divider" },
-  { type: "section", title: "Assessment Group" },
-
-  {
-    type: "group",
-    title: "Evidence",
-    icon: <FileText className="h-5 w-5" />,
-    children: [
-      { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
-      { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
-    ],
-  },
-
-  { type: "divider" },
-  { type: "section", title: "Common" },
-
-  sharedCalendarEvents,
-  sharedTaskManagement,
-];
 
 
 const adminNavItems: NavItem[] = [
   { type: "link", title: "Dashboard",    href: "/portal",             icon: <Home className="h-5 w-5" /> },
+
+
   sharedInterventions,
 
 
@@ -312,7 +328,6 @@ const adminNavItems: NavItem[] = [
     ],
   },
 
-  // ── Common ─────────────────────────────────────────────────────────────────
   { type: "divider" },
   { type: "section", title: "Common" },
 
@@ -345,7 +360,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
 
   const isUserOrSwg = role === "user" || role === "swg";
   const isPanel     = role === "panel";
-  const isAssessmentGroup = role === "assessment_group";
+  const isAssessmentGroup = role === "assessment";
 
   // For panel and swg/user — start all groups open (they have limited nav).
   // For admin/secretariat — start all collapsed (too many groups to dump open).
@@ -537,7 +552,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
     if (role === "content_manager") return "Content Manager";
     if (role === "panel")           return "Panel Member";
     if (role === "swg")             return "SWG Member";
-    if (role === "assessment_group") return "Assessment Group";
+   if (role === "assessment") return "Assessment Group"; 
     return "Member";
   };
 

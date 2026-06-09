@@ -7,7 +7,7 @@ const API_URL = `${process.env.API_URL || API_BASE_URL}`;
 
 // const API_URL = '/api';  
 
-export type UserRole = 'admin' | 'secretariat' | 'content_manager' | 'user' | 'swg' | 'panel'| 'assessment_group';
+export type UserRole = 'admin' | 'secretariat' | 'content_manager' | 'user' | 'swg' | 'panel'| 'assessment';
 
 
 const api = axios.create({

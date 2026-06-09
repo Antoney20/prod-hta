@@ -12,7 +12,9 @@ export interface Member {
   phone_number: string | null;
   notes: string | null;
   organization: string;
-  role: "admin" | "secretariat" | "user" | "swg" | "content_manager" | "panel";
+  role: "admin" | "secretariat" | "user" | "swg" | "content_manager" | "panel" | "assessment";
+  assessment_group: boolean;
+  assessment_group_name: string | null;
 }
 
 export interface APIResponse<T> {

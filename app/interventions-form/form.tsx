@@ -7,7 +7,21 @@ import { sanitizeEmail, sanitizeFormData, sanitizePhone, sanitizeText, validateF
 import RichEditor from '@/components/shared/editor';
 
 
-const RICH_FIELDS: (keyof FormData)[] = ['justification', 'expectedImpact', 'additionalInfo'];
+const RICH_FIELDS: (keyof FormData)[] = ['beneficiary','justification',  'expectedImpact', 'additionalInfo'];
+
+const MAX_FILES = 5;
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const ACCEPTED_EXT = ['.pdf', '.xlsx', '.docx'];
+const ACCEPTED_MIME = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const isAccepted = (file: File): boolean => {
+  const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
+  return ACCEPTED_EXT.includes(ext) || ACCEPTED_MIME.includes(file.type);
+};
 
 const stripHtml = (html: string): string => {
   if (!html) return '';
@@ -59,7 +73,7 @@ const BenefitsForm: React.FC = () => {
     justification: '',
     expectedImpact: '',
     additionalInfo: '',
-    uploadedDocument: null,
+    uploaded_documents: [],
     signature: '',
     date: new Date().toISOString().split('T')[0],
   });
@@ -71,6 +85,7 @@ const BenefitsForm: React.FC = () => {
   const [formTouched, setFormTouched] = useState<boolean>(false);
   const [emailStatus, setEmailStatus] = useState<EmailResponse | null>(null);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
+  const [dragActive, setDragActive] = useState<boolean>(false);
 
   const handleRichChange = (name: keyof FormData) => (val: string) => {
     setFormData((prev) => ({ ...prev, [name]: val }));
@@ -123,24 +138,62 @@ const BenefitsForm: React.FC = () => {
     }
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    const file = e.target.files?.[0] || null;
-    const updated = { ...formData, uploadedDocument: file };
-    setFormData(updated);
-    setFormTouched(true);
 
-    const fieldErr = validateField('uploadedDocument', updated);
-    setErrors((prev) => {
-      const next = { ...prev };
-      if (fieldErr) {
-        next.uploadedDocument = fieldErr;
-        e.target.value = '';
-      } else {
-        delete next.uploadedDocument;
+  const addFiles = (incoming: FileList | File[]): void => {
+      const list = Array.from(incoming);
+      const next = [...formData.uploaded_documents];
+      let err: string | undefined;
+
+      for (const file of list) {
+        if (next.length >= MAX_FILES) { err = `You can attach at most ${MAX_FILES} files.`; break; }
+        if (!isAccepted(file)) { err = `${file.name}: only PDF, XLSX or DOCX allowed.`; continue; }
+        if (file.size > MAX_SIZE) { err = `${file.name}: exceeds the 10MB limit.`; continue; }
+        if (next.some((f) => f.name === file.name && f.size === file.size)) continue; // dedupe
+        next.push(file);
       }
-      return next;
+
+      setFormData((prev) => ({ ...prev, uploaded_documents: next }));
+      setFormTouched(true);
+      setErrors((prev) => {
+        const n = { ...prev };
+        if (err) n.uploaded_documents = err;
+        else delete n.uploaded_documents;
+        return n;
+      });
+    };
+
+
+
+const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    if (e.target.files) addFiles(e.target.files);
+    e.target.value = ''; // allow re-selecting the same file
+  };
+
+  const removeFile = (idx: number): void => {
+    setFormData((prev) => ({
+      ...prev,
+      uploaded_documents: prev.uploaded_documents.filter((_, i) => i !== idx),
+    }));
+    setErrors((prev) => {
+      const n = { ...prev };
+      delete n.uploaded_documents;
+      return n;
     });
   };
+
+  const handleDrag = (e: React.DragEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(e.type === 'dragenter' || e.type === 'dragover');
+  };
+
+  const handleDrop = (e: React.DragEvent): void => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files?.length) addFiles(e.dataTransfer.files);
+  };
+
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -172,12 +225,14 @@ const BenefitsForm: React.FC = () => {
 
     const clean = sanitizeFormData(formData);
     // Preserve the editor's sanitized HTML — sanitizeFormData would otherwise
-    // flatten the tags and we'd lose all formatting. (Re-sanitize on the
+    // flatten the tags and we'd lose all formatting.
     RICH_FIELDS.forEach((f) => {
       (clean[f] as unknown) = formData[f];
     });
-    setFormData(clean);
-
+    // Preserve the File[] — sanitizeFormData only handles strings.
+    clean.uploaded_documents = formData.uploaded_documents;
+      setFormData(clean);
+      
     setIsSubmitting(true);
     try {
       const response = await submitProposal(clean);
@@ -386,25 +441,6 @@ const BenefitsForm: React.FC = () => {
           <FieldError message={errors.interventionType} />
         </fieldset>
 
-        {/* <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="beneficiary-input">
-            8. Proposed beneficiary for the proposed intervention
-            <span className="text-gray-500 italic text-xs ml-1">e.g., sickle cell patients</span>
-          </label>
-          <input
-            id="beneficiary-input"
-            type="text"
-            name="beneficiary"
-            value={formData.beneficiary}
-            onChange={handleChange}
-            placeholder="e.g. sickle cell patients"
-            aria-required="true"
-            aria-invalid={!!errors.beneficiary}
-            aria-describedby={errors.beneficiary ? 'beneficiary-error' : undefined}
-            className={`w-full px-4 py-2 border ${errors.beneficiary ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-          />
-          <FieldError message={errors.beneficiary} />
-        </div> */}
          <div>
           <RichEditor
             name="beneficiary-input"
@@ -460,55 +496,76 @@ const BenefitsForm: React.FC = () => {
           <FieldError message={errors.additionalInfo} />
         </div>
 
-        <div>
+
+
+<div>
           <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="document-upload">
-            Upload Supporting Document (Optional)
-            <span className="text-gray-500 italic text-xs ml-1">*PDF format only, max 10MB</span>
+            Upload Supporting Documents (Optional)
+            <span className="text-gray-500 italic text-xs ml-1">
+              *PDF, XLSX or DOCX — up to {MAX_FILES} files, 10MB each
+            </span>
           </label>
-          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-gray-400 transition-colors">
+
+          <div
+            onDragEnter={handleDrag}
+            onDragOver={handleDrag}
+            onDragLeave={handleDrag}
+            onDrop={handleDrop}
+            className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors ${
+              dragActive ? 'border-[#27aae1] bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
             <div className="space-y-1 text-center">
               <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <div className="flex text-sm text-gray-600">
+              <div className="flex justify-center text-sm text-gray-600">
                 <label htmlFor="document-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                  <span>Upload a file</span>
+                  <span>Upload files</span>
                   <input
                     id="document-upload"
-                    name="uploadedDocument"
+                    name="uploaded_documents"
                     type="file"
+                    multiple
                     accept=".pdf,.xlsx,.docx"
                     onChange={handleFileChange}
+                    disabled={formData.uploaded_documents.length >= MAX_FILES}
                     aria-required="false"
                     className="sr-only"
                   />
                 </label>
+                <p className="pl-1">or drag and drop</p>
               </div>
-              <p className="text-xs text-gray-500">PDF, XLSX or DOCX up to 10MB</p>
-              {formData.uploadedDocument && (
-                <div className="mt-2">
-                  <p className="text-sm text-green-600 flex items-center justify-center">
-                    <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    {formData.uploadedDocument.name}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData((prev) => ({ ...prev, uploadedDocument: null }));
-                      const fileInput = document.getElementById('document-upload') as HTMLInputElement;
-                      if (fileInput) fileInput.value = '';
-                    }}
-                    className="text-xs text-red-600 hover:text-red-800 mt-1"
-                  >
-                    Remove file
-                  </button>
-                </div>
-              )}
-              <FieldError message={errors.uploadedDocument} />
+              <p className="text-xs text-gray-500">
+                PDF, XLSX or DOCX up to 10MB each (max {MAX_FILES})
+              </p>
             </div>
           </div>
+
+          {formData.uploaded_documents.length > 0 && (
+            <ul className="mt-3 space-y-2">
+              {formData.uploaded_documents.map((file, idx) => (
+                <li key={`${file.name}-${idx}`} className="flex items-center justify-between border border-gray-200 px-3 py-2 text-sm rounded-md">
+                  <span className="flex items-center gap-2 text-gray-700 min-w-0">
+                    <svg className="h-4 w-4 text-green-600 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="truncate">{file.name}</span>
+                    <span className="text-gray-400 shrink-0">({(file.size / 1024 / 1024).toFixed(1)}MB)</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeFile(idx)}
+                    className="text-xs text-red-600 hover:text-red-800 shrink-0 ml-3"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <FieldError message={errors.uploaded_documents} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">

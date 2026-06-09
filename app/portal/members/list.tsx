@@ -29,10 +29,11 @@ interface MembersListProps {
 const ROLE_LABELS: Record<string, string> = {
   admin: 'Admin',
   secretariat: 'Secretariat',
-  user: 'User',
   swg: 'SWG',
   content_manager: 'Content Manager',
   panel: 'Panel',
+  assessment: 'Assessment Group',
+  user: 'User',
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -40,9 +41,13 @@ const ROLE_COLORS: Record<string, string> = {
   secretariat: 'bg-purple-50 text-purple-700 border-purple-200',
   swg: 'bg-blue-50 text-blue-700 border-blue-200',
   content_manager: 'bg-amber-50 text-amber-700 border-amber-200',
-  user: 'bg-slate-50 text-slate-600 border-slate-200',
   panel: 'bg-green-50 text-green-900 border-green-200',
+  assessment: 'bg-teal-50 text-teal-700 border-teal-200',
+  user: 'bg-slate-50 text-slate-600 border-slate-200',
 };
+
+// render order for the grouped sections
+const ROLE_ORDER = ['admin', 'secretariat', 'swg', 'content_manager', 'panel', 'assessment', 'user'];
 
 function RoleBadge({ role }: { role: string }) {
   return (
@@ -87,15 +92,15 @@ const MembersList: React.FC<MembersListProps> = ({ members, onRefresh, canEdit }
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-const openEdit = (m: Member) => {
-  setEditing(m);
-  setForm({
-    phone_number: m.phone_number ?? '',
-    notes: m.notes ?? '',
-    organization: m.organization ?? '',
-    role: m.role as Member['role'],
-  });
-};
+  const openEdit = (m: Member) => {
+    setEditing(m);
+    setForm({
+      phone_number: m.phone_number ?? '',
+      notes: m.notes ?? '',
+      organization: m.organization ?? '',
+      role: m.role as Member['role'],
+    });
+  };
 
   const handleSave = async () => {
     if (!editing) return;
@@ -132,79 +137,109 @@ const openEdit = (m: Member) => {
     );
   }
 
+  // group members by role, preserving ROLE_ORDER; unknown roles fall to the end
+  const grouped = members.reduce<Record<string, Member[]>>((acc, m) => {
+    (acc[m.role] ??= []).push(m);
+    return acc;
+  }, {});
+  const orderedRoles = [
+    ...ROLE_ORDER.filter((r) => grouped[r]?.length),
+    ...Object.keys(grouped).filter((r) => !ROLE_ORDER.includes(r)),
+  ];
+
+  const renderRow = (member: Member, isAssessment: boolean) => (
+    <TableRow key={member.id}>
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={member.profile_image ?? undefined} />
+            <AvatarFallback>{getInitials(member.first_name, member.last_name, member.username)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium text-sm">{getFullName(member.first_name, member.last_name, member.username)}</div>
+            <div className="text-xs text-gray-500">@{member.username}</div>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="text-sm">{member.email}</TableCell>
+      <TableCell className="text-sm font-medium">{member.organization || '—'}</TableCell>
+      {isAssessment && (
+        <TableCell className="text-sm font-medium text-teal-700">
+          {member.assessment_group_name || '—'}
+        </TableCell>
+      )}
+      <TableCell className="text-sm">{member.phone_number || '—'}</TableCell>
+      <TableCell>
+        <Badge variant={member.is_active ? 'default' : 'secondary'}>
+          {member.is_active ? 'Active' : 'Inactive'}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-sm">{fmtDT(member.last_login)}</TableCell>
+      <TableCell className="text-sm">{fmt(member.created_at)}</TableCell>
+      <TableCell className="text-sm text-gray-600 max-w-xs truncate">{member.notes || '—'}</TableCell>
+      {canEdit && (
+        <TableCell className="text-right">
+          <div className="flex items-center justify-end gap-1">
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(member)}>
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="icon" variant="ghost"
+              className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={() => handleDelete(member.id)}
+              disabled={deletingId === member.id}
+            >
+              {deletingId === member.id
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <Trash2 className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
+        </TableCell>
+      )}
+    </TableRow>
+  );
+
   return (
     <>
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Login</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead>Notes</TableHead>
-                  {canEdit && <TableHead className="text-right">Actions</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarImage src={member.profile_image ?? undefined} />
-                          <AvatarFallback>{getInitials(member.first_name, member.last_name, member.username)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium text-sm">{getFullName(member.first_name, member.last_name, member.username)}</div>
-                          <div className="text-xs text-gray-500">@{member.username}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">{member.email}</TableCell>
-                    <TableCell className="text-sm font-medium">{member.organization}</TableCell>
-                    <TableCell className="text-sm">{member.phone_number || '—'}</TableCell>
-                    <TableCell><RoleBadge role={member.role} /></TableCell>
-                    <TableCell>
-                      <Badge variant={member.is_active ? 'default' : 'secondary'}>
-                        {member.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">{fmtDT(member.last_login)}</TableCell>
-                    <TableCell className="text-sm">{fmt(member.created_at)}</TableCell>
-                    <TableCell className="text-sm text-gray-600 max-w-xs truncate">{member.notes || '—'}</TableCell>
-                    {canEdit && (
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(member)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            size="icon" variant="ghost"
-                            className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
-                            onClick={() => handleDelete(member.id)}
-                            disabled={deletingId === member.id}
-                          >
-                            {deletingId === member.id
-                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              : <Trash2 className="h-3.5 w-3.5" />}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-8">
+        {orderedRoles.map((role) => {
+          const group = grouped[role];
+          const isAssessment = role === 'assessment';
+          return (
+            <div key={role} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <RoleBadge role={role} />
+                <span className="text-sm text-gray-500">({group.length})</span>
+              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Member</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Organization</TableHead>
+                          {isAssessment && <TableHead>Institution</TableHead>}
+                          <TableHead>Phone</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Last Login</TableHead>
+                          <TableHead>Joined</TableHead>
+                          <TableHead>Notes</TableHead>
+                          {canEdit && <TableHead className="text-right">Actions</TableHead>}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {group.map((member) => renderRow(member, isAssessment))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })}
+      </div>
 
       {/* Edit dialog */}
       <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
@@ -245,7 +280,8 @@ const openEdit = (m: Member) => {
                     <SelectItem value="secretariat">Secretariat</SelectItem>
                     <SelectItem value="swg">SWG</SelectItem>
                     <SelectItem value="content_manager">Content Manager</SelectItem>
-                     <SelectItem value="panel">Panel</SelectItem>
+                    <SelectItem value="panel">Panel</SelectItem>
+                    <SelectItem value="assessment">Assessment Group</SelectItem>
                     <SelectItem value="user">User</SelectItem>
                   </SelectContent>
                 </Select>

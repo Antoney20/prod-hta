@@ -71,6 +71,15 @@ export const getProposals = async (program?: number | string): Promise<ProgramPr
   }
 };
 
+export const getProposal = async (id: number | string): Promise<ProgramProposal | null> => {
+  try {
+    const res = await api.get<ApiResponse<ProgramProposal>>(`/v3/program-proposals/${id}/`);
+    return res.data.data ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export const createProposal = async (payload: ProgramProposalPayload) => {
   try {
     const res = await api.post<ApiResponse<ProgramProposal>>("/v3/program-proposals/", payload);

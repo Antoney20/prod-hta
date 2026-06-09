@@ -15,6 +15,7 @@ import { htmlToText } from "@/components/shared/text";
 
 import { ProposalForm } from "../cc/proposal";
 import { ProgramSelect } from "../files/programs";
+import Link from "next/link";
 
 const GROUPS_PER_PAGE = 4;   // programs per page
 const ROWS_PREVIEW = 5;      // rows shown per group before "view all"
@@ -107,7 +108,7 @@ export default function EvidenceListPage() {
             <FileStack className="h-5 w-5 text-[#27aae1]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Program Evidence</h1>
+            <h1 className="text-xl font-bold">National Programs Intervention Proposals</h1>
             <p className="text-sm text-muted-foreground">
               {filteredProposals.length} proposal{filteredProposals.length !== 1 ? "s" : ""} across {visiblePrograms.length} program{visiblePrograms.length !== 1 ? "s" : ""}
             </p>
@@ -209,10 +210,10 @@ export default function EvidenceListPage() {
                           <tr
                             key={p.id}
                             className="hover:bg-slate-50/70 transition-colors cursor-pointer"
-                            onClick={() => router.push(`/portal/national-programs/${program.id}`)}
+                            // onClick={() => router.push(`/portal/national-programs/${program.id}`)}
                           >
                             <td className={TD}>
-                              <span className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap">{p.reference_number}</span>
+                              <Link href={`/portal/interventions/${program.id}`} className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap hover:underline">{p.reference_number}</Link>
                             </td>
                             <td className={`${TD} font-medium text-slate-800`}>
                               <p className="line-clamp-2 max-w-md">{p.title}</p>

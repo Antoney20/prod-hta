@@ -22,6 +22,7 @@ import { DeleteDialog } from "../cc/delete";
 import { ProposalForm } from "../cc/proposal";
 import { ProgramSelect } from "../files/programs";
 import { BulkUpload } from "../files/upload";
+import Link from "next/link";
 
 
 const PAGE_SIZE = 10;
@@ -185,9 +186,12 @@ export default function ProgramProposalsPage() {
                   paged.map((p, idx) => (
                     <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className={`${TD} text-center text-xs text-slate-400 font-mono`}>{(safePage - 1) * PAGE_SIZE + idx + 1}</td>
-                      <td className={TD}>
+                      {/* <td className={TD}>
                         <span className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap">{p.reference_number}</span>
-                      </td>
+                      </td> */}
+                         <td className={TD}>
+                              <Link href={`/portal/interventions/${program.id}`} className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap hover:underline">{p.reference_number}</Link>
+                            </td>
                       <td className={`${TD} font-medium text-slate-800`}>
                         <p className="line-clamp-2 max-w-md">{p.title}</p>
                       </td>

@@ -140,7 +140,7 @@ export function ProgramForm({ open, onClose, onSubmit, defaultValues, isSubmitti
                   <div className="flex gap-2">
                     <input
                       className={`${input} font-mono`}
-                      placeholder="key (e.g. viral_load)"
+                      placeholder="variable"
                       value={f.key}
                       onChange={(e) => upField(i, { key: e.target.value.replace(/\s+/g, "_") })}
                     />

@@ -128,7 +128,7 @@ export default function ProgramProposalsPage() {
             <Layers className="h-5 w-5 text-[#27aae1]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold">Program Evidence</h1>
+            <h1 className="text-xl font-bold">Profgram's Proposal submission</h1>
             <p className="text-sm text-muted-foreground">
               {program ? <>{program.name} · {filtered.length} proposal{filtered.length !== 1 ? "s" : ""}</> : "Select a program to begin."}
             </p>

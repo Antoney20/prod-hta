@@ -9,6 +9,8 @@ import CreateTaskDialog from './create';
 import ViewTaskDialog from './view';
 import EditTaskDialog from './edit';
 import DeleteTaskDialog from './delete';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { toast, ToastContainer } from 'react-toastify';
 
 const MAX_SELECTION = 3;
 
@@ -49,7 +51,8 @@ const TasksPage = () => {
   const [viewTask, setViewTask]         = useState<Task | null>(null);
   const [editTask, setEditTask]         = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-
+const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
+const [showBulkCompleteDialog, setShowBulkCompleteDialog] = useState(false);
   // Selection state
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -59,7 +62,7 @@ const TasksPage = () => {
         setLoading(true); setError(null);
         const data = await getMyTasks();
         setTasks(Array.isArray(data) ? data : (data as any)?.results || []);
-      } catch { setError('Failed to fetch tasks. Please try again.'); }
+      } catch { toast.error('Failed to fetch tasks. Please try again.'); }
       finally { setLoading(false); }
     })();
   }, []);
@@ -112,11 +115,14 @@ const TasksPage = () => {
     }
   }, [tasks]);
 
-  const handleCompleteTask = useCallback(async (taskId: string) => {
+
+
+const handleCompleteTask = useCallback(async (taskId: string) => {
     try {
       const updated = await completeTask(taskId);
       setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
-    } catch { setError('Failed to complete task. Please try again.'); }
+      toast.success('Task completed.');
+    } catch (e: any) { toast.error(e?.message ?? 'Failed to complete task.'); }
   }, []);
 
   const handleCreateTask = useCallback(async (taskData: any) => {
@@ -124,28 +130,27 @@ const TasksPage = () => {
       const created = await createTask(taskData);
       setTasks(prev => [created, ...prev]);
       setShowAddTask(false);
+      toast.success('Task created.');
       return created;
-    } catch (e) { setError('Failed to create task. Please try again.'); throw e; }
+    } catch (e: any) { toast.error(e?.message ?? 'Failed to create task.'); throw e; }
   }, []);
 
   const handleUpdateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
     try {
       const updated = await updateTask(taskId, updates);
       setTasks(prev => prev.map(t => (t.id === taskId ? updated : t)));
+      toast.success('Task updated.');
       return updated;
-    } catch (e) { setError('Failed to update task. Please try again.'); throw e; }
+    } catch (e: any) { toast.error(e?.message ?? 'Failed to update task.'); throw e; }
   }, []);
 
   const handleDeleteTask = useCallback(async (taskId: string) => {
     try {
       await deleteTaskAPI(taskId);
       setTasks(prev => prev.filter(t => t.id !== taskId));
-      setSelectedIds(prev => {
-        const next = new Set(prev);
-        next.delete(taskId);
-        return next;
-      });
-    } catch (e) { setError('Failed to delete task. Please try again.'); throw e; }
+      setSelectedIds(prev => { const next = new Set(prev); next.delete(taskId); return next; });
+      toast.success('Task deleted.');
+    } catch (e: any) { toast.error(e?.message ?? 'Failed to delete task.'); throw e; }
   }, []);
 
   // Selection helpers
@@ -196,6 +201,7 @@ const TasksPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+        <ToastContainer position="top-right" autoClose={4000} newestOnTop />
       {/* Header */}
       <div className="border-b border-gray-200 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between max-w-7xl mx-auto gap-4">
@@ -257,12 +263,13 @@ const TasksPage = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
-                onClick={handleBulkComplete}
+                onClick={() => setShowBulkCompleteDialog(true)}
                 className="flex items-center gap-1.5 bg-green-600 text-white hover:bg-green-700"
               >
                 <CheckCircle size={14} />
                 Mark Complete
               </Button>
+
               <Button
                 size="sm"
                 variant="outline"
@@ -392,7 +399,8 @@ const TasksPage = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleCompleteTask(task.id)}
+                                onClick={() => setTaskToComplete(task)}
+
                                 title="Mark complete"
                                 className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
                               >
@@ -461,6 +469,72 @@ const TasksPage = () => {
           onClose={() => setTaskToDelete(null)}
           onConfirm={handleDeleteTask}
         />
+
+      <AlertDialog
+        open={!!taskToComplete}
+        onOpenChange={(open) => !open && setTaskToComplete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Mark task as complete?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to mark this task as completed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={async () => {
+                if (!taskToComplete) return;
+
+                await handleCompleteTask(taskToComplete.id);
+                setTaskToComplete(null);
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Yes, Complete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showBulkCompleteDialog}
+        onOpenChange={setShowBulkCompleteDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Mark selected tasks as complete?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription>
+              Are you sure you want to mark {selectedIds.size} selected{" "}
+              {selectedIds.size === 1 ? "task" : "tasks"} as completed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700"
+              onClick={async () => {
+                await handleBulkComplete();
+                setShowBulkCompleteDialog(false);
+              }}
+            >
+              Yes, Complete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
       </div>
     </div>
   );

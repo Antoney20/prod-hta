@@ -1,38 +1,43 @@
-export interface AssessmentCriteria {
-  id: string;
-  order: number;
-  name: string;
-  description: string;
-  is_active: boolean;
+export interface EvidenceInterventionRef {
+  id: number;
+  reference_number: string;
+  intervention_name: string | null;
+  intervention_type: string | null;
+}
+
+export interface EvidenceProgramRef {
+  id: number;
+  reference_number: string;
+  title: string;
+  program: number;
 }
 
 export interface AssessmentEvidenceDocument {
-  id: string;
-  file: string;
-  filename: string;
+  id: string;          // UUID
+  file: string;        // url/path
+  name: string;        // derived basename
   description: string;
-  uploaded_at: string;
-}
-
-export interface AssessmentEvidenceImage {
-  id: string;
-  image: string;
-  caption: string;
-  alt_text: string;
   uploaded_at: string;
 }
 
 export interface AssessmentEvidence {
-  id: string;
-  criteria: string;
-  criteria_name: string;
-  interventions: string[];
-  title: string;
-  notes: string;
+  id: string;          // UUID
+  summary: string;
+  interventions: EvidenceInterventionRef[];
+  program_proposals: EvidenceProgramRef[];
   documents: AssessmentEvidenceDocument[];
-  images: AssessmentEvidenceImage[];
-  created_by: string | null;
-  created_by_name: string | null;
+  created_by: number | null;
   created_at: string;
   updated_at: string;
+}
+export interface EvidenceDocumentInput {
+  file: File;
+  description?: string;
+}
+
+export interface AssessmentEvidencePayload {
+  summary?: string;
+  intervention_ids?: number[];
+  program_proposal_ids?: number[];
+  documents?: EvidenceDocumentInput[];
 }

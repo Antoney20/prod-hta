@@ -28,9 +28,9 @@ export const getTasks = async (filters?: TaskFilters): Promise<APIResponse<Task>
     
     const response = await api.get(url);
     return response.data;
-  } catch (error) {
-    throw new Error('Failed to fetch tasks');
-  }
+} catch (error: any) {
+  throw new Error(error?.response?.data?.detail || error?.response?.data?.message || 'Failed to get my tasks');
+}
 };
 
 /**
@@ -73,9 +73,9 @@ export const getTask = async (taskId: string): Promise<Task> => {
   try {
     const response = await api.get(`${TASKS_ENDPOINT}${taskId}/`);
     return response.data;
-  } catch (error) {
-    throw new Error('Failed to fetch task');
-  }
+} catch (error: any) {
+  throw new Error(error?.response?.data?.detail || error?.response?.data?.message || 'Failed to get task');
+}
 };
 
 /**
@@ -85,9 +85,10 @@ export const createTask = async (taskData: CreateTaskData): Promise<Task> => {
   try {
     const response = await api.post(TASKS_ENDPOINT, taskData);
     return response.data;
-  } catch (error) {
-    throw new Error('Failed to create task');
-  }
+} catch (error: any) {
+  throw new Error(error?.response?.data?.detail || error?.response?.data?.message || 'Failed to create task');
+}
+  
 };
 
 /**
@@ -108,9 +109,9 @@ export const updateTask = async (taskId: string, taskData: UpdateTaskData): Prom
 export const deleteTask = async (taskId: string): Promise<void> => {
   try {
     await api.delete(`${TASKS_ENDPOINT}${taskId}/`);
-  } catch (error) {
-    throw new Error('Failed to delete task');
-  }
+  } catch (error: any) {
+  throw new Error(error?.response?.data?.detail || error?.response?.data?.message || 'Failed to delete task');
+}
 };
 
 /**
@@ -120,9 +121,10 @@ export const completeTask = async (taskId: string): Promise<Task> => {
   try {
     const response = await api.post(`${TASKS_ENDPOINT}${taskId}/complete/`);
     return response.data;
-  } catch (error) {
-    throw new Error('Failed to complete task');
-  }
+
+} catch (error: any) {
+  throw new Error(error?.response?.data?.detail || error?.response?.data?.message || 'Failed to mark task as complete');
+}
 };
 
 /**

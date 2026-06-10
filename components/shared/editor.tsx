@@ -6,7 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 /* ------------------------------------------------------------------ */
 /* Brand                                                              */
 /* ------------------------------------------------------------------ */
-const ACCENT = "#27aae1";       
+const ACCENT = "#27aae1";
 const ACCENT_DARK = "#1d8fc3";  // brand blue (matches submit base)
 const ACCENT_TINT = "#e9f7fc";  // light fill for active buttons
 
@@ -23,32 +23,84 @@ export function isBlankHtml(html: string): boolean {
   return text.length === 0;
 }
 
+/* Allowlist sanitizer.
+   - ALLOWED_TAGS survive with zero attributes (href re-added on <a> after validation).
+   - DROP_WITH_CONTENT are removed entirely (tag + children).
+   - Anything else is unwrapped: the tag goes, its text/children stay.
+   - RETAG maps near-miss block tags onto the editor's vocabulary.            */
+const ALLOWED_TAGS = new Set([
+  "p", "h2", "h3", "h4", "blockquote", "ul", "ol", "li",
+  "a", "b", "strong", "i", "em", "u", "code", "br",
+]);
+const DROP_WITH_CONTENT = new Set([
+  "script", "style", "iframe", "object", "embed", "link", "meta", "noscript",
+  "svg", "math", "form", "input", "button", "select", "textarea", "template",
+  "video", "audio", "source", "base", "frame", "frameset",
+]);
+const RETAG: Record<string, string> = { h1: "h2", h5: "h4", h6: "h4" };
+
+/* Validates an href value. Strips control chars / embedded whitespace first
+   so obfuscations like "java\nscript:alert(1)" can't slip past the protocol
+   check. Only absolute http(s) and mailto pass; no relative URLs, no "../". */
+function safeHref(raw: string | null): string | null {
+  if (!raw) return null;
+  const v = raw.replace(/[\u0000-\u001f\u007f\s]/g, "");
+  if (!/^(https?:|mailto:)/i.test(v)) return null;
+  if (/(^|\/)\.\.(\/|$)/.test(v) || v.includes("..\\")) return null;
+  return v;
+}
+
 function sanitizeHtml(html: string): string {
-  if (typeof window === "undefined") return html;
+  if (typeof window === "undefined") return "";
   const tpl = document.createElement("template");
   tpl.innerHTML = html;
-  tpl.content.querySelectorAll("script,style,iframe,object,embed,link,meta,noscript").forEach((n) => n.remove());
-  tpl.content.querySelectorAll("*").forEach((el) => {
-    [...el.attributes].forEach((a) => {
-      const name = a.name.toLowerCase();
-      if (name.startsWith("on")) el.removeAttribute(a.name);
-      else if (name === "style" || name === "class") el.removeAttribute(a.name);
-      else if ((name === "href" || name === "src") && /^\s*javascript:/i.test(a.value)) el.removeAttribute(a.name);
-    });
-    if (el.tagName === "A") {
+
+  for (const el of [...tpl.content.querySelectorAll("*")]) {
+    if (!tpl.content.contains(el)) continue; // detached by an earlier removal
+    let tag = el.tagName.toLowerCase();
+
+    if (DROP_WITH_CONTENT.has(tag)) {
+      el.remove();
+      continue;
+    }
+
+    if (RETAG[tag]) {
+      const next = document.createElement(RETAG[tag]);
+      next.append(...el.childNodes);
+      el.replaceWith(next);
+      tag = RETAG[tag]; // children already snapshotted; new el has no attrs
+      continue;
+    }
+
+    if (!ALLOWED_TAGS.has(tag)) {
+      el.replaceWith(...el.childNodes); // unwrap: keep content, drop the tag
+      continue;
+    }
+
+    // strip every attribute, then re-add only what we explicitly allow
+    const href = tag === "a" ? safeHref(el.getAttribute("href")) : null;
+    for (const a of [...el.attributes]) el.removeAttribute(a.name);
+
+    if (tag === "a") {
+      if (!href) {
+        el.replaceWith(...el.childNodes); // bad/missing href -> plain text
+        continue;
+      }
+      el.setAttribute("href", href);
       el.setAttribute("rel", "noopener noreferrer nofollow");
       el.setAttribute("target", "_blank");
     }
-  });
+  }
   return tpl.innerHTML;
 }
 
 function normalizeUrl(raw: string): string | null {
-  const v = raw.trim();
-  if (!v) return null;
+  const v = raw.trim().replace(/[\u0000-\u001f\u007f]/g, "");
+  if (!v || /\s/.test(v)) return null;
+  if (/(^|\/)\.\.(\/|$)/.test(v)) return null;
   if (/^https?:\/\//i.test(v)) return v;
   if (/^mailto:/i.test(v)) return v;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return null; 
+  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return null; // any other scheme: reject
   return `https://${v}`;
 }
 
@@ -80,6 +132,13 @@ function ensureStyles() {
 .fo-editor ul { list-style: disc;    padding-left: 1.5rem; margin: .35em 0; }
 .fo-editor ol { list-style: decimal; padding-left: 1.5rem; margin: .35em 0; }
 .fo-editor li { margin: .12em 0; }
+.fo-editor code {
+  font-family: ui-monospace, monospace;
+  font-size: .875em;
+  background: #f1f5f9;
+  padding: .1em .35em;
+  border-radius: 3px;
+}
 .fo-editor blockquote {
   border-left: 3px solid ${ACCENT};
   padding-left: .75rem;
@@ -202,10 +261,11 @@ export function RichEditor({
     if (ref.current) ref.current.dataset.empty = String(isBlankHtml(ref.current.innerHTML));
   };
 
-  // keep DOM in sync with external value
+  // keep DOM in sync with external value — sanitized, since this is where
+  // API payloads (with foreign data-* attrs, spans, etc.) enter the DOM
   useEffect(() => {
     if (ref.current && !isInternal.current && ref.current.innerHTML !== value) {
-      ref.current.innerHTML = value ?? "";
+      ref.current.innerHTML = sanitizeHtml(value ?? "");
     }
     markEmpty();
     isInternal.current = false;

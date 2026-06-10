@@ -19,6 +19,18 @@ export const getAssessmentEvidence = async (): Promise<AssessmentEvidence[]> => 
   }
 };
 
+export const getAssessmentEvidenceById = async (
+  id: number | string,
+): Promise<AssessmentEvidence | null> => {
+  try {
+    const res = await api.get(`/v3/assessment-evidence/${id}/`);
+    const data = res?.data?.data ?? res?.data ?? null;
+    return data && !Array.isArray(data) ? data : null;
+  } catch {
+    return null;
+  }
+};
+
 // lightweight intervention autocomplete (ref no / name)
 export const searchInterventions = async (q: string): Promise<EvidenceInterventionRef[]> => {
   if (!q.trim()) return [];

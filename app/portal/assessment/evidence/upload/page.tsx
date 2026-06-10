@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Search, X, UploadCloud, FileText, Trash2, Loader2, Check, Layers, FileStack, ArrowLeft,
+  Search, X, UploadCloud, FileText, Trash2, Loader2, Layers, FileStack, ArrowLeft,
 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,7 +22,6 @@ const BLUE = "#27aae1";
 type Filter = "all" | "intervention" | "program";
 
 type Selected = {
-  key: string;                  // `${type}:${id}`
   type: "intervention" | "program";
   id: number;
   ref: string;
@@ -47,8 +46,8 @@ export default function UploadEvidencePage() {
   const [allPrograms, setAllPrograms] = useState<ProgramProposal[]>([]);
   const [loadingRefs, setLoadingRefs] = useState(true);
 
-  // selection
-  const [selected, setSelected] = useState<Map<string, Selected>>(new Map());
+  // single selection
+  const [selected, setSelected] = useState<Selected | null>(null);
 
   // documents
   const [docs, setDocs] = useState<DocRow[]>([]);
@@ -78,13 +77,12 @@ export default function UploadEvidencePage() {
     [allPrograms, query, filter],
   );
 
-  const toggle = useCallback((s: Selected) => {
-    setSelected((prev) => {
-      const next = new Map(prev);
-      next.has(s.key) ? next.delete(s.key) : next.set(s.key, s);
-      return next;
-    });
+  // selecting replaces — never accumulates; X reopens the search
+  const pick = useCallback((s: Selected) => {
+    setSelected(s);
+    setQuery("");
   }, []);
+  const clearSelected = useCallback(() => setSelected(null), []);
 
   // ---- documents ----
   const addFiles = useCallback((files: FileList | File[]) => {
@@ -104,19 +102,16 @@ export default function UploadEvidencePage() {
 
   // ---- submit ----
   const handleSubmit = async () => {
-    const interventionIds = [...selected.values()].filter((s) => s.type === "intervention").map((s) => s.id);
-    const programIds = [...selected.values()].filter((s) => s.type === "program").map((s) => s.id);
-
-    if (!interventionIds.length && !programIds.length) {
-      toast.error("Link at least one intervention or program proposal.");
+    if (!selected) {
+      toast.error("Link one intervention or program proposal.");
       return;
     }
 
     setSubmitting(true);
     const { error } = await createAssessmentEvidence({
       summary: isBlankHtml(summary) ? "" : summary,
-      intervention_ids: interventionIds,
-      program_proposal_ids: programIds,
+      intervention_ids: selected.type === "intervention" ? [selected.id] : [],
+      program_proposal_ids: selected.type === "program" ? [selected.id] : [],
       documents: docs.map((d) => ({ file: d.file, description: d.name.trim() })),
     });
     setSubmitting(false);
@@ -126,12 +121,11 @@ export default function UploadEvidencePage() {
     router.push("/portal/assessment/evidence");
   };
 
-  const selectedList = [...selected.values()];
   const showInterventions = filter !== "program";
   const showPrograms = filter !== "intervention";
 
   return (
-    <div className="mx-auto w-full container   py-4 ">
+    <div className="mx-auto w-full container py-4">
       <ToastContainer position="top-right" autoClose={4000} newestOnTop />
 
       {/* Header */}
@@ -140,79 +134,83 @@ export default function UploadEvidencePage() {
           <ArrowLeft className="h-3.5 w-3.5" />
         </button>
         <div>
-      
           <h1 className="text-xl font-bold tracking-tight text-slate-900">Upload Evidence</h1>
         </div>
       </div>
 
-      {/* 1. Link proposals */}
+      {/* 1. Link proposal */}
       <section className="mb-6 border border-slate-200 bg-white">
         <div className="border-b border-slate-200 px-4 py-3">
-          <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-700">Link to proposals</h2>
-          <p className="mt-0.5 text-xs text-slate-400">Search interventions and national program proposals.</p>
+          <h2 className="text-xs font-bold uppercase tracking-[0.14em] text-slate-700">Link to a proposal</h2>
+          <p className="mt-0.5 text-xs text-slate-400">Select one intervention or national program proposal.</p>
         </div>
 
         <div className="space-y-3 p-4">
-          {/* filter pills */}
-          <div className="flex items-center gap-1.5">
-            {([["all", "All"], ["intervention", "Interventions"], ["program", "Programs"]] as const).map(([k, label]) => (
-              <button
-                key={k}
-                onClick={() => setFilter(k)}
-                className={`px-3 py-1 text-xs font-medium transition-colors ${filter === k ? "text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}
-                style={filter === k ? { backgroundColor: BLUE } : undefined}
-              >
-                {label}
+          {selected ? (
+            /* selected — shown as-is; X reopens the search */
+            <div className="flex items-center gap-3 border border-[#27aae1]/30 bg-[#27aae1]/5 px-3 py-2.5">
+              {selected.type === "intervention"
+                ? <FileStack className="h-4 w-4 shrink-0 text-[#27aae1]" />
+                : <Layers className="h-4 w-4 shrink-0 text-[#27aae1]" />}
+              <span className="font-mono text-xs font-semibold text-[#27aae1] whitespace-nowrap">{selected.ref}</span>
+              <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{selected.label}</span>
+              <span className="hidden shrink-0 text-[10px] uppercase tracking-wide text-slate-400 sm:inline">{selected.type}</span>
+              <button onClick={clearSelected} className="shrink-0 text-slate-400 hover:text-slate-700" aria-label="Change selection">
+                <X className="h-4 w-4" />
               </button>
-            ))}
-          </div>
-
-          {/* search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input className="pl-9" placeholder="Search by reference or name…" value={query} onChange={(e) => setQuery(e.target.value)} />
-            {loadingRefs && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-300" />}
-          </div>
-
-          {/* selected chips */}
-          {selectedList.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {selectedList.map((s) => (
-                <span key={s.key} className="inline-flex items-center gap-1.5 border border-[#27aae1]/30 bg-[#27aae1]/5 px-2 py-1 text-xs">
-                  {s.type === "intervention" ? <FileStack className="h-3 w-3 text-[#27aae1]" /> : <Layers className="h-3 w-3 text-[#27aae1]" />}
-                  <span className="font-mono font-semibold text-[#27aae1]">{s.ref}</span>
-                  <span className="max-w-40 truncate text-slate-600">{s.label}</span>
-                  <button onClick={() => toggle(s)} className="text-slate-400 hover:text-slate-700"><X className="h-3 w-3" /></button>
-                </span>
-              ))}
             </div>
-          )}
+          ) : (
+            <>
+              {/* filter pills */}
+              <div className="flex items-center gap-1.5">
+                {([["all", "All"], ["intervention", "Interventions"], ["program", "Programs"]] as const).map(([k, label]) => (
+                  <button
+                    key={k}
+                    onClick={() => setFilter(k)}
+                    className={`px-3 py-1 text-xs font-medium transition-colors ${filter === k ? "text-white" : "border border-slate-200 text-slate-600 hover:bg-slate-50"}`}
+                    style={filter === k ? { backgroundColor: BLUE } : undefined}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-          {/* results */}
-          {query.trim() && (
-            <div className="max-h-64 divide-y divide-slate-100 overflow-y-auto border border-slate-200">
-              {showInterventions && interventionMatches.map((i) => {
-                const key = `intervention:${i.id}`;
-                const isSel = selected.has(key);
-                return (
-                  <ResultRow key={key} icon="intervention" ref_={i.reference_number} label={i.intervention_name ?? "—"}
-                    meta={i.intervention_type ?? ""} selected={isSel}
-                    onClick={() => toggle({ key, type: "intervention", id: i.id, ref: i.reference_number, label: i.intervention_name ?? "—" })} />
-                );
-              })}
-              {showPrograms && programMatches.map((p) => {
-                const key = `program:${p.id}`;
-                const isSel = selected.has(key);
-                return (
-                  <ResultRow key={key} icon="program" ref_={p.reference_number} label={p.title}
-                    meta={p.program_name ?? ""} selected={isSel}
-                    onClick={() => toggle({ key, type: "program", id: p.id, ref: p.reference_number, label: p.title })} />
-                );
-              })}
-              {showInterventions && !interventionMatches.length && showPrograms && !programMatches.length && (
-                <div className="px-3 py-6 text-center text-xs text-slate-400">No matches.</div>
+              {/* search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input className="pl-9" placeholder="Search by reference or name…" value={query} onChange={(e) => setQuery(e.target.value)} />
+                {loadingRefs && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-300" />}
+              </div>
+
+              {/* results */}
+              {query.trim() && (
+                <div className="max-h-64 divide-y divide-slate-100 overflow-y-auto border border-slate-200">
+                  {showInterventions && interventionMatches.map((i, idx) => (
+                    <ResultRow
+                      key={`intervention:${i.reference_number || idx}`}
+                      icon="intervention"
+                      ref_={i.reference_number}
+                      label={i.intervention_name ?? "—"}
+                      meta={i.intervention_type ?? ""}
+                      onClick={() => pick({ type: "intervention", id: i.id, ref: i.reference_number, label: i.intervention_name ?? "—" })}
+                    />
+                  ))}
+                  {showPrograms && programMatches.map((p, idx) => (
+                    <ResultRow
+                      key={`program:${p.reference_number || idx}`}
+                      icon="program"
+                      ref_={p.reference_number}
+                      label={p.title}
+                      meta={p.program_name ?? ""}
+                      onClick={() => pick({ type: "program", id: p.id, ref: p.reference_number, label: p.title })}
+                    />
+                  ))}
+                  {showInterventions && !interventionMatches.length && showPrograms && !programMatches.length && (
+                    <div className="px-3 py-6 text-center text-xs text-slate-400">No matches.</div>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </section>
@@ -285,21 +283,19 @@ export default function UploadEvidencePage() {
 }
 
 function ResultRow({
-  icon, ref_, label, meta, selected, onClick,
+  icon, ref_, label, meta, onClick,
 }: {
   icon: "intervention" | "program";
-  ref_: string; label: string; meta: string; selected: boolean; onClick: () => void;
+  ref_: string; label: string; meta: string; onClick: () => void;
 }) {
   const Icon = icon === "intervention" ? FileStack : Layers;
   return (
-    <button onClick={onClick} className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 ${selected ? "bg-[#27aae1]/5" : ""}`}>
+    <button onClick={onClick} className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50">
       <Icon className="h-4 w-4 shrink-0 text-slate-400" />
       <span className="font-mono text-xs font-semibold text-[#27aae1] whitespace-nowrap">{ref_}</span>
       <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{label}</span>
       {meta && <span className="hidden shrink-0 text-xs text-slate-400 sm:inline">{meta}</span>}
-      {selected
-        ? <Check className="h-4 w-4 shrink-0 text-[#27aae1]" />
-        : <span className="shrink-0 text-xs font-medium text-[#27aae1]">Add</span>}
+      <span className="shrink-0 text-xs font-medium text-[#27aae1]">Select</span>
     </button>
   );
 }

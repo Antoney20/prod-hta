@@ -11,6 +11,7 @@ import {
 import {
   Plus, RefreshCw, FileStack, Search, Eye, Pencil, Trash2,
   FileText, ChevronLeft, ChevronRight,
+  Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -18,6 +19,9 @@ import { AssessmentEvidence } from "@/types/new/assessment";
 import { getAssessmentEvidence, deleteAssessmentEvidence } from "@/app/api/new/assessment";
 import { htmlToText } from "@/components/shared/text";
 import { useAuth } from "@/app/api/auth";
+import JSZip from "jszip";
+import ExcelJS from "exceljs";
+
 
 const BLUE = "#27aae1";
 const PAGE_SIZES = [10, 25, 50];
@@ -32,7 +36,123 @@ const refsOf = (e: AssessmentEvidence) => [
   ...e.program_proposals.map((p) => p.reference_number),
 ];
 
-export default function AssessmentEvidencePage() {
+const docName = (d: AssessmentEvidence["documents"][number]) =>
+  d.name?.trim() || d.file.split("/").pop()?.split("?")[0] || `document-${d.id}`;
+
+const slug = (s: string) => s.replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "") || "item";
+
+// Per-evidence folder name (ref number, else id), deduped across the whole zip
+const folderName = (e: AssessmentEvidence, used: Set<string>) => {
+  const base = slug(String(refsOf(e)[0] ?? e.id));
+  let name = base, n = 1;
+  while (used.has(name)) name = `${base}-${++n}`;
+  used.add(name);
+  return name;
+};
+
+async function downloadAllEvidenceZip(list: AssessmentEvidence[]) {
+  const zip = new JSZip();
+  const docsRoot = zip.folder("documents")!;
+
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Evidence");
+  ws.columns = [
+    { header: "Reference Numbers", key: "refs", width: 24 },
+    { header: "Interventions", key: "interventions", width: 32 },
+    { header: "Program Proposals", key: "programs", width: 32 },
+    { header: "Summary", key: "summary", width: 60 },
+    { header: "Created", key: "created", width: 14 },
+    { header: "Document", key: "document", width: 30 },
+    { header: "Doc URL", key: "url", width: 48 },
+    { header: "Downloaded", key: "ok", width: 12 },
+  ];
+  ws.getRow(1).font = { bold: true };
+
+  const usedFolders = new Set<string>();
+
+  // 
+  const plan = list.map((e) => {
+    const folder = folderName(e, usedFolders);
+    const meta = {
+      refs: refsOf(e).join("; "),
+      interventions: e.interventions.map((i) => i.intervention_name ?? i.reference_number).join("; "),
+      programs: e.program_proposals.map((p) => p.title).join("; "),
+      summary: htmlToText(e.summary || ""),
+      created: fmt(e.created_at),
+    };
+
+    const usedNames = new Set<string>();
+    const docs = e.documents.map((d) => {
+      let name = docName(d);
+      if (usedNames.has(name)) {
+        const dot = name.lastIndexOf(".");
+        const stem = dot > 0 ? name.slice(0, dot) : name;
+        const ext = dot > 0 ? name.slice(dot) : "";
+        let n = 1;
+        while (usedNames.has(`${stem}-${n}${ext}`)) n++;
+        name = `${stem}-${n}${ext}`;
+      }
+      usedNames.add(name);
+      return { folder, name, url: d.file, zipPath: `documents/${folder}/${name}` };
+    });
+
+    return { meta, docs };
+  });
+
+  // Phase 2 — fetch every file concurrently
+  const tasks = plan.flatMap((p) => p.docs);
+  const results = await Promise.all(
+    tasks.map(async (t) => {
+      try {
+        const res = await fetch(t.url);
+        if (res.ok) {
+          docsRoot.folder(t.folder)!.file(t.name, await res.blob());
+          return true;
+        }
+      } catch {
+        /* network / CORS — counts as a miss */
+      }
+      return false;
+    }),
+  );
+
+  const okByPath = new Map(tasks.map((t, i) => [t.zipPath, results[i]]));
+  const misses = tasks.filter((_, i) => !results[i]).map((t) => t.url);
+  if (misses.length) console.warn("Failed to fetch evidence files:", misses);
+
+
+for (const p of plan) {
+    if (!p.docs.length) {
+      ws.addRow({ ...p.meta, document: "", url: "", ok: "" });
+      continue;
+    }
+    for (const d of p.docs) {
+      ws.addRow({
+        ...p.meta,
+        document: d.name,
+        url: d.url,                                  
+        ok: okByPath.get(d.zipPath) ? "Yes" : "No",  
+      });
+    }
+  }
+
+  // Phase 4 — assemble + download
+  const buf = await wb.xlsx.writeBuffer();
+  zip.file("evidence.xlsx", buf);
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `assessment-evidence-${new Date().toISOString().slice(0, 10)}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  return { total: tasks.length, missing: misses.length };
+}
+
+
+export default function AssessmentEvidencePage() { 
   const router = useRouter();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.is_staff;
@@ -43,6 +163,9 @@ export default function AssessmentEvidencePage() {
   const [page, setPage]         = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
   const [toDelete, setToDelete] = useState<AssessmentEvidence | null>(null);
+  const [downloading, setDownloading] = useState(false);
+
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -88,6 +211,23 @@ export default function AssessmentEvidencePage() {
     setToDelete(null);
   };
 
+  const handleDownloadAll = async () => {
+  if (!evidence.length) {
+    toast.info("No evidence to download.");
+    return;
+  }
+  setDownloading(true);
+  try {
+    const { total, missing } = await downloadAllEvidenceZip(evidence);
+    if (missing) toast.warn(`Downloaded ${total - missing}/${total} files — ${missing} couldn't be fetched.`);
+    else toast.success("Evidence downloaded.");
+  } catch {
+    toast.error("Failed to download evidence.");
+  } finally {
+    setDownloading(false);
+  }
+};
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -103,6 +243,12 @@ export default function AssessmentEvidencePage() {
           <Button variant="outline" size="icon" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
+          {isAdmin && (
+            <Button variant="outline" onClick={handleDownloadAll} disabled={downloading || loading}>
+              {downloading ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              Download All
+            </Button>
+          )}
           <Button className="text-white" style={{ backgroundColor: BLUE }} onClick={() => router.push(UPLOAD_PATH)}>
             <Plus className="h-4 w-4 mr-2" />Upload Evidence
           </Button>

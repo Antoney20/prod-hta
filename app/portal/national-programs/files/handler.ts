@@ -19,10 +19,11 @@ export interface MapTarget {
 }
 
 export interface RowResult {
-  index: number;                 // 1-based row number in the sheet
+  index: number;
   title: string;
+  justification?: string;
   submitted_date?: string;
-  data: Record<string, any>;     // program-specific fields only
+  data: Record<string, any>;
   errors: { target: string; message: string }[];
 }
 
@@ -93,6 +94,7 @@ function streamFromBuffer(buf: ArrayBuffer): any {
 export function buildTargets(fields: ProgramField[] = []): MapTarget[] {
   return [
     { key: "title", label: "Title", required: true, type: "text", special: true },
+    { key: "justification", label: "Justification", required: false, type: "text", special: true },
     { key: "submitted_date", label: "Submitted date", required: false, type: "date", special: true },
     ...fields.map((f) => ({
       key: f.key,
@@ -178,6 +180,7 @@ export function buildRows(
     const errors: RowResult["errors"] = [];
     const data: Record<string, any> = {};
     let title = "";
+    let justification: string | undefined;
     let submitted_date: string | undefined;
 
     for (const t of targets) {
@@ -196,11 +199,12 @@ export function buildRows(
       }
 
       if (t.key === "title") title = String(value ?? "");
+      else if (t.key === "justification") justification = value || undefined;
       else if (t.key === "submitted_date") submitted_date = value || undefined;
       else if (!isEmpty(value)) data[t.key] = value;
     }
 
-    return { index: i + 1, title, submitted_date, data, errors };
+    return { index: i + 1, title, justification, submitted_date, data, errors };
   });
 }
 

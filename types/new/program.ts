@@ -48,6 +48,7 @@ export interface ProgramProposal {
   program_name?: string;
   reference_number: string;
   title: string;
+  justification?: string;
   data: Record<string, unknown>;   // dynamic, program-specific
   submitted_date: string;
   created_at: string;
@@ -58,6 +59,7 @@ export interface ProgramProposal {
 export interface ProgramProposalPayload {
   program: number;
   title: string;
+  justification?: string;
   data?: Record<string, unknown>;
   submitted_date?: string;
 }

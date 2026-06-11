@@ -172,6 +172,7 @@ export default function ProgramProposalsPage() {
                   <th className={`${TH} w-10 text-center`}>#</th>
                   <th className={`${TH} w-36`}>Ref No.</th>
                   <th className={`${TH} min-w-50`}>Title</th>
+                  <th className={`${TH} min-w-56`}>Justification</th>
                   {columns.map((c) => <th key={c.key} className={`${TH} min-w-40`}>{c.label}</th>)}
                   <th className={`${TH} w-28`}>Submitted</th>
                   <th className={`${TH} w-16 text-right`} />
@@ -195,6 +196,11 @@ export default function ProgramProposalsPage() {
                       <td className={`${TD} font-medium text-slate-800`}>
                         <p className="line-clamp-2 max-w-md">{p.title}</p>
                       </td>
+                      <td className={`${TD} text-xs text-slate-600`}>
+                          <p className="line-clamp-3 max-w-sm">
+                            {p.justification ? htmlToText(p.justification) : "—"}
+                          </p>
+                        </td>
                       {columns.map((c) => (
                         <td key={c.key} className={`${TD} text-xs text-slate-600`}>
                           <p className="line-clamp-2 max-w-60">{cellValue((p.data as any)?.[c.key])}</p>

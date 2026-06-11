@@ -128,6 +128,7 @@ export function ProposalForm({ open, onClose, onSubmit, program, defaultValues, 
   const editing = !!defaultValues;
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
+  const [justification, setJustification] = useState("");
   const [data, setData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -135,6 +136,7 @@ export function ProposalForm({ open, onClose, onSubmit, program, defaultValues, 
     if (!open) return;
     setTitle(defaultValues?.title ?? "");
     setDate(defaultValues?.submitted_date ?? "");
+    setJustification(defaultValues?.justification ?? "");
     setData((defaultValues?.data as Record<string, any>) ?? {});
     setErrors({});
   }, [open, defaultValues]);
@@ -160,12 +162,13 @@ export function ProposalForm({ open, onClose, onSubmit, program, defaultValues, 
 
   const submit = () => {
     if (!program || !validate()) return;
-    onSubmit({
-      program: program.id,
-      title: title.trim(),
-      data,
-      submitted_date: date || undefined,
-    });
+   onSubmit({
+  program: program.id,
+  title: title.trim(),
+  justification: isBlankHtml(justification) ? undefined : justification,
+  data,
+  submitted_date: date || undefined,
+});
   };
 
   return (
@@ -181,6 +184,14 @@ export function ProposalForm({ open, onClose, onSubmit, program, defaultValues, 
         <div className="space-y-4">
           <Field label="Title" required error={errors.title}>
             <input className={`${input} ${errors.title ? "border-red-400" : "border-gray-300"}`} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+          </Field>
+
+          <Field label="Justification">
+            <RichEditor
+              value={justification}
+              onChange={setJustification}
+              placeholder="Justification (optional)"
+            />
           </Field>
 
           <Field label="Submitted date">

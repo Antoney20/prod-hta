@@ -201,6 +201,7 @@ export default function EvidenceListPage() {
                         <tr>
                           <th className={`${TH} w-32`}>Ref No.</th>
                           <th className={`${TH} min-w-48`}>Title</th>
+                          <th className={`${TH} min-w-56`}>Justification</th>
                           {cols.map((c) => <th key={c.key} className={`${TH} min-w-40`}>{c.label}</th>)}
                           <th className={`${TH} w-28`}>Submitted</th>
                         </tr>
@@ -217,6 +218,11 @@ export default function EvidenceListPage() {
                             </td>
                             <td className={`${TD} font-medium text-slate-800`}>
                               <p className="line-clamp-2 max-w-md">{p.title}</p>
+                            </td>
+                            <td className={`${TD} text-xs text-slate-600`}>
+                              <p className="line-clamp-3 max-w-sm">
+                                {p.justification ? htmlToText(p.justification) : "—"}
+                              </p>
                             </td>
                             {cols.map((c) => (
                               <td key={c.key} className={`${TD} text-xs text-slate-600`}>

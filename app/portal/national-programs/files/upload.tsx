@@ -102,9 +102,13 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
     setProgress({ done: 0, total: valid.length, ok: 0, fail: 0 });
     let ok = 0, fail = 0;
     for (const r of valid) {
-      const res = await createProposal({
-        program: program.id, title: r.title, data: r.data, submitted_date: r.submitted_date,
-      });
+     const res = await createProposal({
+  program: program.id,
+  title: r.title,
+  justification: r.justification,
+  data: r.data,
+  submitted_date: r.submitted_date,
+});
       if ("error" in res && res.error) fail++; else ok++;
       setProgress({ done: ok + fail, total: valid.length, ok, fail });
     }

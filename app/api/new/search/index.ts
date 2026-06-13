@@ -33,7 +33,7 @@ export async function getInterventions(): Promise<EvidenceInterventionRef[]> {
   try {
     const res = await api.get("/v1/proposals/");
     return list(res).map((p: any) => ({
-      id: Number(p.id),
+      id: p.id,                                 
       reference_number: p.reference_number,
       intervention_name: p.intervention_name ?? null,
       intervention_type: p.intervention_type ?? null,

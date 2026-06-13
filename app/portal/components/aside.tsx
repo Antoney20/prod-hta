@@ -36,6 +36,7 @@ import {
   Plus,
   HomeIcon,
   AlertCircleIcon,
+  CloudUpload,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -238,6 +239,9 @@ const adminNavItems: NavItem[] = [
     children: [
       { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
       { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
+        { type: "link", title: "Extract Evidence",  href: " /portal/assessment/evidence/extraction",        icon: <CloudUpload   className="h-4 w-4" /> },
+
+     
     ],
   },
 

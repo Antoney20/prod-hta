@@ -23,7 +23,7 @@ type Filter = "all" | "intervention" | "program";
 
 type Selected = {
   type: "intervention" | "program";
-  id: number;
+  id: string;            // UUID
   ref: string;
   label: string;
 };

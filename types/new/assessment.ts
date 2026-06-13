@@ -1,12 +1,12 @@
 export interface EvidenceInterventionRef {
-  id: number;
+  id: string;
   reference_number: string;
   intervention_name: string | null;
   intervention_type: string | null;
 }
 
 export interface EvidenceProgramRef {
-  id: number;
+  id: string;
   reference_number: string;
   title: string;
   program: number;
@@ -37,7 +37,7 @@ export interface EvidenceDocumentInput {
 
 export interface AssessmentEvidencePayload {
   summary?: string;
-  intervention_ids?: number[];
-  program_proposal_ids?: number[];
+  intervention_ids?: string[];
+  program_proposal_ids?: string[];
   documents?: EvidenceDocumentInput[];
 }

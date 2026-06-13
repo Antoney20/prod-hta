@@ -52,7 +52,8 @@ export default function ProgramProposalsPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [editing, setEditing] = useState<ProgramProposal | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [toDelete, setToDelete] = useState<ProgramProposal | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [toDelete, setToDelete] = useState<ProgramProposal[] | null>(null);
 
   // full program objects (incl. field_schema) power both the selector and the columns
   const program = useMemo(
@@ -65,9 +66,10 @@ export default function ProgramProposalsPage() {
   }, []);
 
   const loadProposals = useCallback(async () => {
-    if (!programId) { setProposals([]); return; }
+    if (!programId) { setProposals([]); setSelected(new Set()); return; }
     setLoading(true);
     setProposals(await getProposals(programId));
+    setSelected(new Set());
     setLoading(false);
   }, [programId]);
 
@@ -92,6 +94,15 @@ export default function ProgramProposalsPage() {
   );
   useEffect(() => { setPage(1); }, [search]);
 
+  // ---- selection ----
+  const allSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
+  const someSelected = selected.size > 0 && !allSelected;
+  const toggleSelect = (id: string) =>
+    setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleSelectAll = () =>
+    setSelected(allSelected ? new Set() : new Set(filtered.map((p) => p.id)));
+  const selectedProposals = filtered.filter((p) => selected.has(p.id));
+
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (p: ProgramProposal) => { setEditing(p); setFormOpen(true); };
 
@@ -108,11 +119,18 @@ export default function ProgramProposalsPage() {
   };
 
   const handleDelete = async () => {
-    if (!toDelete) return;
-    const { ok, error } = await deleteProposal(toDelete.id);
-    if (ok) { toast.success("Deleted."); await loadProposals(); }
-    else toast.error(error ?? "Failed to delete.");
+    if (!toDelete?.length) return;
+    const targets = toDelete;
     setToDelete(null);
+    let ok = 0, fail = 0;
+    for (const p of targets) {
+      const res = await deleteProposal(p.id);
+      res.ok ? ok++ : fail++;
+    }
+    if (ok) toast.success(`${ok} proposal${ok !== 1 ? "s" : ""} deleted.`);
+    if (fail) toast.error(`${fail} could not be deleted.`);
+    setSelected(new Set());
+    await loadProposals();
   };
 
   return (
@@ -159,16 +177,38 @@ export default function ProgramProposalsPage() {
       ) : (
         <>
           {/* Filter */}
-          <div className="relative max-w-sm ">
+          <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input className="pl-9" placeholder="Search title or ref no…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
+
+          {/* Selection toolbar */}
+          {selected.size > 0 && (
+            <div className="flex items-center justify-between border border-[#27aae1]/30 bg-[#27aae1]/5 px-4 py-2 text-sm">
+              <span className="font-medium text-slate-700">{selected.size} selected</span>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="ghost" className="h-8 text-slate-500" onClick={() => setSelected(new Set())}>
+                  Clear
+                </Button>
+                <Button size="sm" variant="outline" className="h-8 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={() => setToDelete(selectedProposals)}>
+                  <Trash2 className="h-4 w-4 mr-1.5" /> Delete selected
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Table */}
           <div className="overflow-x-auto border border-slate-200 shadow-sm bg-white">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
+                  <th className={`${TH} w-10`}>
+                    <input type="checkbox"
+                      ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                      checked={allSelected} onChange={toggleSelectAll}
+                      className="h-4 w-4 accent-[#27aae1] align-middle" aria-label="Select all" />
+                  </th>
                   <th className={`${TH} w-10 text-center`}>#</th>
                   <th className={`${TH} w-36`}>Ref No.</th>
                   <th className={`${TH} min-w-50`}>Title</th>
@@ -180,27 +220,28 @@ export default function ProgramProposalsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
-                  <tr><td colSpan={5 + columns.length} className="py-16 text-center text-slate-400 text-sm">Loading…</td></tr>
+                  <tr><td colSpan={7 + columns.length} className="py-16 text-center text-slate-400 text-sm">Loading…</td></tr>
                 ) : paged.length === 0 ? (
-                  <tr><td colSpan={5 + columns.length} className="py-16 text-center text-slate-400 text-sm">No proposals found.</td></tr>
+                  <tr><td colSpan={7 + columns.length} className="py-16 text-center text-slate-400 text-sm">No proposals found.</td></tr>
                 ) : (
                   paged.map((p, idx) => (
-                    <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
+                    <tr key={p.id} className={`hover:bg-slate-50/70 transition-colors ${selected.has(p.id) ? "bg-[#27aae1]/5" : ""}`}>
+                      <td className={`${TD} text-center`}>
+                        <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleSelect(p.id)}
+                          className="h-4 w-4 accent-[#27aae1]" aria-label={`Select ${p.reference_number}`} />
+                      </td>
                       <td className={`${TD} text-center text-xs text-slate-400 font-mono`}>{(safePage - 1) * PAGE_SIZE + idx + 1}</td>
-                      {/* <td className={TD}>
-                        <span className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap">{p.reference_number}</span>
-                      </td> */}
-                         <td className={TD}>
-                              <Link href={`/portal/interventions/${program.id}`} className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap hover:underline">{p.reference_number}</Link>
-                            </td>
+                      <td className={TD}>
+                        <Link href={`/portal/interventions/${p.id}`} className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap hover:underline">{p.reference_number}</Link>
+                      </td>
                       <td className={`${TD} font-medium text-slate-800`}>
                         <p className="line-clamp-2 max-w-md">{p.title}</p>
                       </td>
                       <td className={`${TD} text-xs text-slate-600`}>
-                          <p className="line-clamp-3 max-w-sm">
-                            {p.justification ? htmlToText(p.justification) : "—"}
-                          </p>
-                        </td>
+                        <p className="line-clamp-3 max-w-sm">
+                          {p.justification ? htmlToText(p.justification) : "—"}
+                        </p>
+                      </td>
                       {columns.map((c) => (
                         <td key={c.key} className={`${TD} text-xs text-slate-600`}>
                           <p className="line-clamp-2 max-w-60">{cellValue((p.data as any)?.[c.key])}</p>
@@ -218,7 +259,7 @@ export default function ProgramProposalsPage() {
                             <DropdownMenuItem onClick={() => openEdit(p)}>
                               <Pencil className="h-4 w-4 mr-2" /> Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => setToDelete(p)}>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setToDelete([p])}>
                               <Trash2 className="h-4 w-4 mr-2" /> Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -270,8 +311,13 @@ export default function ProgramProposalsPage() {
       <DeleteDialog
         open={!!toDelete}
         onOpenChange={(v) => !v && setToDelete(null)}
-        title="Delete proposal?"
-        description={<><strong>{toDelete?.title}</strong> ({toDelete?.reference_number}) will be permanently deleted.</>}
+        title={toDelete && toDelete.length > 1 ? `Delete ${toDelete.length} proposals?` : "Delete proposal?"}
+        description={
+          toDelete && toDelete.length > 1
+            ? <>All <strong>{toDelete.length}</strong> selected proposals will be permanently deleted.</>
+            : <><strong>{toDelete?.[0]?.title}</strong> ({toDelete?.[0]?.reference_number}) will be permanently deleted.</>
+        }
+        confirmWord={toDelete && toDelete.length > 1 ? "delete all" : "delete"}
         onConfirm={handleDelete}
       />
     </div>

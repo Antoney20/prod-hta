@@ -60,8 +60,8 @@ export const deleteProgram = async (id: number) => {
 };
 
 /* ---------------- Program proposals ---------------- */
-
-export const getProposals = async (program?: number | string): Promise<ProgramProposal[]> => {
+ 
+export const getProposals = async (program?: string): Promise<ProgramProposal[]> => {
   try {
     const q = program !== undefined && program !== "" ? `?program=${program}` : "";
     const res = await api.get<ApiResponse<ProgramProposal[]>>(`/v3/program-proposals/${q}`);
@@ -70,8 +70,8 @@ export const getProposals = async (program?: number | string): Promise<ProgramPr
     return [];
   }
 };
-
-export const getProposal = async (id: number | string): Promise<ProgramProposal | null> => {
+ 
+export const getProposal = async (id: string): Promise<ProgramProposal | null> => {
   try {
     const res = await api.get<ApiResponse<ProgramProposal>>(`/v3/program-proposals/${id}/`);
     return res.data.data ?? null;
@@ -79,7 +79,7 @@ export const getProposal = async (id: number | string): Promise<ProgramProposal 
     return null;
   }
 };
-
+ 
 export const createProposal = async (payload: ProgramProposalPayload) => {
   try {
     const res = await api.post<ApiResponse<ProgramProposal>>("/v3/program-proposals/", payload);
@@ -88,8 +88,8 @@ export const createProposal = async (payload: ProgramProposalPayload) => {
     return { error: errMsg(e) };
   }
 };
-
-export const updateProposal = async (id: number, payload: Partial<ProgramProposalPayload>) => {
+ 
+export const updateProposal = async (id: string, payload: Partial<ProgramProposalPayload>) => {
   try {
     const res = await api.patch<ApiResponse<ProgramProposal>>(`/v3/program-proposals/${id}/`, payload);
     return { data: res.data.data as ProgramProposal };
@@ -97,8 +97,8 @@ export const updateProposal = async (id: number, payload: Partial<ProgramProposa
     return { error: errMsg(e) };
   }
 };
-
-export const deleteProposal = async (id: number) => {
+ 
+export const deleteProposal = async (id: string) => {
   try {
     await api.delete(`/v3/program-proposals/${id}/`);
     return { ok: true };
@@ -106,3 +106,4 @@ export const deleteProposal = async (id: number) => {
     return { ok: false, error: errMsg(e) };
   }
 };
+ 

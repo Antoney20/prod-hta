@@ -42,7 +42,7 @@ export interface NationalProgramPayload {
 }
 
 export interface ProgramProposal {
-  id: number;
+  id: string;
   program: number;
   program_code?: string;
   program_name?: string;

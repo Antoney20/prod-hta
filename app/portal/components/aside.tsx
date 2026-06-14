@@ -37,6 +37,7 @@ import {
   HomeIcon,
   AlertCircleIcon,
   CloudUpload,
+  FileStackIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -218,6 +219,7 @@ const adminNavItems: NavItem[] = [
       { type: "link", title: "Scoring Reports",               href: "/portal/tp/reports",   icon: <BarChart3 className="h-4 w-4" /> },
     ],
   },
+  
   {
     type: "group",
     title: "Intervention Tracker",
@@ -225,13 +227,15 @@ const adminNavItems: NavItem[] = [
     children: [
       { type: "link", title: "Review Status",  href: "/portal/tracker/review-status", icon: <ActivitySquare className="h-4 w-4" /> },
       { type: "link", title: "Decision Types", href: "/portal/tracker/decision",      icon: <Gavel className="h-4 w-4" /> },
-      { type: "link", title: "Manage Scoring Timelines", href: "/portal/tracker/manage-scoring",      icon: <AlertCircleIcon className="h-4 w-4" /> },
+      { type: "link", title: "Assign to a Package", href: "/portal/tracker/packages",      icon: <AlertCircleIcon className="h-4 w-4" /> },
     ],
   },
 
   { type: "divider" },
   { type: "section", title: "Assessment Group" },
 
+
+  
   {
     type: "group",
     title: "Evidence",
@@ -240,6 +244,7 @@ const adminNavItems: NavItem[] = [
       { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
       { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
         { type: "link", title: "Extract Evidence",  href: " /portal/assessment/evidence/extraction",        icon: <CloudUpload   className="h-4 w-4" /> },
+        { type: "link", title: "Protocol Setup",  href: " /portal/assessment/evidence/protocol",        icon: <FileStackIcon  className="h-4 w-4" /> },
 
      
     ],
@@ -267,18 +272,31 @@ const adminNavItems: NavItem[] = [
     ],
   },
 
+
+
   { type: "divider" },
   { type: "section", title: "Admin Tools" },
 
-  {
+    {
     type: "group",
-    title: "Feedback Emails",
+    title: "BPTAP Email Setup",
     icon: <MailCheck className="h-5 w-5" />,
     children: [
+
       { type: "link", title: "Send Emails",     href: "/portal/feedback/home",     icon: <Mail className="h-4 w-4" /> },
       { type: "link", title: "Email Templates", href: "/portal/feedback/templates",icon: <FileText className="h-4 w-4" /> },
-    ],
+
+
+      ],
+      
   },
+
+  // {
+  //   type: "group",
+  //   title: "Feedback Emails",
+  //   icon: <MailCheck className="h-5 w-5" />,
+
+  // },
 
   {
     type: "group",

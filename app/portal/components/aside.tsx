@@ -272,6 +272,17 @@ const adminNavItems: NavItem[] = [
     ],
   },
 
+  {
+  type: "group",
+  title: "Evidence Scoring",
+  icon: <LineChart className="h-5 w-5" />,
+  children: [
+    { type: "link", title: "Scoring Models",    href: "/portal/panel",                icon: <FileStackIcon className="h-4 w-4" /> },
+    { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
+  ],
+},
+
 
 
   { type: "divider" },
@@ -376,8 +387,6 @@ const collectGroupKeys = (items: NavItem[]): string[] =>
     return [];
   });
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
   const pathname = usePathname();
 
@@ -387,8 +396,7 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
   const isPanel     = role === "panel";
   const isAssessmentGroup = role === "assessment";
 
-  // For panel and swg/user — start all groups open (they have limited nav).
-  // For admin/secretariat — start all collapsed (too many groups to dump open).
+
   const initialExpanded =
     isUserOrSwg ? collectGroupKeys(userSwgNavItems) :
     isPanel     ? collectGroupKeys(panelNavItems)  :
@@ -455,12 +463,12 @@ const Aside = ({ isOpen, onToggle, user }: AsideProps) => {
       );
     }
 
-    // ── Divider ──────────────────────────────────────────────────────────────
+  
     if (item.type === "divider") {
       return <Separator key={`divider-${Math.random()}`} className="my-1" />;
     }
 
-    // ── Link ─────────────────────────────────────────────────────────────────
+
     if (item.type === "link") {
       const active = isActive(item.href);
       return (

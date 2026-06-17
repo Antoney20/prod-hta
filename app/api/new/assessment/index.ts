@@ -82,6 +82,19 @@ export const updateAssessmentEvidence = async (
   }
 };
 
+
+export const getAssessmentEvidenceGroup = async (
+  id: number | string,
+): Promise<AssessmentEvidence[]> => {
+  try {
+    const res = await api.get(`/v3/assessment-evidence/${id}/group/`);
+    const data = unwrap(res);
+    return Array.isArray(data) ? data : data ? [data] : [];
+  } catch {
+    return [];
+  }
+};
+
 export const deleteAssessmentEvidence = async (
   id: string
 ): Promise<{ ok: boolean; error?: string }> => {

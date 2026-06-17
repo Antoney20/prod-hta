@@ -13,8 +13,7 @@ const errMsg = (e: any, fb = "Something went wrong"): string =>
 const EXTRACT = "/v3/evidence-extractions/";
 const CRITERIA = "/v3/evidence-criteria/";
 
-/* ----------------------------- criteria (code book) ----------------------------- */
-// Pull these to build the dynamic form: each criterion's field_schema drives its inputs.
+
 export const getEvidenceCriteria = async (
   activeOnly = false,
 ): Promise<EvidenceCriterion[]> => {
@@ -60,7 +59,7 @@ export const getEvidenceExtractionById = async (
   }
 };
 
-// add: allowed for admin / secretariat / assessment — server returns 403 otherwise.
+
 export const createEvidenceExtraction = async (
   payload: EvidenceExtractionPayload,
 ): Promise<EvidenceExtraction> => {
@@ -72,7 +71,7 @@ export const createEvidenceExtraction = async (
   }
 };
 
-// edit: owner or admin / secretariat — PATCH so partial updates are fine.
+
 export const updateEvidenceExtraction = async (
   id: string | number,
   payload: EvidenceExtractionPayload,

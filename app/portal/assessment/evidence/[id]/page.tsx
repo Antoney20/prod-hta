@@ -1,13 +1,10 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 import {
   ArrowLeft, ArrowRight, FileStack, Layers, FileText, ExternalLink,
   RefreshCw, Pencil, Trash2,
@@ -15,13 +12,13 @@ import {
 import { toast } from "react-toastify";
 
 import { AssessmentEvidence, AssessmentEvidenceDocument } from "@/types/new/assessment";
-import { getAssessmentEvidenceById, deleteAssessmentEvidence } from "@/app/api/new/assessment";
+import { getAssessmentEvidenceGroup, deleteAssessmentEvidence } from "@/app/api/new/assessment";
 import RichText, { htmlToText } from "@/components/shared/text";
 import { useAuth } from "@/app/api/auth";
 
-const BLUE = "#27aae1";
 const LIST_PATH = "/portal/assessment/evidence";
 const UPLOAD_PATH = `${LIST_PATH}/upload`;
+const NONE_KEY = "__unlinked__";
 
 function fixUrl(url: string) {
   if (!url) return "#";
@@ -33,8 +30,132 @@ function fixUrl(url: string) {
 const fmt = (s?: string) =>
   s ? new Date(s).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "—";
 
+
+type RefGroup = {
+  key: string;
+  kind: "intervention" | "program" | "none";
+  refNumber: string;
+  title: string;
+  subtitle?: string;
+  proposalId?: string;
+  items: AssessmentEvidence[];
+};
+
+function buildGroups(list: AssessmentEvidence[]): RefGroup[] {
+  const map = new Map<string, RefGroup>();
+  const push = (g: Omit<RefGroup, "items">, ev: AssessmentEvidence) => {
+    const existing = map.get(g.key);
+    if (existing) existing.items.push(ev);
+    else map.set(g.key, { ...g, items: [ev] });
+  };
+
+  for (const ev of list) {
+    const targets = ev.interventions.length + ev.program_proposals.length;
+
+    ev.interventions.forEach((i) =>
+      push(
+        {
+          key: `i:${i.reference_number}`,
+          kind: "intervention",
+          refNumber: i.reference_number,
+          title: i.intervention_name ?? "—",
+          subtitle: i.intervention_type ?? undefined,
+          proposalId: String(i.id),
+        },
+        ev,
+      ),
+    );
+    ev.program_proposals.forEach((p) =>
+      push(
+        {
+          key: `p:${p.reference_number}`,
+          kind: "program",
+          refNumber: p.reference_number,
+          title: p.title,
+          proposalId: String(p.id),
+        },
+        ev,
+      ),
+    );
+
+    if (targets === 0) {
+      push({ key: NONE_KEY, kind: "none", refNumber: "", title: "Unlinked evidence" }, ev);
+    }
+  }
+  return [...map.values()];
+}
+
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">{children}</h2>;
+}
+
+function EvidenceCard({
+  ev, isCurrent, isAdmin, onEdit, onDelete,
+}: {
+  ev: AssessmentEvidence;
+  isCurrent: boolean;
+  isAdmin: boolean;
+  onEdit: (id: string) => void;
+  onDelete: (ev: AssessmentEvidence) => void;
+}) {
+  const summaryText = htmlToText(ev.summary || "");
+  const empty = ev.documents.length === 0 && summaryText.length === 0;
+
+  return (
+    <div className={`border bg-white ${isCurrent ? "border-[#27aae1] ring-1 ring-[#27aae1]/30" : "border-slate-200"}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-400">Created {fmt(ev.created_at)}</span>
+          {isCurrent && (
+            <span className="bg-[#27aae1]/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#27aae1]">
+              Opened
+            </span>
+          )}
+        </div>
+        {isAdmin && (
+          <div className="flex gap-1.5">
+            <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => onEdit(ev.id)}>
+              <Pencil className="mr-1.5 h-3 w-3" /> Edit
+            </Button>
+            <Button variant="outline" size="sm" className="h-7 px-2 text-red-600 hover:text-red-700" onClick={() => onDelete(ev)}>
+              <Trash2 className="mr-1.5 h-3 w-3" /> Delete
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {ev.documents.length > 0 && (
+        <div className="divide-y divide-slate-100">
+          {ev.documents.map((d: AssessmentEvidenceDocument) => (
+            <button
+              key={d.id}
+              onClick={() => window.open(fixUrl(d.file), "_blank", "noopener,noreferrer")}
+              className="group flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-slate-50"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 group-hover:border-[#27aae1]">
+                <FileText className="h-3.5 w-3.5 text-slate-500 group-hover:text-[#27aae1]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-700 group-hover:text-[#27aae1]">{d.name || "Document"}</p>
+                {d.description && <p className="truncate text-xs text-slate-400">{d.description}</p>}
+              </div>
+              <span className="flex shrink-0 items-center gap-1 text-xs text-slate-400 group-hover:text-[#27aae1]">
+                Open <ExternalLink className="h-3 w-3" />
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {summaryText.length > 0 && (
+        <div className="border-t border-slate-100 p-4">
+          <RichText html={ev.summary} className="text-sm leading-relaxed text-slate-800" />
+        </div>
+      )}
+
+      {empty && <p className="px-4 py-3 text-xs text-slate-400">No documents or summary.</p>}
+    </div>
+  );
 }
 
 export default function EvidenceDetailPage() {
@@ -44,29 +165,43 @@ export default function EvidenceDetailPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin" || user?.is_staff;
 
-  const [evidence, setEvidence] = useState<AssessmentEvidence | null>(null);
-  const [loading, setLoading]   = useState(true);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [items, setItems] = useState<AssessmentEvidence[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<AssessmentEvidence | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setEvidence(await getAssessmentEvidenceById(id));
+    setItems(await getAssessmentEvidenceGroup(id));
     setLoading(false);
   }, [id]);
 
   useEffect(() => { if (id) load(); }, [id, load]);
 
+  const groups = useMemo(() => buildGroups(items), [items]);
+  const refCount = groups.filter((g) => g.kind !== "none").length;
+
   const handleDelete = async () => {
-    const { ok, error } = await deleteAssessmentEvidence(id);
-    if (ok) { toast.success("Evidence deleted."); router.push(LIST_PATH); }
-    else { toast.error(error ?? "Failed to delete."); setConfirmDelete(false); }
+    if (!pendingDelete) return;
+    const { ok, error } = await deleteAssessmentEvidence(pendingDelete.id);
+    if (ok) {
+      toast.success("Evidence deleted.");
+      if (pendingDelete.id === id) {
+        router.push(LIST_PATH);            // deleted the one we opened → leave
+      } else {
+        setPendingDelete(null);
+        load();                            // deleted a sibling → refresh the group
+      }
+    } else {
+      toast.error(error ?? "Failed to delete.");
+      setPendingDelete(null);
+    }
   };
 
   if (loading) {
     return <div className="flex justify-center py-24"><RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
   }
 
-  if (!evidence) {
+  if (items.length === 0) {
     return (
       <div className="space-y-4 py-16 text-center">
         <p className="text-sm text-slate-400">Evidence not found.</p>
@@ -77,121 +212,69 @@ export default function EvidenceDetailPage() {
     );
   }
 
-  const hasTargets = evidence.interventions.length > 0 || evidence.program_proposals.length > 0;
-  const summaryText = htmlToText(evidence.summary || "");
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button onClick={() => router.push(LIST_PATH)} className="flex h-8 w-8 items-center justify-center border border-slate-200 text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-800" aria-label="Back">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="bg-[#27aae1]/10 p-2 rounded-lg"><FileStack className="h-5 w-5 text-[#27aae1]" /></div>
-          <div>
-            <h1 className="text-xl font-bold">Evidence</h1>
-            <p className="text-sm text-muted-foreground">Created {fmt(evidence.created_at)}</p>
-          </div>
+      {/* header — no edit/delete here; those live per record */}
+      <div className="flex flex-wrap items-center gap-3">
+        <button onClick={() => router.push(LIST_PATH)} className="flex h-8 w-8 items-center justify-center border border-slate-200 text-slate-500 transition-colors hover:border-slate-400 hover:text-slate-800" aria-label="Back">
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+        <div className="bg-[#27aae1]/10 p-2 rounded-lg"><FileStack className="h-5 w-5 text-[#27aae1]" /></div>
+        <div>
+          <h1 className="text-xl font-bold">Evidence</h1>
+          <p className="text-sm text-muted-foreground">
+            {items.length} record{items.length === 1 ? "" : "s"} · {refCount} reference{refCount === 1 ? "" : "s"}
+          </p>
         </div>
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => router.push(`${UPLOAD_PATH}?id=${evidence.id}`)}>
-              <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-            </Button>
-            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => setConfirmDelete(true)}>
-              <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
-            </Button>
-          </div>
-        )}
       </div>
 
-      {/* proposals */}
-      {hasTargets && (
-        <section className="border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3"><SectionLabel>Intervention proposal</SectionLabel></div>
-          <div className="divide-y divide-slate-100">
-            {evidence.interventions.map((i) => (
-              <div key={`i-${i.id}`} className="flex items-center gap-3 px-4 py-3">
-                <FileStack className="h-4 w-4 shrink-0 text-[#27aae1]" />
-                <span className="font-mono text-xs font-semibold text-[#27aae1] whitespace-nowrap">{i.reference_number}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-slate-700">{i.intervention_name ?? "—"}</p>
-                  {i.intervention_type && <p className="truncate text-xs text-slate-400">{i.intervention_type}</p>}
-                </div>
-                <Link href={`/portal/interventions/${i.id}`} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-[#27aae1] hover:underline">
+      {groups.map((g) => (
+        <section key={g.key} className="space-y-3">
+          {g.kind === "none" ? (
+            <div className="border border-dashed border-slate-200 bg-slate-50/60 px-4 py-3">
+              <SectionLabel>Unlinked evidence</SectionLabel>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 border border-slate-200 bg-white px-4 py-3">
+              {g.kind === "intervention"
+                ? <FileStack className="h-4 w-4 shrink-0 text-[#27aae1]" />
+                : <Layers className="h-4 w-4 shrink-0 text-[#27aae1]" />}
+              <span className="font-mono text-xs font-semibold text-[#27aae1] whitespace-nowrap">{g.refNumber}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-slate-700">{g.title}</p>
+                {g.subtitle && <p className="truncate text-xs text-slate-400">{g.subtitle}</p>}
+              </div>
+              <span className="shrink-0 text-[11px] text-slate-400">{g.items.length} record{g.items.length === 1 ? "" : "s"}</span>
+              {g.proposalId && (
+                <Link href={`/portal/interventions/${g.proposalId}`} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-[#27aae1] hover:underline">
                   See proposal <ArrowRight className="h-3 w-3" />
                 </Link>
-              </div>
-            ))}
-            {evidence.program_proposals.map((p) => (
-              <div key={`p-${p.id}`} className="flex items-center gap-3 px-4 py-3">
-                <Layers className="h-4 w-4 shrink-0 text-[#27aae1]" />
-                <span className="font-mono text-xs font-semibold text-[#27aae1] whitespace-nowrap">{p.reference_number}</span>
-                <p className="min-w-0 flex-1 truncate text-sm text-slate-700">{p.title}</p>
-                <Link href={`/portal/interventions/${p.id}`} className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-[#27aae1] hover:underline">
-                  See proposal <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-3 sm:pl-3">
+            {g.items.map((ev) => (
+              <EvidenceCard
+                key={`${g.key}-${ev.id}`}
+                ev={ev}
+                isCurrent={ev.id === id}
+                isAdmin={!!isAdmin}
+                onEdit={(eid) => router.push(`${UPLOAD_PATH}?id=${eid}`)}
+                onDelete={setPendingDelete}
+              />
             ))}
           </div>
         </section>
-      )}
+      ))}
 
-      {/* Documents */}
-      <section className="border border-slate-200 bg-white">
-        <div className="border-b border-slate-200 px-4 py-3"><SectionLabel>Documents ({evidence.documents.length})</SectionLabel></div>
-        {evidence.documents.length === 0 ? (
-          <p className="px-4 py-6 text-sm text-slate-400">No documents attached.</p>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {evidence.documents.map((d: AssessmentEvidenceDocument) => (
-              <button
-                key={d.id}
-                onClick={() => window.open(fixUrl(d.file), "_blank", "noopener,noreferrer")}
-                className="group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
-              >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-slate-200 bg-slate-50 group-hover:border-[#27aae1]">
-                  <FileText className="h-4 w-4 text-slate-500 group-hover:text-[#27aae1]" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-700 group-hover:text-[#27aae1]">{d.name || "Document"}</p>
-                  {d.description && <p className="truncate text-xs text-slate-400">{d.description}</p>}
-                </div>
-                <span className="flex shrink-0 items-center gap-1 text-xs text-slate-400 group-hover:text-[#27aae1]">
-                  Open <ExternalLink className="h-3 w-3" />
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Summary */}
-      {summaryText.length > 0 && (
-        <section className="border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3"><SectionLabel>Summary</SectionLabel></div>
-          <div className="p-4">
-            <RichText html={evidence.summary} className="text-sm leading-relaxed text-slate-800" />
-          </div>
-        </section>
-      )}
-
-      {/* Delete confirm */}
-      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this evidence?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This evidence and its {evidence.documents.length} document(s) will be permanently removed. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        open={!!pendingDelete}
+        onOpenChange={(o) => !o && setPendingDelete(null)}
+        title="Delete this evidence?"
+        description={`This evidence and its ${pendingDelete?.documents.length ?? 0} document(s) will be permanently removed. This cannot be undone.`}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

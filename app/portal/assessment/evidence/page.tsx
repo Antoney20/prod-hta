@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Plus, RefreshCw, FileStack, Search, Eye, Pencil, Trash2,
   FileText, ChevronLeft, ChevronRight,
   Download,
@@ -21,6 +17,7 @@ import { htmlToText } from "@/components/shared/text";
 import { useAuth } from "@/app/api/auth";
 import JSZip from "jszip";
 import ExcelJS from "exceljs";
+import { DeleteDialog } from "../../national-programs/cc/delete";
 
 
 const BLUE = "#27aae1";
@@ -357,21 +354,16 @@ export default function AssessmentEvidencePage() {
         </div>
       )}
 
-      {/* Delete confirm */}
-      <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this evidence?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This evidence and its {toDelete?.documents.length ?? 0} document(s) will be permanently removed. This cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={handleDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
+       <DeleteDialog
+          open={!!toDelete}
+          onOpenChange={(o) => !o && setToDelete(null)}
+          title="Delete this evidence?"
+          description={`This evidence and its ${toDelete?.documents.length ?? 0} document(s) will be permanently removed. This cannot be undone.`}
+          onConfirm={handleDelete}
+        />
+
+
     </div>
   );
 }

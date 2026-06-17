@@ -1,0 +1,525 @@
+{
+  "funds": {
+    "PHC": {
+      "name": "Primary Health Care",
+      "packages": {
+        "Outpatient Care Services": {
+          "scope": [
+            "Health education and wellness, counselling, and ongoing support as needed.",
+            "Consultation, diagnosis, and treatment",
+            "Prescribed laboratory investigations",
+            "Basic radiological examinations including X-rays, ultrasounds.",
+            "Prescription, drug administration and dispensing",
+            "Management of acute and chronic conditions for endemic/local cases",
+            "Management of NCDs, enteric infections; neglected tropical diseases (NTDs), STI’s and HIV/AIDS",
+            "Screening for common health conditions",
+            "Minor surgical procedures and medical procedures including male circumcision.",
+            "Immunization as per the KEPI schedule and recommended special vaccines.",
+            "Reproductive, Maternal and Child Health Services as defined by the MOH guidelines"
+          ],
+          "access_point": "LEVEL 2, 3 and level 4 primary health care referral facility designated by the Authority",
+          "tariff": "KES 900 per person per annum",
+          "ppm": "Global Budget",
+          "access_rules": [
+            "ARVs, HIV testing and follow up tests, family planning commodities, anti-malarial medication and testing, anti TBs and testing, KEPI vaccines, as provided in the guidelines, will be offered at no cost to the patient.",
+            "Each facility will be mapped to a Primary Care Network.",
+            "All registered households will be mapped to a PCN.",
+            "The Global budget shall be allocated based on the population in the PCN.",
+            "The Global Budget allocation to the PCN shall be made quarterly.",
+            "Distribution of the Funds shall be done at the end of the quarter based on patient visits, weighted by disease treated.",
+            "ARVs, antimalarials, anti TBs, and associated tests, family planning commodities, KEPI vaccines will be provided at public facilities, and faith based & private facilities that report to the health information system."
+          ]
+        },
+        "Maternity, Newborn and Child Health Services": {
+          "scope": [
+            "Ante-natal care, delivery by ways of normal delivery, assisted delivery and caesarean section as necessitated.",
+            "Aftercare for the mother together with the newborn",
+            "Midwifery, including episiotomy care and nursing care.",
+            "Operating, recovery, maternity ward and other treatment room charges including meals and special diets.",
+            "Immunisation for the newborn.",
+            "Vitamin K for newborn, chlorhexidine administration.",
+            "Provision of warmth and newborn resuscitation",
+            "Intra-admission and post-discharge medication.",
+            "Diagnostic laboratory tests",
+            "Administration of blood and blood products; derivatives and components, artificial blood products, and biological serum",
+            "Medical supplies and equipment, including oxygen.",
+            "Postnatal family planning.",
+            "Management of postpartum infections and haemorrhage, birth traumas and conditions related to childbirth.",
+            "Management of neonatal conditions.",
+            "Obstetric and neonatal complications including intra-admission postpartum/postnatal infections and haemorrhage, birth traumas and conditions related to childbirth.",
+            "Anti-D Serum for Rhesus-negative mothers."
+          ],
+          "access_point": "Level 2-3",
+          "tariff": {
+            "Normal Delivery": "KES. 11,200",
+            "Caesarean Section": "KES. 32,600"
+          },
+          "ppm": "Case Based",
+          "access_rules": [
+            "Normal delivery - maximum stay of 48 hours",
+            "C-section - maximum stay of 72 hours",
+            "Pregnancy emergency medicines such as Tranexamic acid and magnesium sulphate are included.",
+            "PHC maternity benefits will be accessed by any Kenyan resident woman or child who is pregnant.",
+            "Anti-D will only be provided to Rhesus-negative mothers through preauthorization.",
+            "In case of peripartum and postnatal complications beyond 48 hours for normal deliveries and 72 hours for CS deliveries, then per diem rate takes effect. All claims in this category will have to undergo surveillance.",
+            "ANC and PNC services will be covered under the outpatient at the PHC level.",
+            "Management of complications for the newborn will be charged separately from the mother including but not limited to sepsis, jaundice, prematurity, necrotising enterocolitis, at daily rebate rates for inpatient services."
+          ]
+        },
+        "Screening & Management of Pre-Cancerous Lesions": {
+          "scope": [
+            "Screening for common cancers (breast, cervix, prostate, and colon)"
+          ],
+          "access_point": "Level 2-6 with capacity",
+          "tariff": {
+            "HPV": "KES. 3,600",
+            "PSA": "KES. 1,500",
+            "Stool for occult blood": "KES. 400",
+            "Cryotherapy": "KES. 3,000",
+            "Thermal Ablation": "KES. 3,000",
+            "LEEP": "KES. 2,800"
+          },
+          "access_rules": [
+            "Prostate cancer screening will only be covered in males over 55 years.",
+            "Colon cancer screening will only be covered in males over 40 years.",
+            "Screening for cervical cancer will only be covered in women between 30-50 years",
+            "HPV screening for"
+          ]
+        },
+        "Optical Health Services": {
+          "scope": [
+            "Services covered include consultation and diagnosis, preventive, restorative, and treatment services as necessary:",
+            "Eye health education and counselling.",
+            "Eye tests including fundoscopy, visual acuity testing, visual field analysis.",
+            "Treatment of refractive errors through eyeglasses."
+          ],
+          "access_point": "Level 2-3",
+          "tariff": "KES. 935 for Consultation and dispensing of eyeglasses.",
+          "access_rules": [
+            "Limit: KES. 1,000 per Household",
+            "Pre-authorized service.",
+            "Limited to beneficiaries below 18 years.",
+            "Replacement of eyeglasses only"
+          ]
+        },
+        "End of Life Services": {
+          "scope": [
+            "Preparation and storage of the body in a mortuary",
+            "Preservation and storage of the body in a mortuary."
+          ],
+          "access_point": "Where available",
+          "tariff": "KES 500 per day",
+          "ppm": "Per Diem",
+          "access_rules": [
+            "Limit up to 5 days"
+          ]
+        }
+      }
+    },
+    "SHIF": {
+      "name": "Social Health Insurance Fund",
+      "packages": {
+        "Outpatient Care Services": {
+          "scope": [
+            "Health education and wellness, counselling, and ongoing support as needed",
+            "Consultation, diagnosis, and treatment.",
+            "Prescribed laboratory investigations.",
+            "Basic radiological examinations including X-rays, ultrasounds.",
+            "Prescription, drug administration and dispensing",
+            "Management of acute and chronic conditions for endemic/local cases",
+            "Management of NCDs, enteric infections; neglected tropical diseases (NTDs), STI’s and HIV/AIDS",
+            "Screening for common health conditions",
+            "Minor surgical procedures and medical procedures",
+            "Immunization as per the KEPI schedule and recommended special vaccines",
+            "Reproductive, Maternal and Child Health Services as defined by the MOH guidelines"
+          ],
+          "access_point": "Level 4-6",
+          "tariff": "KES 2,000",
+          "ppm": "Fee for Service – Fixed Fee",
+          "access_rules": [
+            "ARVs, HIV testing and follow up tests, family planning commodities, anti-malarial medication and testing, anti TBs and testing, KEPI vaccines, as provided in the guidelines, will be offered at no cost to the patient.",
+            "ARVs, antimalarials, anti TBs, and associated tests, family planning commodities, KEPI vaccines will be provided at public facilities, and faith based & private facilities that report to the health information system.",
+            "Limit: 4 Visits per year per person"
+          ]
+        },
+        "Medical Inpatient Services": {
+          "scope": [
+            "Inpatient services shall include management of disease/condition while admitted.",
+            "Pre-admission evaluation.",
+            "Hospital accommodation charges, meals and nursing care in a general ward bed",
+            "Intra-admission consultation and reviews by both general and specialist consultants, Laboratory investigations, medical imaging, procedures, and medication",
+            "Bedside services including physiotherapy, occupational therapy, oxygen supply, medical consumables, and therapeutic nutritional support.",
+            "Cross-matching and administration of blood and blood products; derivatives and components, artificial blood products, and biological serum.",
+            "Post-discharge medication or follow-up within the treatment plan."
+          ],
+          "access_point": "Level 4-6",
+          "tariff": {
+            "Level 4": "KES 3,500",
+            "Level 5": "KES 4,000",
+            "Level 6": "KES 5,000"
+          },
+          "ppm": "Per Diem",
+          "access_rules": [
+            "Limit: Up to 50 days per Household",
+            "Days above that charged to ECCIF"
+          ]
+        },
+        "Maternity, Neonatal and Child Health Services": {
+          "scope": [
+            "Delivery by ways of normal delivery, assisted delivery and caesarean section as necessitated.",
+            "Aftercare for the mother together with the newborn.",
+            "Midwifery, including episiotomy care and nursing care.",
+            "Operating, recovery, maternity ward and other treatment room charges including meals and special diets.",
+            "Immunization for the newborn.",
+            "Intra-admission and post-discharge medication.",
+            "Diagnostic laboratory tests.",
+            "Administration of blood and blood products; derivatives and components, artificial blood products, and biological serum",
+            "Medical supplies and equipment, including oxygen.",
+            "Postnatal family planning.",
+            "Management of postpartum infections and haemorrhage, birth traumas and conditions related to childbirth.",
+            "Management of neonatal conditions.",
+            "Obstetric and neonatal complications including intra-admission postpartum/postnatal infections and haemorrhage, birth traumas and conditions related to childbirth."
+          ],
+          "access_point": "Level 4-6",
+          "tariff": {
+            "Normal Delivery and essential newborn care": "KES. 11,200",
+            "Caesarean Section and essential newborn care": "KES. 32,600"
+          },
+          "ppm": "Case Based",
+          "access_rules": [
+            "Normal delivery - maximum stay of 48 hours",
+            "C-section - maximum stay of 72 hours (including pregnancy emergencies such as Tranexamic acid and magnesium sulphate)",
+            "SHIF maternity services will be accessed by members and their dependants with up-to-date membership.",
+            "In case of peripartum and postnatal complications beyond 48 hours for normal deliveries and 72 hours for CS deliveries, then per diem rate takes effect. All claims in this category will have to undergo surveillance."
+          ]
+        },
+        "Renal Care Package": {
+          "scope": [
+            "The management of kidney failure due to chronic disease or acute injuries/diseases through dialysis including:",
+            "Consultation and specialist's review.",
+            "Cost of the temporary catheter and insertion/removal.",
+            "Nursing care and dialysis services.",
+            "Routine laboratory investigations.",
+            "Dispensation of medication and maintenance drug, counselling and follow-up.",
+            "Continuous intermittent dialysis and other dialysis protocols."
+          ],
+          "access_point": "Level 4-6",
+          "tariff": {
+            "Hemodialysis & Hemodiafiltration": "KES. 10,650 per session",
+            "Peritoneal dialysis": "KES. 180,000 per month"
+          },
+          "ppm": "Case Based",
+          "access_rules": [
+            "Maximum of 3 sessions per week for haemodialysis.",
+            "Maximum of 2 sessions per week for hemodiafiltration.",
+            "Maximum of 12 sessions annually for peritoneal dialysis.",
+            "Payments will be made from the SHIF and ECCIF Funds.",
+            "Accessible in Level IV-VI facilities with dialysis centres and access to an ambulance and ICU services within a 10km radius."
+          ]
+        },
+        "Mental Wellness Benefit Package": {
+          "scope": [
+            "The mental health services cover caters for;",
+            "Mental Health education and counselling.",
+            "Screening, management and referral for behavioral disorders, neuro-developmental disorders, affective and psychoactive disorders.",
+            "Rehabilitation for substance related addictive disorders."
+          ],
+          "access_point": "Level 3-6",
+          "tariff": {
+            "Outpatient Services": "KES. 1,200 per visit",
+            "Inpatient Services": {
+              "Level 4": "KES 3,500",
+              "Level 5": "KES 4,000",
+              "Level 6": "KES 5,000"
+            },
+            "Rehabilitation for DSA": {
+              "Detoxification": "KES. 14,000",
+              "Rehabilitation": "KES. 125,000"
+            }
+          },
+          "ppm": {
+            "Outpatient": "Fee for service – Fixed rate",
+            "Inpatient": "Per Diem",
+            "Rehabilitation": "Case based"
+          },
+          "access_rules": [
+            "Max. 7 outpatient visits",
+            "To access the benefits, individuals must be paid-up SHA members",
+            "Mental illness services will be assessed through the SHIF and ECCI funds.",
+            "Diagnosis and management of behavioral disorders (inpatient) shall have a limit of up to 35 days.",
+            "Admissions for rehabilitation for drugs and substance abuse shall be pre-authorized.",
+            "For beneficiaries who do not complete the three-stage program, or attain minimum stay of 45 days, SHA shall reimburse KES 1,000 for every day of admission up to a maximum of 10 days."
+          ]
+        },
+        "Surgical Services Package": {
+          "scope": [
+            "The Surgical Package covers the below list of surgical and non-surgical procedures:",
+            "Pre-operative admission and care.",
+            "Minor, major and specialized surgical procedures including organ transplants and implants.",
+            "Administration of blood and blood products; derivatives and components, artificial blood products, and biological serum.",
+            "Management of intraoperative complications and complications following the surgical procedure.",
+            "All additional medical or surgical service required during the postoperative period because of complications that do not require additional trips to the operating room.",
+            "Postoperative visits - follow-up visits during the postoperative period that are related to recovery.",
+            "Post-procedure pain management.",
+            "Post-operative ward physiotherapy.",
+            "Supplies - except for those identified as exclusions.",
+            "Miscellaneous services - items such as dressing changes; local incisional care; removal of the operative pack; removal of cutaneous sutures and staples, lines, wires, tubes, drains, casts, and splints; insertion, irrigation and removal of urinary catheters, routine peripheral intravenous lines, nasogastric and rectal tubes; and changes and removal of tracheostomy tubes.",
+            "Critical care services related to the surgical procedure but within the same case definition.",
+            "Diagnostic tests and procedure, including diagnostic radiological procedures related to the surgery.",
+            "Immunosuppressive therapy for organ transplants."
+          ],
+          "access_point": "Level 3-6",
+          "tariff": "Schedule of tariffs annexed.",
+          "ppm": "Fee for Service – Fixed rate",
+          "access_rules": [
+            "Selective procurement for Cardiology, Cardiothoracic and vascular, Urology, and Transplant surgeries",
+            "Minor surgical procedures performed at Level 2 & 3 facilities will be funded from the PHC fund.",
+            "Emergency surgical procedures to stabilize trauma and polytrauma patients with head, cardiac, pulmonary, and critical limb injuries within 24 hours will be covered under the Accident and Emergency Package in the ECCIF fund.",
+            "Palliative surgery shall be paid under ECCIF.",
+            "Major and specialized surgical procedures will be provided at Level 4-6 facilities with at least 2 operating theatres.",
+            "Procurement of eligible minor, major and specialized procedures from single specialty providers.",
+            "Access to specific major and specialized procedures will be limited to facilities with appropriate installed equipment, affiliated surgical and anesthesia personnel.",
+            "Co-payment allowed for laser and laparoscopic surgeries."
+          ]
+        },
+        "Oncology Services": {
+          "scope": [
+            "Oncology services shall entail screening and treatment of cancers including breast, prostate, colorectal, cervical cancer, and childhood cancers.",
+            "Administration of Chemotherapy, Radiotherapy, Brachytherapy and Radiosurgery",
+            "Consumables, stoma appliances, premeds, and post meds",
+            "Chemotherapy pump",
+            "Routine and specialized laboratory investigations",
+            "Screening, cross-matching and administration of blood and blood products; derivatives and components, artificial blood products, and biological serum",
+            "Treatment planning",
+            "Radioiodine therapy",
+            "Radiological services where necessary as part of oncological treatment planning",
+            "Management through surgical interventions"
+          ],
+          "access_point": "Level 4-6",
+          "tariff": {
+            "Chemo administration": "KES. 5,000",
+            "PET Scan": "KES. 53,500",
+            "PSMA PET Scan": "KES. 64,200",
+            "CT-Scan": "KES. 9,600",
+            "MRI": "KES. 11,000",
+            "Bone scan": "KES. 15,000",
+            "Radionuclide scan": "KES. 11,000",
+            "Brachytherapy": "up to KES. 40,000",
+            "SBRT/SBRS": "up to KES. 70,000",
+            "Radiotherapy": "up to KES. 3,600 per session",
+            "Diagnosis & staging": "Limit of KES. 100,000",
+            "1st Line treatment": "Limit of Kes. 400,000 from SHIF and KES. 250,000 from ECCIF",
+            "2nd Line treatment": "KES. 650,000 from ECCIF"
+          },
+          "access_rules": [
+            "Management of pre-cancer conditions"
+          ]
+        },
+        "Medical Imaging and Other Investigations Package": {
+          "scope": [
+            "Covers Prescribed specialized imaging services including.",
+            "MRI",
+            "CT scans",
+            "CT Angio",
+            "Fluoroscopy",
+            "Mammography",
+            "Specialized ultrasounds (Dopplers)",
+            "Echocardiograms (ECHO)",
+            "Electroencephalograms (EEGs) and",
+            "Reviewing and interpreting radiological images giving the diagnostic opinion and providing the referring physician with a detailed report of the imaging findings for treatment planning."
+          ],
+          "access_point": "All facilities with required imaging services.",
+          "tariff": {
+            "MRI": "KES 11,000",
+            "CT scans": "KES 9,600",
+            "CT Angio": "KES 8,000",
+            "Fluoroscopy": "KES 4,000",
+            "Mammography": "KES 3,000",
+            "Specialized ultrasounds (Dopplers)": "KES 5,000",
+            "Echocardiograms (ECHO)": "KES 3,500",
+            "Electroencephalograms (EEGs)": "KES 5,000 for a child and KES 8,000 for adult."
+          },
+          "access_rules": [
+            "Fluoroscopy, Mammography, Echocardiograms, Electroencephalograms (EEG), and specialized ultrasounds (dopplers) to be purchased from GOK Level IV-V hospitals.",
+            "MRI at 2 images per HH - limited to Infective, oncology, neurological, degenerative conditions, specific obstetric conditions, cardiac/CVA-related cases and trauma cases.",
+            "CT scans - limited to Infective, oncology, neurological, degenerative conditions, specific obstetric conditions, cardiac/CVA-related cases and trauma cases.",
+            "CT scans and CT Angio – 2 images per household.",
+            "Fluoroscopy at 2 per household: Continuous x-rays used for guiding angiographic and interventional procedures, in contrast, examinations of the GI tract, and in the OR for certain surgical procedures (e.g. orthopedic, Urological).",
+            "Mammography at 2 per household per year: X-ray imaging of the breasts for diagnosis of clinically detected or screening-detected abnormalities.",
+            "Specialized ultrasounds at 2 per household per year: For tendon injuries (e.g. rotator cuff, Achilles tendon), detection and characterization of soft tissue masses (i.e. cystic or solid), detection of foreign bodies, U/S-guided biopsy and injections, Bone/joint evaluation pre-ossification (e.g. DDH in early months), doppler for venous and arterial diseases, scrotal masses, priapism, and testicular torsion.",
+            "ECHO at 2 per household per year: Carotid stenosis, Pulmonary embolism, Kawasaki disease, Hypertension in children, Congestive heart failure, Congenital heart disease, Spina bifida, Acute Ischemic stroke, Infective endocarditis, Hodgkin’s lymphoma, Sickle cell disease, Acute pericarditis, Valvular heart disease.",
+            "Radiology benefits are to be purchased where the service is available and on a need basis."
+          ]
+        },
+        "Pharmacy Package": {
+          "scope": [
+            "Medicines for select chronic conditions:-",
+            "Diabetes type 1&2,",
+            "Hypertension,",
+            "Asthma,",
+            "Chronic renal disease on dialysis",
+            "Post transplant immunosuppressants",
+            "Chronic obstructive pulmonary disease,",
+            "Sickle cell",
+            "Oncology medicines",
+            "Anti-D",
+            "Anti Snake Venom",
+            "Anti Rabies",
+            "Mental Health long-acting medicines",
+            "Epilepsy"
+          ],
+          "access_point": "All public facility pharmacies, All faith-based facility pharmacies, Community pharmacies individually or through a pharmacy benefits manager",
+          "ppm": "Fee for service",
+          "access_rules": [
+            "Quarterly limit of 5,000 per person as captured in the chronic disease registry"
+          ]
+        },
+        "Specialized Laboratory Service": {
+          "scope": [
+            "Specialized testing as captured in the essential laboratory lists and WHO lists for the chronic conditions:",
+            "Diabetes type 1&2,",
+            "Hypertension,",
+            "Asthma",
+            "Chronic renal disease on dialysis",
+            "Post transplant immunosuppression",
+            "Chronic obstructive pulmonary disease",
+            "Sickle cell",
+            "Oncology medicines",
+            "Anti-D",
+            "Anti Snake Venom",
+            "Anti Rabies",
+            "Mental Health long-acting medicines",
+            "Epilepsy"
+          ],
+          "access_point": "Class C, D and E public facility, faith based, and contracted independent Class C, D and E laboratories",
+          "ppm": "Fee for service",
+          "access_rules": [
+            "Quarterly limit of 5,000 per person as captured in the chronic disease registry"
+          ]
+        },
+        "End of Life Services": {
+          "scope": [
+            "Preparation and storage of the body in a mortuary"
+          ],
+          "access_point": "Level 4-6",
+          "tariff": "KES 500 per day",
+          "ppm": "Per Diem",
+          "access_rules": [
+            "Limit up to 5 days"
+          ]
+        }
+      }
+    },
+    "ECCIF": {
+      "name": "Emergency, Chronic and Critical Illness Fund",
+      "packages": {
+        "Ambulance Evacuation Services": {
+          "scope": [
+            "Evacuation from the point of the incident to the nearest facility with an A&E center and the transfer of patients requiring emergency and further clinical care from the facility."
+          ],
+          "access_point": "Management of all transfers/evacuations through a National Ambulance Call Centre",
+          "tariff": {
+            "Intra-metro": "up to KES 4,500 (25km radius)",
+            "Extra-metro": "KES 75 per km"
+          },
+          "ppm": "Fee-for-service- fixed rate",
+          "access_rules": [
+            "Accessible by all Kenyans",
+            "Procurement of the ground evacuation services, as an outsourced service to a provider/consortium of providers able to meet the criteria set for at least one region."
+          ]
+        },
+        "Accident & Emergency Services": {
+          "scope": [
+            "This cover includes resuscitation and stabilization due to:",
+            "Cardiac and pulmonary arrest",
+            "Major trauma (severe burns, head injuries, severe wounds, multiple fractures)",
+            "Shock states (Haemorrhagic, septic, dehydration)",
+            "Altered level of consciousness (unconsciousness, confusion) Severe respiratory distress",
+            "Seizures",
+            "Chest pain (Acute Coronary Syndrome/ Pulmonary embolism) Acute Cerebrovascular Accidents (Strokes)",
+            "Anti Snake Venom & Anti Rabies"
+          ],
+          "access_point": "Level 2-6",
+          "tariff": {
+            "Cardiac and pulmonary arrest": "KES 5015 for investigations and KES 97,900 for management.",
+            "Major trauma (severe burns, head injuries, severe wounds, multiple fractures)": "KES 13,614 for investigations and KES 79,549 for management.",
+            "Shock states (Haemorrhagic, septic, dehydration)": "KES 7,637 for investigations and KES 67,272 for management.",
+            "Altered level of consciousness (unconsciousness, confusion)": "KES 12,656 for investigations and KES 8,000 for management.",
+            "Severe respiratory distress": "KES 6,315 for investigations and KES 8,000 for management.",
+            "Seizures": "KES 12,156 for investigations and KES 8,950 for management.",
+            "Chest pain (Acute Coronary Syndrome/ Pulmonary embolism)": "KES 11,233 for investigations and KES 41,400 for management.",
+            "Acute Cerebrovascular Accidents (Strokes)": "KES 11,033 for investigations and KES 95,200 for management.",
+            "Anti Snake Venom": "Up to KES 6,600 for first dose",
+            "Anti Rabies": "Up to KES 3,800 for the first dose"
+          },
+          "ppm": "Fee for service up to indicated limits.",
+          "access_rules": [
+            "Resuscitation and stabilization to be accessed from level 2-6 by all residents in Kenya.",
+            "Care for up to a maximum of 24 hours after which the SHIF is activated for paid up members.",
+            "The amounts provided are the maximum reimbursable tariffs. The Authority shall reimburse the hospital bill amount to the maximum tariffs provided."
+          ]
+        },
+        "Critical Illness Package": {
+          "scope": [
+            "This will cater for Critical care admissions in Intensive Care Unit (ICU), High Dependency Unit (HDU), -include NICU, PICU, Burns Unit"
+          ],
+          "access_point": "Level 4-6",
+          "tariff": {
+            "ICU": "KES 35,000",
+            "HDU": "KES 10,000"
+          },
+          "ppm": "Per diem rate",
+          "access_rules": [
+            "ICU up to 14 days",
+            "HDU up to 10 days",
+            "Co-payment for amounts above daily per diem rate"
+          ]
+        },
+        "Palliative Care Services": {
+          "scope": [
+            "This benefit aims at enhancing the quality of life for patients with serious chronic or life-threatening illnesses which includes symptom management, psychosocial support, caregiver support and end-of-life care."
+          ],
+          "access_point": "Level 4-6",
+          "tariff": "KES. 5,000",
+          "ppm": "Per diem rate",
+          "access_rules": [
+            "Up to 60 days",
+            "Co-payment for amounts above daily per diem rate"
+          ]
+        },
+        "Chronic Illnesses": {
+          "scope": [
+            "Longitudinal management of chronic conditions and diseases beyond the SHIF limit for diabetes mellitus and its complications, hypertension, cardiovascular conditions, asthma, COPD, sickle cell disease, dialysis, pre-transplant evaluation, immunosuppressive therapy post renal transplant,",
+            "Management of cancers beyond the SHIF limit",
+            "Management of mental, neurodevelopmental, affective, psychoactive disorders and substance addictive disorders and other mental health conditions",
+            "Selected specialized surgeries"
+          ],
+          "access_point": "Level 4-6",
+          "tariff": "Same tariff and PPMs applied under SHIF",
+          "access_rules": [
+            "Must be a paid up SHIF member."
+          ]
+        },
+        "Assistive Devices": {
+          "scope": [
+            "Provision of assistive devices to support patients with permanent physical and/or sensory disabilities and progressive chronic conditions such as Parkinson’s Disease and multiple sclerosis."
+          ],
+          "access_point": "Level 4-6",
+          "tariff": {
+            "Hearing aids": "KES. 55,000",
+            "Crutches": "KES. 900",
+            "Clubfoot brace": "KES. 1,000",
+            "Walking frames": "KES. 500",
+            "Therapeutic footwear": "KES. 1,000"
+          },
+          "access_rules": [
+            "Medical devices will only be issued to persons with permanent disability recognized by the National Council for Persons with Disability",
+            "One device per household per year, except for therapeutic footwear, which has a limit of two per household per year.",
+            "Hearing Aids are limited to individuals aged 18 years and below and will only be issued once per lifetime.",
+            "Devices required due to temporary inability or immobility will be factored in the surgical package."
+          ]
+        }
+      }
+    }
+  }
+}

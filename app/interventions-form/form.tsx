@@ -3,8 +3,9 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import type { FormErrors, FormData, EmailResponse } from '../services/types';
 import { ApiResponse, submitProposal } from '../api/interventions';
-import { sanitizeEmail, sanitizeFormData, sanitizePhone, sanitizeText, validateField, validateFormData } from './validate';
+// import { sanitizeEmail, sanitizeFormData, sanitizePhone, sanitizeText, validateField, validateFormData } from './validate';
 import RichEditor from '@/components/shared/editor';
+import { findBlocked, htmlToText, sanitizeFormData, sanitizePhone, validateField, validateFormData } from '@/lib/clean';
 
 
 const RICH_FIELDS: (keyof FormData)[] = ['beneficiary','justification',  'expectedImpact', 'additionalInfo'];
@@ -32,6 +33,7 @@ const stripHtml = (html: string): string => {
 };
 
 const isBlankHtml = (html: string): boolean => stripHtml(html).length === 0;
+
 
 
 const FieldError: React.FC<{ message?: string }> = ({ message }) =>
@@ -195,66 +197,68 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
   };
 
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  e.preventDefault();
 
-    // validate against plain text for the rich fields so empty markup
-    // (e.g. "<p><br></p>") is correctly treated as empty.
-    const forValidation: FormData = { ...formData };
-    RICH_FIELDS.forEach((f) => {
-      if (typeof forValidation[f] === 'string') {
-        (forValidation[f] as unknown) = stripHtml(forValidation[f] as string);
-      }
-    });
-
-    const newErrors = validateFormData(forValidation);
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      const firstErrorField = Object.keys(newErrors)[0];
-      // native inputs expose [name]; the RichEditor exposes [data-field]
-      const errorElement = document.querySelector(
-        `[name="${firstErrorField}"], [data-field="${firstErrorField}"]`
-      );
-      if (errorElement) {
-        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        (errorElement as HTMLElement).focus();
-      }
-      return;
+  // Validate rich fields by their plain text, so empty markup ("<p><br></p>")
+  // counts as empty and length checks measure real content, not tags.
+  const forValidation: FormData = { ...formData };
+  RICH_FIELDS.forEach((f) => {
+    if (typeof forValidation[f] === "string") {
+      (forValidation[f] as unknown) = htmlToText(formData[f] as string);
     }
+  });
 
-    const clean = sanitizeFormData(formData);
-    // Preserve the editor's sanitized HTML — sanitizeFormData would otherwise
-    // flatten the tags and we'd lose all formatting.
-    RICH_FIELDS.forEach((f) => {
-      (clean[f] as unknown) = formData[f];
-    });
-    // Preserve the File[] — sanitizeFormData only handles strings.
-    clean.uploaded_documents = formData.uploaded_documents;
-      setFormData(clean);
-      
-    setIsSubmitting(true);
-    try {
-      const response = await submitProposal(clean);
-      setApiResponse(response);
-      if (response.success) {
-        setSubmitted(true);
-        if (response.submission_id) {
-          localStorage.setItem('lastSubmissionId', response.submission_id);
-        }
-      }
-    } catch (error) {
-      setApiResponse({
-        success: false,
-        message: 'An unexpected error occurred. Please try again.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    } finally {
-      setIsSubmitting(false);
-      setFormTouched(false);
+  const newErrors = validateFormData(forValidation);
+  setErrors(newErrors);
+
+  if (Object.keys(newErrors).length > 0) {
+    const firstErrorField = Object.keys(newErrors)[0];
+    const errorElement = document.querySelector(
+      `[name="${firstErrorField}"], [data-field="${firstErrorField}"]`
+    );
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      (errorElement as HTMLElement).focus();
     }
-  };
+    return;
+  }
 
+  // Sanitize everything: plain via sanitizeText, rich via DOM sanitizeHtml,
+  // files passed through — all handled inside sanitizeFormData now.
+  const clean = sanitizeFormData(formData);
+
+  // Hard gate: never submit disallowed embedded media, even if the disabled
+  // button was bypassed (Enter key / programmatic submit).
+  const blockedField = RICH_FIELDS.find((f) => findBlocked(clean[f] as string).size > 0);
+  if (blockedField) {
+    setErrors((prev) => ({ ...prev, [blockedField]: "Remove the embedded media before submitting." }));
+    const el = document.querySelector(`[data-field="${blockedField}"]`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    (el as HTMLElement | null)?.focus();
+    return;
+  }
+
+  setFormData(clean);
+  setIsSubmitting(true);
+  try {
+    const response = await submitProposal(clean);
+    setApiResponse(response);
+    if (response.success) {
+      setSubmitted(true);
+      if (response.submission_id) localStorage.setItem("lastSubmissionId", response.submission_id);
+    }
+  } catch (error) {
+    setApiResponse({
+      success: false,
+      message: "An unexpected error occurred. Please try again.",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  } finally {
+    setIsSubmitting(false);
+    setFormTouched(false);
+  }
+};
 
   if (submitted) {
     return (

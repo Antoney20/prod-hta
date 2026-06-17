@@ -25,18 +25,43 @@ export function isBlankHtml(html: string): boolean {
 
 /* Allowlist sanitizer.
    - ALLOWED_TAGS survive with zero attributes (href re-added on <a> after validation).
-   - DROP_WITH_CONTENT are removed entirely (tag + children).
+   - HARD_STRIP are removed entirely (tag + children), silently — they're hazards
+     that would execute the instant they enter the DOM and are never author-fixable.
+   - BLOCK_TAGS are kept but made inert (event handlers / foreign attrs stripped) so
+     the author can see and delete them; while any are present the field is invalid.
    - Anything else is unwrapped: the tag goes, its text/children stay.
    - RETAG maps near-miss block tags onto the editor's vocabulary.            */
 const ALLOWED_TAGS = new Set([
   "p", "h2", "h3", "h4", "blockquote", "ul", "ol", "li",
   "a", "b", "strong", "i", "em", "u", "code", "br",
 ]);
-const DROP_WITH_CONTENT = new Set([
+
+/* Hazards: removed entirely + silently. Never valid, never author-fixable
+   (a live <script>/<img onerror> would execute the instant it enters the DOM). */
+const HARD_STRIP = new Set([
   "script", "style", "iframe", "object", "embed", "link", "meta", "noscript",
   "svg", "math", "form", "input", "button", "select", "textarea", "template",
-  "video", "audio", "source", "base", "frame", "frameset",
+  "base", "frame", "frameset", "source",
 ]);
+
+/* Policy-disallowed media: NOT stripped. They stay (inert — every event
+   handler removed) so the author can see and delete them, and while any are
+   present the field is invalid and the form can't continue. */
+const BLOCK_TAGS = new Set(["img", "picture", "video", "audio", "track"]);
+
+/* The only attributes a blocked tag keeps, so it still renders enough to be
+   found + deleted. Everything else — on* handlers, srcset, etc. — is stripped. */
+const BLOCK_KEEP: Record<string, Set<string>> = {
+  img: new Set(["src", "alt"]),
+  video: new Set(["src", "controls"]),
+  audio: new Set(["src", "controls"]),
+};
+
+const BLOCK_LABELS: Record<string, string> = {
+  img: "images", picture: "images",
+  video: "videos", audio: "audio clips", track: "captions",
+};
+
 const RETAG: Record<string, string> = { h1: "h2", h5: "h4", h6: "h4" };
 
 /* Validates an href value. Strips control chars / embedded whitespace first
@@ -59,9 +84,18 @@ function sanitizeHtml(html: string): string {
     if (!tpl.content.contains(el)) continue; // detached by an earlier removal
     let tag = el.tagName.toLowerCase();
 
-    if (DROP_WITH_CONTENT.has(tag)) {
+    if (HARD_STRIP.has(tag)) {
       el.remove();
       continue;
+    }
+
+    if (BLOCK_TAGS.has(tag)) {
+      // kept + inert: strip everything not explicitly allowlisted (incl. all on* handlers)
+      const keep = BLOCK_KEEP[tag];
+      for (const a of [...el.attributes]) {
+        if (!keep?.has(a.name.toLowerCase())) el.removeAttribute(a.name);
+      }
+      continue; // left in place; flagged via validate()/findBlocked()
     }
 
     if (RETAG[tag]) {
@@ -92,6 +126,29 @@ function sanitizeHtml(html: string): string {
     }
   }
   return tpl.innerHTML;
+}
+
+/* Scans current HTML for disallowed media tags. Drives the persistent error
+   + form gate. Runs on every change and on external value load. */
+function findBlocked(html: string): Set<string> {
+  const found = new Set<string>();
+  if (typeof window === "undefined" || !html) return found;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html;
+  for (const el of tpl.content.querySelectorAll("*")) {
+    const t = el.tagName.toLowerCase();
+    if (BLOCK_TAGS.has(t)) found.add(t);
+  }
+  return found;
+}
+
+function describeBlocked(tags: Set<string>): string {
+  const labels = [...new Set([...tags].map((t) => BLOCK_LABELS[t] ?? t))];
+  const list =
+    labels.length === 1 ? labels[0]
+    : labels.length === 2 ? `${labels[0]} and ${labels[1]}`
+    : `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
+  return `Remove the embedded ${list} to continue — they aren’t allowed here.`;
 }
 
 function normalizeUrl(raw: string): string | null {
@@ -223,6 +280,7 @@ export interface RichEditorProps {
   hint?: string;
   required?: boolean;
   invalid?: boolean;      // drives the red error border/ring
+  onValidityChange?: (valid: boolean) => void; // false while disallowed media is present
   placeholder?: string;
   minHeight?: number;
   maxHeight?: number;
@@ -237,6 +295,7 @@ export function RichEditor({
   hint,
   required,
   invalid = false,
+  onValidityChange,
   placeholder = "Start typing",
   minHeight = 150,
   maxHeight = 360,
@@ -255,6 +314,21 @@ export function RichEditor({
   const savedRange = useRef<Range | null>(null);
   const linkAnchor = useRef<HTMLAnchorElement | null>(null);
 
+  // persistent content-validity: set while disallowed media is present,
+  // cleared once the author removes it. Gates the parent form via onValidityChange.
+  const [contentError, setContentError] = useState<string | null>(null);
+  const lastValid = useRef(true);
+
+  const validate = useCallback(() => {
+    const blocked = findBlocked(ref.current?.innerHTML ?? "");
+    const valid = blocked.size === 0;
+    setContentError(valid ? null : describeBlocked(blocked));
+    if (valid !== lastValid.current) {
+      lastValid.current = valid;
+      onValidityChange?.(valid);
+    }
+  }, [onValidityChange]);
+
   useEffect(() => ensureStyles(), []);
 
   const markEmpty = () => {
@@ -268,14 +342,16 @@ export function RichEditor({
       ref.current.innerHTML = sanitizeHtml(value ?? "");
     }
     markEmpty();
+    validate(); // flag a dirty loaded draft on mount / external change
     isInternal.current = false;
-  }, [value]);
+  }, [value, validate]);
 
   const sync = useCallback(() => {
     isInternal.current = true;
     markEmpty();
+    validate(); // clears/sets the error as content changes
     onChange(ref.current?.innerHTML ?? "");
-  }, [onChange]);
+  }, [onChange, validate]);
 
   const refreshActive = useCallback(() => {
     const sel = window.getSelection();
@@ -469,11 +545,13 @@ export function RichEditor({
     const plain = e.clipboardData.getData("text/plain");
     if (html) document.execCommand("insertHTML", false, sanitizeHtml(html));
     else if (plain) document.execCommand("insertText", false, plain);
-    sync();
+    sync(); // validates
   };
 
   const inputCls =
     "mt-1 w-full rounded border border-gray-300 px-2 py-1.5 text-sm text-gray-800 outline-none focus:border-[#27aae1] focus:ring-2 focus:ring-[#27aae1]";
+
+  const showInvalid = invalid || !!contentError;
 
   return (
     <div className="flex flex-col gap-1">
@@ -487,7 +565,7 @@ export function RichEditor({
       <div
         className={cn(
           "rounded-md border bg-white transition-colors",
-          invalid
+          showInvalid
             ? "border-red-500 focus-within:ring-2 focus-within:ring-red-500"
             : "border-gray-300 focus-within:border-[#27aae1] focus-within:ring-2 focus-within:ring-[#27aae1]",
           disabled && "opacity-60",
@@ -623,6 +701,16 @@ export function RichEditor({
           </ToolButton>
         </div>
 
+        {/* persistent content error — blocks the form until the author removes the media */}
+        {contentError && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 border-b border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-700"
+          >
+            <span className="leading-relaxed">{contentError}</span>
+          </div>
+        )}
+
         {/* editable region */}
         <div
           ref={ref}
@@ -633,7 +721,7 @@ export function RichEditor({
           role="textbox"
           aria-multiline="true"
           aria-label={label}
-          aria-invalid={invalid || undefined}
+          aria-invalid={showInvalid || undefined}
           aria-describedby={hint ? hintId : undefined}
           data-placeholder={placeholder}
           tabIndex={0}

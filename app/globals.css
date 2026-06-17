@@ -432,3 +432,20 @@
   color: #ffffff;
 }
 
+
+.fo-editor img,
+.fo-editor picture,
+.fo-editor video,
+.fo-editor audio,
+.fo-editor track {
+  display: inline-block;
+  min-width: 140px;
+  min-height: 44px;
+  max-width: 100%;
+  margin: 2px;
+  outline: 2px dashed #ef4444;
+  outline-offset: 2px;
+  background: #fef2f2;
+  border-radius: 4px;
+  vertical-align: middle;
+}

@@ -445,7 +445,7 @@ export default function FeedbackTemplatePage() {
   };
 
   return (
-    <div style={pageStyle}>
+    <div className="mx-auto container py-8 px-4" >
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* ── Header ── */}
@@ -532,12 +532,7 @@ function stripHtml(html: string) {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-const pageStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  background: "#ffffff",
-  padding: "30px 36px",
-  fontFamily: "'DM Sans', 'Geist', sans-serif",
-};
+
 const headerStyle: React.CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "flex-start",
   marginBottom: 36, gap: 20, flexWrap: "wrap",

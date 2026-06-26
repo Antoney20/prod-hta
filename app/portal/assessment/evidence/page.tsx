@@ -232,8 +232,8 @@ export default function AssessmentEvidencePage() {
         <div className="flex items-center gap-3">
           <div className="bg-[#27aae1]/10 p-2 rounded-lg"><FileStack className="h-5 w-5 text-[#27aae1]" /></div>
           <div>
-            <h1 className="text-xl font-bold">Assessment Evidence</h1>
-            <p className="text-sm text-muted-foreground">Evidence linked to interventions and national program proposals</p>
+            <h1 className="text-xl font-bold">Assessment Evidence and Reports</h1>
+            <p className="text-sm text-muted-foreground">Evidence linked to interventions and national program proposals (These are the reports from Rapid evidence synthesis, Reports on analysis etc..)</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -247,7 +247,7 @@ export default function AssessmentEvidencePage() {
             </Button>
           )}
           <Button className="text-white" style={{ backgroundColor: BLUE }} onClick={() => router.push(UPLOAD_PATH)}>
-            <Plus className="h-4 w-4 mr-2" />Upload Evidence
+            <Plus className="h-4 w-4 mr-2" />Upload Evidence 
           </Button>
         </div>
       </div>

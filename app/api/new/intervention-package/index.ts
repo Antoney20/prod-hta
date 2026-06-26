@@ -20,7 +20,6 @@ export const errMsg = (e: any, fb = "Something went wrong"): string =>
 // router.register(r"intervention-package", ...). Adjust the version prefix if yours differs.
 const PKG = "/v3/intervention-package/";
 
-/* ----------------------------- package CRUD ----------------------------- */
 
 export const getPackages = async (): Promise<InterventionPackage[]> => {
   try {

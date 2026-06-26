@@ -247,7 +247,6 @@ function isAllowedTag(rawInner: string): boolean {
   return ALLOWED_TAGS.has(name);
 }
 
-/** Blocks scripts, dangerous schemes, event handlers, and path-escape sequences. */
 const INJECTION_RE = /<script|<\/script|<iframe|<!doctype|<\?xml|<xml|javascript:|vbscript:|data:|on\w+\s*=/i;
 const TRAVERSAL_RE = /(?:\.\.[/\\]){1,}|%2e%2e|\.\.%2f|\0/i;
 

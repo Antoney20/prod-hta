@@ -45,6 +45,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { UserProfile, UserRole } from "@/app/api/auth";
+import { FaCheck, FaFileContract } from "react-icons/fa";
 
 interface AsideProps {
   isOpen: boolean;
@@ -68,6 +69,18 @@ const sharedNationalPrograms: NavItem = {
      { type: "link", title: "Upload(Bulk) Proposals ", href: "/portal/national-programs/upload",  icon: <SlidersHorizontal  className="h-4 w-4" /> },
   ],
 };
+
+const sharedBenefitsPackage: NavItem = {
+  type: "group",
+  title: "Benefits Package",
+  icon: <ClipboardList className="h-5 w-5" />,
+  children: [
+    { type: "link", title: "Current Benefits Package",      href: "/portal/benefits-package",           icon: <FaCheck className="h-4 w-4" /> },
+    { type: "link", title: "Intervention by Package", href: "/portal/benefits-package/packages",  icon: <Gavel className="h-4 w-4" /> },
+    
+  ],
+};
+
 
 const sharedInterventions: NavItem = {
   type: "link",
@@ -109,6 +122,8 @@ const userSwgNavItems: NavItem[] = [
     ],
   },
   sharedNationalPrograms,
+  sharedBenefitsPackage,
+
   {
     type: "group",
     title: "Topic Prioritization",
@@ -127,6 +142,7 @@ const assessmentGroupNavItems: NavItem[] = [
   { type: "link", title: "Dashboard", href: "/portal", icon: <Home className="h-5 w-5" /> },
   sharedInterventions,
   sharedNationalPrograms,
+  sharedBenefitsPackage,
 
   { type: "divider" },
   { type: "section", title: "Assessment Group" },
@@ -153,6 +169,7 @@ const panelNavItems: NavItem[] = [
   { type: "link", title: "Dashboard",    href: "/portal",             icon: <Home className="h-5 w-5" /> },
   sharedInterventions,
   sharedNationalPrograms,
+  sharedBenefitsPackage,
 
   { type: "divider" },
   { type: "section", title: "Appraisal (Panel)" },
@@ -193,6 +210,7 @@ const adminNavItems: NavItem[] = [
 
   sharedInterventions,
   sharedNationalPrograms,
+   sharedBenefitsPackage,
 
 
   { type: "divider" },
@@ -227,7 +245,6 @@ const adminNavItems: NavItem[] = [
     children: [
       { type: "link", title: "Review Status",  href: "/portal/tracker/review-status", icon: <ActivitySquare className="h-4 w-4" /> },
       { type: "link", title: "Decision Types", href: "/portal/tracker/decision",      icon: <Gavel className="h-4 w-4" /> },
-      { type: "link", title: "Assign to a Package", href: "/portal/tracker/packages",      icon: <AlertCircleIcon className="h-4 w-4" /> },
     ],
   },
 
@@ -244,7 +261,6 @@ const adminNavItems: NavItem[] = [
       { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
       { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
         { type: "link", title: "Extract Evidence",  href: " /portal/assessment/evidence/extraction",        icon: <CloudUpload   className="h-4 w-4" /> },
-        { type: "link", title: "Protocol Setup",  href: " /portal/assessment/evidence/protocol",        icon: <FileStackIcon  className="h-4 w-4" /> },
 
      
     ],
@@ -258,28 +274,33 @@ const adminNavItems: NavItem[] = [
     title: "Configuration",
     icon: <Settings className="h-5 w-5" />,
     children: [
-      { type: "link", title: "Tool Info",     href: "/portal/appraisal/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
+      { type: "link", title: "Assessment Tool Info",     href: "/portal/appraisal/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
       { type: "link", title: "Criteria Info", href: "/portal/appraisal/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
+       { type: "link", title: "Criteria Weights", href: "/portal/config/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },
-  {
-    type: "group",
-    title: "Scoring",
-    icon: <LineChart className="h-5 w-5" />,
-    children: [
-      { type: "link", title: "Score Interventions", href: "/portal/appraisal/scoring/score-intervention",         icon: <PenSquare className="h-4 w-4" /> },
-      { type: "link", title: "Scoring Reports",     href: "/portal/appraisal/scoring/reports", icon: <BarChart3 className="h-4 w-4" /> },
-    ],
-  },
+  // {
+  //   type: "group",
+  //   title: "Scoring",
+  //   icon: <LineChart className="h-5 w-5" />,
+  //   children: [
+  //     { type: "link", title: "Score Interventions", href: "/portal/appraisal/scoring/score-intervention",         icon: <PenSquare className="h-4 w-4" /> },
+  //     { type: "link", title: "Scoring Reports",     href: "/portal/appraisal/scoring/reports", icon: <BarChart3 className="h-4 w-4" /> },
+  //   ],
+  // },
 
   {
   type: "group",
-  title: "Evidence Scoring",
+  title: "Evidence Weighting",
   icon: <LineChart className="h-5 w-5" />,
   children: [
-    { type: "link", title: "Scoring Models",    href: "/portal/panel",                icon: <FileStackIcon className="h-4 w-4" /> },
-    { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Assessment Evidence",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
+    // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Protocol Guide",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
+
+    { type: "link", title: "Panel Decision", href: "/portal/panel/decision",      icon: <FaFileContract className="h-4 w-4" /> },
+
   ],
 },
 

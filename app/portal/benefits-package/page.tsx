@@ -20,6 +20,7 @@ import {
 import type { BenefitPackage, BenefitPackageInput } from "@/types/new/benefits-package";
 import { PackageForm } from "./form";
 import { BulkUploadPackages } from "./bulk";
+import { AdminOnly } from "@/app/context/role";
 
 const STD = ["scope", "access_point", "tariff", "ppm", "access_rules"];
 const LABELS: Record<string, string> = {
@@ -196,15 +197,19 @@ export default function BenefitPackagesPage() {
             {allOpen ? <ChevronsDownUp className="mr-1.5 h-4 w-4" /> : <ChevronsUpDown className="mr-1.5 h-4 w-4" />}
             {allOpen ? "Collapse all" : "Expand all"}
           </Button>
-          <Button variant="outline" size="icon" onClick={load} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-          <Button variant="outline" onClick={() => setBulkOpen(true)}>
-            <UploadCloud className="mr-2 h-4 w-4" />Bulk upload
-          </Button>
-          <Button onClick={() => openAdd()}>
-            <Plus className="mr-2 h-4 w-4" />Add package
-          </Button>
+        
+            <Button variant="outline" size="icon" onClick={load} disabled={loading}>
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            </Button>
+            <AdminOnly silent>
+              <Button variant="outline" onClick={() => setBulkOpen(true)}>
+                <UploadCloud className="mr-2 h-4 w-4" />Bulk upload
+              </Button>
+              <Button onClick={() => openAdd()}>
+                <Plus className="mr-2 h-4 w-4" />Add package
+              </Button>
+            </AdminOnly>
+
         </div>
       </div>
 
@@ -246,10 +251,12 @@ export default function BenefitPackagesPage() {
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-4 py-2.5 text-right">
-                      <Button size="sm" variant="outline" className="h-7 text-xs"
-                        onClick={() => openAdd(fund === "Unassigned fund" ? "" : fund)}>
-                        <Plus className="mr-1 h-3 w-3" />Add
-                      </Button>
+                      <AdminOnly silent>
+                        <Button size="sm" variant="outline" className="h-7 text-xs"
+                          onClick={() => openAdd(fund === "Unassigned fund" ? "" : fund)}>
+                          <Plus className="mr-1 h-3 w-3" />Add
+                        </Button>
+                      </AdminOnly>
                     </td>
                   </tr>
 
@@ -308,7 +315,7 @@ export default function BenefitPackagesPage() {
         </div>
       )}
 
-      <PackageForm
+      {/* <PackageForm
         open={formOpen}
         onClose={() => setFormOpen(false)}
         onSubmit={handleSubmit}
@@ -323,7 +330,26 @@ export default function BenefitPackagesPage() {
         title="Delete package?"
         description={<span><strong>{toDelete?.name}</strong> will be permanently removed.</span>}
         onConfirm={handleDelete}
-      />
+      /> */}
+
+      <AdminOnly silent>
+  <PackageForm
+    open={formOpen}
+    onClose={() => setFormOpen(false)}
+    onSubmit={handleSubmit}
+    defaultValues={editing}
+    fund={presetFund}
+    isSubmitting={submitting}
+  />
+  <BulkUploadPackages open={bulkOpen} onClose={() => setBulkOpen(false)} onDone={load} />
+  <DeleteDialog
+    open={!!toDelete}
+    onOpenChange={(v) => !v && setToDelete(null)}
+    title="Delete package?"
+    description={<span><strong>{toDelete?.name}</strong> will be permanently removed.</span>}
+    onConfirm={handleDelete}
+  />
+</AdminOnly>
     </div>
   );
 }

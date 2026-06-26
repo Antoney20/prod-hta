@@ -1,9 +1,10 @@
 'use client'
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast, ToastContainer } from 'react-toastify';
-import { login } from "../../api/auth"; 
+import { login } from "../../api/auth";
 import { useAuthContext } from '@/app/context/auth';
 
 interface LoginFormData {
@@ -13,8 +14,8 @@ interface LoginFormData {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isLoggedIn, setUser } = useAuthContext(); 
-  
+  const { isLoggedIn, setUser } = useAuthContext();
+
   const [formData, setFormData] = useState<LoginFormData>({
     usernameOrEmail: "",
     password: "",
@@ -43,20 +44,19 @@ export default function LoginPage() {
     try {
       const { usernameOrEmail, password } = formData;
       console.log('Attempting login with:', { usernameOrEmail, password: '***' });
-      
+
       const response = await login(usernameOrEmail, password);
-      
-      
+
       if (response.success) {
         if (response.user) {
           setUser(response.user);
         }
-        
+
         toast.success("Login successful!");
-        
+
         window.dispatchEvent(new CustomEvent('auth-change'));
-        
-        router.push("/portal"); 
+
+        router.push("/portal");
       } else {
         toast.error(response.message || "Login failed. Please check your credentials.");
       }
@@ -73,20 +73,31 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <ToastContainer/>
-      <div className="max-w-md w-full mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back
-          </h2>
-          <p className="text-gray-600">
-            Sign in to your account to continue
-          </p>
-        </div>
+    <div className="min-h-screen flex bg-white">
+      <ToastContainer />
 
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+    
+
+      {/* Form panel */}
+      <main className="flex w-full  items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-2xl border-2 border-gray-200 rounded-xl py-8 px-4 ">
+          {/* Logo */}
+          <div className="mb-10">
+            <Image
+              src="/moh-log.png"
+              alt="Ministry of Health"
+              width={200}
+              height={50}
+              priority
+              className="h-12 w-auto"
+            />
+          </div>
+
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Sign in</h2>
+            <p className="mt-2 text-gray-600">Sign in to your account to continue</p>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Email/Username Field */}
             <div>
@@ -105,12 +116,11 @@ export default function LoginPage() {
                   required
                   value={formData.usernameOrEmail}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#27aae1] focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#27aae1] focus:border-[#27aae1] transition-colors duration-200 bg-white hover:border-gray-400"
                   placeholder="Enter your email or username"
                 />
               </div>
             </div>
-
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -128,7 +138,7 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#27aae1] focus:border-transparent transition-all duration-200 bg-white hover:border-gray-400"
+                  className="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#27aae1] focus:border-[#27aae1] transition-colors duration-200 bg-white hover:border-gray-400"
                   placeholder="Enter your password"
                 />
                 <button
@@ -151,7 +161,7 @@ export default function LoginPage() {
                   id="remember-me"
                   name="remember-me"
                   type="checkbox"
-                  className="h-4 w-4 text-[#27aae1] focus:ring-[#27aae1] border-gray-300 rounded"
+                  className="h-4 w-4 text-[#1d70b8] focus:ring-[#27aae1] border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                   Remember me
@@ -161,7 +171,7 @@ export default function LoginPage() {
               <div className="text-sm">
                 <a
                   href="/auth/forgot-password"
-                  className="font-medium text-[#27aae1] hover:text-[#fe7105] transition-colors duration-200"
+                  className="font-medium text-[#1d70b8] hover:text-[#27aae1] transition-colors duration-200"
                 >
                   Forgot your password?
                 </a>
@@ -171,7 +181,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-[#27aae1] to-[#fe7105] hover:from-[#1e8bb8] hover:to-[#e55d04] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#27aae1] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-[#1d70b8] hover:bg-[#1d8fc3] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#27aae1] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {isLoading ? (
                 <>
@@ -191,10 +201,10 @@ export default function LoginPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Don't have an account?</span>
+                <span className="px-2 bg-white text-gray-500">Don&apos;t have an account?</span>
               </div>
             </div>
           </div>
@@ -202,26 +212,26 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <a
               href="/auth/register"
-              className="font-medium text-[#27aae1] hover:text-[#fe7105] transition-colors duration-200"
+              className="font-medium text-[#1d70b8] hover:text-[#27aae1] transition-colors duration-200"
             >
               Create a new account
             </a>
           </div>
-        </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            By signing in, you agree to our{' '}
-            <a href="#" className="text-[#27aae1] hover:text-[#fe7105] transition-colors duration-200">
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a href="#" className="text-[#27aae1] hover:text-[#fe7105] transition-colors duration-200">
-              Privacy Policy
-            </a>
-          </p>
+          <div className="mt-10 text-center">
+            <p className="text-xs text-gray-500">
+              By signing in, you agree to our{' '}
+              <a href="#" className="text-[#1d70b8] hover:text-[#27aae1] transition-colors duration-200">
+                Terms of Service
+              </a>{' '}
+              and{' '}
+              <a href="#" className="text-[#1d70b8] hover:text-[#27aae1] transition-colors duration-200">
+                Privacy Policy
+              </a>
+            </p>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

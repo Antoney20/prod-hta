@@ -26,6 +26,7 @@ import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 import { BulkUploadPackages } from "./bulk";
 import { LinkProposalDialog } from "./link";
 import { PackageGroupedTable } from "./table";
+import { AdminOnly } from "@/app/context/role";
 
 const PAGE_SIZE = 10;
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
@@ -85,18 +86,20 @@ export default function InterventionPackagePage() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="icon" onClick={load} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </Button>
-          <Button variant="outline" onClick={() => setLinkOpen(true)}>
-            <Link2 className="h-4 w-4 mr-2" /> Link proposal
-          </Button>
-          <Button variant="outline" onClick={() => setBulkOpen(true)}>
-            <UploadCloud className="h-4 w-4 mr-2" /> Bulk link
-          </Button>
-          <Button onClick={() => setCreating(true)} style={{ backgroundColor: "#27aae1" }} className="text-white">
-            <Plus className="h-4 w-4 mr-2" /> New package
-          </Button>
+         <Button variant="outline" size="icon" onClick={load} disabled={loading}>
+  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+</Button>
+<AdminOnly silent>
+  <Button variant="outline" onClick={() => setLinkOpen(true)}>
+    <Link2 className="h-4 w-4 mr-2" /> Link proposal
+  </Button>
+  <Button variant="outline" onClick={() => setBulkOpen(true)}>
+    <UploadCloud className="h-4 w-4 mr-2" /> Bulk link
+  </Button>
+  <Button onClick={() => setCreating(true)} style={{ backgroundColor: "#27aae1" }} className="text-white">
+    <Plus className="h-4 w-4 mr-2" /> New package
+  </Button>
+</AdminOnly>
         </div>
       </div>
  
@@ -136,12 +139,13 @@ export default function InterventionPackagePage() {
                 <td className={`${TD} text-right`}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setViewing(p)}><Eye className="h-4 w-4 mr-2" /> View</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setEditing(p)}><Pencil className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4 mr-2" /> Delete</DropdownMenuItem>
-     
-                    </DropdownMenuContent>
+<DropdownMenuContent align="end">
+  <DropdownMenuItem onClick={() => setViewing(p)}><Eye className="h-4 w-4 mr-2" /> View</DropdownMenuItem>
+  <AdminOnly silent>
+    <DropdownMenuItem onClick={() => setEditing(p)}><Pencil className="h-4 w-4 mr-2" /> Edit</DropdownMenuItem>
+    <DropdownMenuItem className="text-destructive" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4 mr-2" /> Delete</DropdownMenuItem>
+  </AdminOnly>
+</DropdownMenuContent>
                   </DropdownMenu>
                 </td>
               </tr>
@@ -180,26 +184,26 @@ export default function InterventionPackagePage() {
           )}
         </DialogContent>
       </Dialog>
- 
-      {/* create / edit */}
-      <PackageForm
-        open={creating || !!editing}
-        initial={editing}
-        onClose={() => { setCreating(false); setEditing(null); }}
-        onSaved={async () => { setCreating(false); setEditing(null); await load(); }}
-      />
- 
-      <BulkUploadPackages open={bulkOpen} onClose={() => setBulkOpen(false)} onComplete={load} packages={rows} />
-      <LinkProposalDialog open={linkOpen} onClose={() => setLinkOpen(false)} packages={rows} onComplete={load} />
- 
-      <DeleteDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)} title="Delete package?"
-        description={<><strong>{toDelete?.name}</strong> will be permanently deleted. Attached proposals are not deleted — their package link is cleared.</>}
-        onConfirm={handleDelete} />
+
+
+
+
+<AdminOnly silent>
+  <PackageForm
+    open={creating || !!editing}
+    initial={editing}
+    onClose={() => { setCreating(false); setEditing(null); }}
+    onSaved={async () => { setCreating(false); setEditing(null); await load(); }}
+  />
+  <BulkUploadPackages open={bulkOpen} onClose={() => setBulkOpen(false)} onComplete={load} packages={rows} />
+  <LinkProposalDialog open={linkOpen} onClose={() => setLinkOpen(false)} packages={rows} onComplete={load} />
+  <DeleteDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)} title="Delete package?"
+    description={<><strong>{toDelete?.name}</strong> will be permanently deleted. Attached proposals are not deleted — their package link is cleared.</>}
+    onConfirm={handleDelete} />
+</AdminOnly>
     </div>
   );
 }
- 
-/* ----------------------------- create / edit form ----------------------------- */
  
 function PackageForm({
   open, initial, onClose, onSaved,

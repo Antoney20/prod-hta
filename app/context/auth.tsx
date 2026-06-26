@@ -199,7 +199,6 @@ import {
 import { jwtDecode } from 'jwt-decode'
 import { toast } from 'react-toastify'
 
-// ── Decode role from token synchronously (no fetch needed) ────────────────────
 function getRoleFromToken(): string | null {
   try {
     const token = getAccessToken()

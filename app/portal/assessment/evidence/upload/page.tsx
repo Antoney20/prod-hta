@@ -134,7 +134,7 @@ export default function UploadEvidencePage() {
           <ArrowLeft className="h-3.5 w-3.5" />
         </button>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">Upload Evidence</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Upload Evidence and Reports</h1>
         </div>
       </div>
 

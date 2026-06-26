@@ -1,6 +1,6 @@
-
 'use client'
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { requestPasswordReset } from '@/app/api/auth';
@@ -14,7 +14,7 @@ const ForgotPasswordForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!emailOrUsername.trim()) {
       setError('Please enter your email or username');
       return;
@@ -25,7 +25,7 @@ const ForgotPasswordForm = () => {
 
     try {
       const response = await requestPasswordReset(emailOrUsername);
-      
+
       if (response.success) {
         setSubmitted(true);
       } else {
@@ -40,9 +40,19 @@ const ForgotPasswordForm = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+      <div className="min-h-screen flex bg-white">
+        <main className="flex w-full items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+          <div className="w-full max-w-md border-2 border-gray-200 rounded-xl p-8">
+            <div className="mb-8">
+              <Image
+                src="/moh-log.png"
+                alt="Ministry of Health"
+                width={200}
+                height={50}
+                priority
+                className="h-12 w-auto"
+              />
+            </div>
             <div className="text-center">
               <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
                 <CheckCircle className="h-8 w-8 text-green-600" />
@@ -52,7 +62,7 @@ const ForgotPasswordForm = () => {
                 If an account exists with the information you provided, you will receive a password reset email shortly.
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                The link will be valid for 2 hours. Please check your spam folder if you don't see the email.
+                The link will be valid for 2 hours. Please check your spam folder if you don&apos;t see the email.
               </p>
               <button
                 onClick={() => router.push('/auth/login')}
@@ -63,22 +73,34 @@ const ForgotPasswordForm = () => {
               </button>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
-          <p className="text-gray-600">
-            Enter your email or username and we'll send you a link to reset your password
-          </p>
-        </div>
+    <div className="min-h-screen flex bg-white">
+      <main className="flex w-full items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md border-2 border-gray-200 rounded-xl p-8">
+          {/* Logo */}
+          <div className="mb-8">
+            <Image
+              src="/moh-log.png"
+              alt="Ministry of Health"
+              width={200}
+              height={50}
+              priority
+              className="h-12 w-auto"
+            />
+          </div>
 
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Forgot Password?</h1>
+            <p className="text-gray-600">
+              Enter your email or username and we&apos;ll send you a link to reset your password
+            </p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -100,7 +122,7 @@ const ForgotPasswordForm = () => {
                     setEmailOrUsername(e.target.value);
                     setError('');
                   }}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27aae1]"
                   placeholder="Enter your email or username"
                   disabled={loading}
                 />
@@ -110,8 +132,7 @@ const ForgotPasswordForm = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-lg text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ backgroundColor: '#27aae1' }}
+              className="w-full py-3 rounded-lg text-white font-semibold bg-[#1d70b8] hover:bg-[#1d8fc3] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
@@ -134,18 +155,17 @@ const ForgotPasswordForm = () => {
               </button>
             </div>
           </form>
-        </div>
 
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Don't have an account?{' '}
-          <a href="/auth/register" className="font-semibold hover:underline" style={{ color: '#27aae1' }}>
-            Sign up
-          </a>
-        </p>
-      </div>
+          <p className="text-center text-sm text-gray-600 mt-6">
+            Don&apos;t have an account?{' '}
+            <a href="/auth/register" className="font-semibold text-[#1d70b8] hover:text-[#27aae1] hover:underline">
+              Sign up
+            </a>
+          </p>
+        </div>
+      </main>
     </div>
   );
 };
 
 export default ForgotPasswordForm;
-

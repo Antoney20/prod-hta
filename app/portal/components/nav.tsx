@@ -326,16 +326,21 @@ const Navbar = ({ isSidebarOpen, onSidebarToggle }: NavbarProps) => {
               variant="ghost"
               size="icon"
               onClick={onSidebarToggle}
-              className="text-gray-700 hover:text-[#27aae1] hover:bg-[#27aae1]/10 mr-3 lg:mr-4"
+              className="text-gray-700 hover:text-[#27aae1] hover:bg-[#27aae1]/10 mr-1 lg:mr-2"
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="flex-shrink-0 flex items-center">
-              <div className="hidden sm:block ml-3">
-                <span className="text-[#27aae1] font-semibold text-lg">BPTAP</span>
-                <span className="text-gray-600 text-xs block">ADMIN Hub</span>
-              </div>
-            </div>
+            <Link href="/portal" className="flex-shrink-0 flex items-center gap-1 ">
+              <Image
+                src="/moh-log.png"
+                alt="Ministry of Health"
+                width={140}
+                height={40}
+                priority
+                className="h-12 w-auto "
+              />
+              <span className="hidden  border-l-2  border-[#27aae1]  sm:block text-[#27aae1] font-semibold text-lg">{""} BPTAP - Portal</span>
+            </Link>
           </div>
 
           {/* Centre nav links */}

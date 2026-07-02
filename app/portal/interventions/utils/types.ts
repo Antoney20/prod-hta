@@ -9,6 +9,8 @@ export interface FilterState {
   search: string;
   county: string;
   interventionType: string;
+  package_name: string;
+  phase_name: string;
   fromDate: string;
   toDate: string;
 }

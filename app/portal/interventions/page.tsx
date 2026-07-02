@@ -69,10 +69,12 @@ export default function AllInterventionsPage() {
   const [allProposals, setAllProposals] = useState<SubmittedProposal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [filters, setFilters] = useState<FilterState>({
+const [filters, setFilters] = useState<FilterState>({
     search: "",
     county: "all",
     interventionType: "all",
+    package_name: "all",
+    phase_name: "all",
     fromDate: "",
     toDate: "",
   });
@@ -115,6 +117,15 @@ export default function AllInterventionsPage() {
     () => unique(allProposals.map((p) => p.intervention_type)),
     [allProposals]
   );
+  const packages = useMemo(
+    () => unique(allProposals.map((p) => p.package_name)),
+    [allProposals]
+  );
+
+  const phases = useMemo(
+    () => unique(allProposals.map((p) => p.phase_name)),
+    [allProposals]
+  );
 
   const filteredProposals = useMemo(() => {
     let result = allProposals;
@@ -141,6 +152,17 @@ export default function AllInterventionsPage() {
     if (filters.fromDate) {
       result = result.filter(
         (p) => new Date(p.date) >= new Date(filters.fromDate)
+      );
+    }
+    if (filters.package_name !== "all") {
+      result = result.filter((p) =>
+        filters.package_name === "__none__" ? !p.package_name : p.package_name === filters.package_name
+      );
+    }
+
+    if (filters.phase_name !== "all") {
+      result = result.filter((p) =>
+        filters.phase_name === "__none__" ? !p.phase_name : p.phase_name === filters.phase_name
       );
     }
 
@@ -197,12 +219,14 @@ export default function AllInterventionsPage() {
         </div>
       </div>
 
-      <InterventionFilterBar
+<InterventionFilterBar
         filters={filters}
         onFiltersChange={setFilters}
         pageSize={pageSize}
         onPageSizeChange={setPageSize}
         interventionTypes={interventionTypes}
+        packages={packages}
+        phases={phases}
         totalResults={filteredProposals.length}
         totalAll={allProposals.length}
       />

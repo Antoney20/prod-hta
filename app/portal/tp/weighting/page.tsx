@@ -1,26 +1,52 @@
 "use client";
 
-import { useEffect, useState, useCallback, useTransition } from "react";
+import { useEffect, useMemo, useState, useCallback, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { RefreshCw, Scale, AlertTriangle, BarChart3, Users, Trophy } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  RefreshCw, Scale, AlertTriangle, BarChart3, Users, Trophy, ShieldAlert, Layers3,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { WeightingReportSuccess } from "@/types/new/weighting";
+import { InterventionPhase } from "@/types/new/intervention-phase";
 import { getWeightingReport } from "@/app/api/new/scoring/weights";
+import { getPhases } from "@/app/api/new/intervention-phase";
 import { AggregateTable } from "./tt/table";
 import { IndividualRankingTable } from "./tt/individual";
 import { IndividualWeighting } from "./tt/indivivualwe";
+import { AdminOnly } from "@/app/context/role";
 
 const BRAND = "#27aae1";
+const ALL = "all";
 
 type Tab = "aggregate" | "individual_ranking" | "individual_weighting";
 
-const TABS: { key: Tab; label: string }[] = [
+const TABS: { key: Tab; label: string; adminOnly?: boolean }[] = [
   { key: "aggregate", label: "Aggregate ranking" },
-  { key: "individual_ranking", label: "Individual ranking" },
-  { key: "individual_weighting", label: "Individual weighting" },
+  { key: "individual_ranking", label: "Individual ranking", adminOnly: true },
+  { key: "individual_weighting", label: "Individual weighting", adminOnly: true },
 ];
+
+function filterReport(report: WeightingReportSuccess, keep: Set<string>): WeightingReportSuccess {
+  return {
+    ...report,
+    average_ranking: report.average_ranking.filter((r) => keep.has(r.intervention_id)),
+    average_scores: report.average_scores.filter((s) => keep.has(s.intervention_id)),
+    reviewer_scores: report.reviewer_scores?.filter((s) => keep.has(s.intervention_id)) ?? report.reviewer_scores,
+    reviewer_rankings: report.reviewer_rankings.map((rr) => ({
+      ...rr,
+      ranked_interventions: rr.ranked_interventions.filter((ri) => keep.has(ri.intervention_id)),
+    })),
+    reviewer_results: report.reviewer_results.map((rr) => ({
+      ...rr,
+      normalisation_report: rr.normalisation_report.filter((n) => keep.has(n.intervention_id)),
+    })),
+  };
+}
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
@@ -69,15 +95,9 @@ function PageSkeleton() {
 // ── Stat card ─────────────────────────────────────────────────────────────────
 
 function StatCard({
-  label,
-  value,
-  icon,
-  color = "#1e293b",
+  label, value, icon, color = "#1e293b",
 }: {
-  label: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color?: string;
+  label: string; value: number | string; icon: React.ReactNode; color?: string;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm flex items-center gap-3">
@@ -85,13 +105,23 @@ function StatCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 truncate">
-          {label}
-        </p>
-        <p className="text-xl font-bold tracking-tight mt-0.5 tabular-nums truncate" style={{ color }}>
-          {value}
-        </p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400 truncate">{label}</p>
+        <p className="text-xl font-bold tracking-tight mt-0.5 tabular-nums truncate" style={{ color }}>{value}</p>
       </div>
+    </div>
+  );
+}
+
+// ── Access denied panel ───────────────────────────────────────────────────────
+
+function AccessDenied({ label }: { label: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-2 py-20 text-center border border-slate-200 rounded-xl bg-white shadow-sm">
+      <ShieldAlert className="h-10 w-10 text-slate-300" />
+      <p className="text-sm font-medium text-slate-600">Access denied</p>
+      <p className="text-xs text-slate-400 max-w-sm">
+        {label} is restricted to the admins only.
+      </p>
     </div>
   );
 }
@@ -100,25 +130,74 @@ function StatCard({
 
 export default function WeightReportsPage() {
   const [report, setReport] = useState<WeightingReportSuccess | null>(null);
+  const [phases, setPhases] = useState<InterventionPhase[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("aggregate");
+  const [selectedPhase, setSelectedPhase] = useState<string>(ALL);
   const [, startTransition] = useTransition();
 
   const load = useCallback(async (isRefresh = false) => {
     isRefresh ? setRefreshing(true) : setInitialLoading(true);
     setError(null);
-    const { data, error: err } = await getWeightingReport();
+    const [{ data, error: err }, phaseList] = await Promise.all([
+      getWeightingReport(),
+      getPhases(),
+    ]);
     if (err) setError(err);
     else setReport(data);
+    setPhases(phaseList);
     setInitialLoading(false);
     setRefreshing(false);
   }, []);
 
   useEffect(() => { load(false); }, [load]);
 
-  const topIntervention = report?.average_ranking[0]?.intervention_name ?? "—";
+  // active phase names (case-sensitive, matching the report's phase strings)
+  const activePhaseNames = useMemo(
+    () => new Set(phases.filter((p) => p.is_active).map((p) => p.name)),
+    [phases]
+  );
+
+  // intervention_id → phase name, from the aggregate scores
+  const phaseById = useMemo(() => {
+    const m = new Map<string, string | null>();
+    for (const s of report?.average_scores ?? []) m.set(s.intervention_id, s.phase ?? null);
+    return m;
+  }, [report]);
+
+  const anyPhaseAssigned = useMemo(
+    () => [...phaseById.values()].some((v) => !!v),
+    [phaseById]
+  );
+
+  // active phases that actually appear in the data → dropdown options
+  const phaseOptions = useMemo(() => {
+    const present = new Set<string>();
+    for (const name of phaseById.values()) if (name && activePhaseNames.has(name)) present.add(name);
+    return [...present].sort((a, b) => a.localeCompare(b));
+  }, [phaseById, activePhaseNames]);
+
+  const keepIds = useMemo<Set<string> | null>(() => {
+    if (!report) return new Set();
+    if (!anyPhaseAssigned) return null;             
+    const s = new Set<string>();
+    for (const [id, name] of phaseById) {
+      if (!name || !activePhaseNames.has(name)) continue;      
+      if (selectedPhase !== ALL && name !== selectedPhase) continue;
+      s.add(id);
+    }
+    return s;
+  }, [report, phaseById, activePhaseNames, selectedPhase, anyPhaseAssigned]);
+
+  const filteredReport = useMemo(() => {
+    if (!report) return null;
+    if (keepIds === null) return report;
+    return filterReport(report, keepIds);
+  }, [report, keepIds]);
+
+  const topIntervention = filteredReport?.average_ranking[0]?.intervention_name ?? "—";
 
   return (
     <TooltipProvider>
@@ -132,19 +211,13 @@ export default function WeightReportsPage() {
           )}
           aria-hidden="true"
         >
-          <div
-            className="h-full w-1/2 animate-[swipe_1.4s_ease-in-out_infinite]"
-            style={{ background: BRAND }}
-          />
+          <div className="h-full w-1/2 animate-[swipe_1.4s_ease-in-out_infinite]" style={{ background: BRAND }} />
         </div>
 
-        {/* Header — light, matches scoring report */}
+        {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div
-              className="p-2 rounded-lg"
-              style={{ background: `${BRAND}18`, border: `1px solid ${BRAND}30` }}
-            >
+            <div className="p-2 rounded-lg" style={{ background: `${BRAND}18`, border: `1px solid ${BRAND}30` }}>
               <Scale className="h-5 w-5" style={{ color: BRAND }} />
             </div>
             <div>
@@ -155,15 +228,35 @@ export default function WeightReportsPage() {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => load(true)}
-            disabled={initialLoading || refreshing}
-            aria-label="Refresh report"
-          >
-            <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Global phase filter — only when phases are actually in use */}
+            {anyPhaseAssigned && phaseOptions.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Layers3 className="h-4 w-4 text-slate-400" />
+                <Select value={selectedPhase} onValueChange={setSelectedPhase}>
+                  <SelectTrigger className="h-9 w-52 text-sm">
+                    <SelectValue placeholder="All active phases" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL}>All active phases</SelectItem>
+                    {phaseOptions.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => load(true)}
+              disabled={initialLoading || refreshing}
+              aria-label="Refresh report"
+            >
+              <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
+            </Button>
+          </div>
         </div>
 
         {/* Error */}
@@ -174,11 +267,9 @@ export default function WeightReportsPage() {
           </div>
         )}
 
-        {/* Skeleton */}
         {initialLoading && <PageSkeleton />}
 
-        {/* Content */}
-        {!initialLoading && report && (
+        {!initialLoading && filteredReport && report && (
           <div className={cn(
             "flex flex-col gap-5 transition-opacity duration-200",
             refreshing && "opacity-60 pointer-events-none"
@@ -186,26 +277,12 @@ export default function WeightReportsPage() {
 
             {/* Stat cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <StatCard
-                label="Reviewers"
-                value={report.reviewer_results.length}
-                icon={<Users className="h-4 w-4" />}
-                color={BRAND}
-              />
-              <StatCard
-                label="Interventions ranked"
-                value={report.average_ranking.length}
-                icon={<BarChart3 className="h-4 w-4" />}
-              />
-              <StatCard
-                label="Top intervention"
-                value={topIntervention}
-                icon={<Trophy className="h-4 w-4" />}
-                color="#f59e0b"
-              />
+              <StatCard label="Reviewers" value={report.reviewer_results.length} icon={<Users className="h-4 w-4" />} color={BRAND} />
+              <StatCard label="Interventions ranked" value={filteredReport.average_ranking.length} icon={<BarChart3 className="h-4 w-4" />} />
+              <StatCard label="Top intervention" value={topIntervention} icon={<Trophy className="h-4 w-4" />} color="#f59e0b" />
             </div>
 
-            {/* Tab bar — underline style matching scoring report */}
+            {/* Tab bar */}
             <div className="flex border-b border-slate-200 gap-0 overflow-x-auto">
               {TABS.map((tab) => (
                 <button
@@ -223,19 +300,26 @@ export default function WeightReportsPage() {
               ))}
             </div>
 
-            {/* Tab panels */}
-            {activeTab === "aggregate" && <AggregateTable report={report} />}
-            {activeTab === "individual_ranking" && <IndividualRankingTable report={report} />}
-            {activeTab === "individual_weighting" && <IndividualWeighting data={report} />}
+            {/* Tab panels — aggregate open to all; individual tabs admin-only */}
+            {activeTab === "aggregate" && <AggregateTable report={filteredReport} />}
+
+            {activeTab === "individual_ranking" && (
+              <AdminOnly fallback={<AccessDenied label="Individual ranking" />}>
+                <IndividualRankingTable report={filteredReport} />
+              </AdminOnly>
+            )}
+
+            {activeTab === "individual_weighting" && (
+              <AdminOnly fallback={<AccessDenied label="Individual weighting" />}>
+                <IndividualWeighting data={filteredReport} />
+              </AdminOnly>
+            )}
           </div>
         )}
 
         {!initialLoading && !error && !report && (
-          <p className="text-sm text-slate-400 text-center py-16">
-            No weighting report data available.
-          </p>
+          <p className="text-sm text-slate-400 text-center py-16">No weighting report data available.</p>
         )}
-
       </div>
 
       <style jsx global>{`

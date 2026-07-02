@@ -192,20 +192,24 @@ export default function ReviewStatusPage() {
         <span className="font-medium whitespace-nowrap">{row.intervention_name}</span>
       ),
     },
-    {
-      header: "System Categories",
-      width: "min-w-[220px]",
+   {
+      header: "Package",
+      width: "w-[160px] min-w-[140px]",
       cell: (row) =>
-        row.system_categories.length === 0 ? (
-          <span className="text-xs text-muted-foreground italic">None assigned</span>
+        row.package ? (
+          <span className="text-sm text-slate-600 whitespace-nowrap">{row.package}</span>
         ) : (
-          <div className="flex flex-wrap gap-1">
-            {row.system_categories.map((sc, i) => (
-              <Badge key={i} variant="outline" className="text-xs whitespace-nowrap">
-                {sc}
-              </Badge>
-            ))}
-          </div>
+          <span className="text-xs text-muted-foreground italic">Unassigned</span>
+        ),
+    },
+    {
+      header: "Phase",
+      width: "w-[140px] min-w-[120px]",
+      cell: (row) =>
+        row.phase ? (
+          <Badge variant="outline" className="text-xs whitespace-nowrap">{row.phase}</Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground italic">—</span>
         ),
     },
     {
@@ -374,11 +378,12 @@ export default function ReviewStatusPage() {
               <DataTable
                 data={records}
                 columns={columns}
-                searchPlaceholder="Search by intervention or reference..."
+                searchPlaceholder="Search by intervention, reference, package or batch no..."
                 searchFn={(row, q) =>
                   row.intervention_name.toLowerCase().includes(q) ||
                   row.reference_number.toLowerCase().includes(q) ||
-                  row.system_categories.some((sc) => sc.toLowerCase().includes(q))
+                  (row.package ?? "").toLowerCase().includes(q) ||
+                  (row.phase ?? "").toLowerCase().includes(q)
                 }
               />
             )}

@@ -7,7 +7,7 @@ export default function PortalLayout({
 }) {
   return (
     <RoleGuard
-      roles={["admin", "secretariat", "panel", "assessment"]}
+      roles={["admin", "secretariat"]}
     >
       {children}
     </RoleGuard>

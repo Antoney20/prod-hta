@@ -15,6 +15,8 @@ export interface TopicPriority {
   is_scored: string | null;
   intervention_id:string | null;
   move_to_panel: boolean;   
+  package: string | null;
+  phase: string | null;
 
   created_at: string | null;
   updated_at: string | null;

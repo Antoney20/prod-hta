@@ -23,6 +23,8 @@ export interface SubmittedProposal {
   additional_info: string | null;
   reference_number: string;
   signature: string;
+  // package_name?: string | null;
+  phase_name?: string | null; 
   date: string;
   is_public: boolean;
   documents: ProposalDocument[];

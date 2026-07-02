@@ -75,9 +75,11 @@ export function exportAllDataCSV(
 
   const allCriteria = collectCriteria(interventions);
 
-  const headers = [
+const headers = [
     "Reference Number",
     "System Category",
+    "Package",
+    "Phase",
     "Reviewer Name",
     "Reviewer Email",
     "Scored",
@@ -104,21 +106,22 @@ export function exportAllDataCSV(
             },
           ])
         );
-      rows.push([
+rows.push([
         csvCell(iv.reference_number),
         csvCell(category),
+        csvCell(iv.package ?? ""),
+        csvCell(iv.phase ?? ""),
         csvCell(reviewer.full_name),
         csvCell(reviewer.email),
         csvCell(reviewer.scored ? "Yes" : "No"),
         csvCell(formatDate(iv.scored_at)),
         ...allCriteria.flatMap((name) => {
-        const entry = criteriaMap[name];
-
-        return [
-          csvCell(entry?.score ?? 0),
-          csvCell(entry?.notes ?? ""),
-        ];
-      }),
+          const entry = criteriaMap[name];
+          return [
+            csvCell(entry?.score ?? 0),
+            csvCell(entry?.notes ?? ""),
+          ];
+        }),
       ].join(","));
     }
   }

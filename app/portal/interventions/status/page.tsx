@@ -282,20 +282,24 @@ export default function PortalStatusPage() {
         <span className="font-medium text-sm leading-snug">{row.intervention_name}</span>
       ),
     },
-    {
-      header: "System Categories",
-      width: "min-w-[180px]",
+{
+      header: "Package",
+      width: "w-[150px] min-w-[130px]",
       cell: (row) =>
-        row.system_categories.length === 0 ? (
-          <span className="text-xs text-muted-foreground italic">None</span>
+        row.package ? (
+          <span className="text-xs text-slate-600">{row.package}</span>
         ) : (
-          <div className="flex flex-wrap gap-1">
-            {row.system_categories.map((sc, i) => (
-              <Badge key={i} variant="outline" className="text-xs whitespace-nowrap">
-                {sc}
-              </Badge>
-            ))}
-          </div>
+          <span className="text-xs text-muted-foreground italic">Unassigned</span>
+        ),
+    },
+    {
+      header: "Phase",
+      width: "w-[130px] min-w-[110px]",
+      cell: (row) =>
+        row.phase ? (
+          <Badge variant="outline" className="text-xs whitespace-nowrap">{row.phase}</Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground italic">—</span>
         ),
     },
     {
@@ -383,11 +387,12 @@ export default function PortalStatusPage() {
             <DataTable
               data={records}
               columns={columns}
-              searchPlaceholder="Search by intervention name, reference or category..."
-              searchFn={(row, q) =>
+              searchPlaceholder="Search by intervention name, reference, package or phase..."
+      searchFn={(row, q) =>
                 row.intervention_name.toLowerCase().includes(q) ||
                 row.reference_number.toLowerCase().includes(q) ||
-                row.system_categories.some((sc) => sc.toLowerCase().includes(q)) ||
+                (row.package ?? "").toLowerCase().includes(q) ||
+                (row.phase ?? "").toLowerCase().includes(q) ||
                 stripHtml(row.feedback ?? "").toLowerCase().includes(q)
               }
             />

@@ -140,9 +140,17 @@ export default function RoleGuard({
   return <>{children}</>
 }
 
-export function AdminOnly({ children, silent }: { children: ReactNode; silent?: boolean }) {
+// export function AdminOnly({ children, silent }: { children: ReactNode; silent?: boolean }) {
+//   return (
+//     <RoleGuard roles={['admin']} silent={silent}>
+//       {children}
+//     </RoleGuard>
+//   )
+// }
+
+export function AdminOnly({ children, silent, fallback }: { children: ReactNode; silent?: boolean; fallback?: ReactNode }) {
   return (
-    <RoleGuard roles={['admin']} silent={silent}>
+    <RoleGuard roles={['admin']} silent={silent} fallback={fallback}>
       {children}
     </RoleGuard>
   )

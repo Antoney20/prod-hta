@@ -60,6 +60,8 @@ export interface InterventionSystemCategory {
     name: string;
     description: string;
   };
+      package: string | null; // null → Unassigned
+  phase: string | null;   // null → Not assigned
   created_at: ISODateString;
 }
 

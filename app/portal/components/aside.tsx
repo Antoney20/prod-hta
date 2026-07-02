@@ -131,6 +131,17 @@ const userSwgNavItems: NavItem[] = [
     icon: <ClipboardCheck className="h-5 w-5" />,
     children: [
       { type: "link", title: "Score Intervention", href: "/portal/tp/category", icon: <LayoutDashboard className="h-4 w-4" /> },
+      { type: "link", title: "Individual Weighted Reports",   href: "/portal/tp/weighting", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    ],
+  },
+
+      {
+    type: "group",
+    title: "Activity Tracker",
+    icon: <NotepadTextDashed className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "home",  href: "/portal/activities/", icon: <HomeIcon className="h-4 w-4" /> },
+      { type: "link", title: "Create Task", href: "/portal/activities/#",      icon: <Plus className="h-4 w-4" /> },
     ],
   },
   sharedCalendarEvents,
@@ -172,6 +183,25 @@ const panelNavItems: NavItem[] = [
   sharedNationalPrograms,
   sharedBenefitsPackage,
 
+
+  { type: "divider" },
+  { type: "section", title: "Assessment Group" },
+
+
+  
+  {
+    type: "group",
+    title: "Evidence",
+    icon: <FileText className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
+      { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
+        { type: "link", title: "Extract Evidence",  href: " /portal/assessment/evidence/extraction",        icon: <CloudUpload   className="h-4 w-4" /> },
+
+     
+    ],
+  },
+
   { type: "divider" },
   { type: "section", title: "Appraisal (Panel)" },
 
@@ -180,28 +210,54 @@ const panelNavItems: NavItem[] = [
     title: "Configuration",
     icon: <Settings className="h-5 w-5" />,
     children: [
-      { type: "link", title: "Tool Info",     href: "/portal/appraisal/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
-      // { type: "link", title: "Criteria Info", href: "/portal/appraisal/config/criteria", icon: <BookText className="h-4 w-4" /> },
+      { type: "link", title: "Assessment Tool Info",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
+      { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
+       { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },
-  {
-    type: "group",
-    title: "Scoring",
-    icon: <LineChart className="h-5 w-5" />,
-    children: [
-      { type: "link", title: "Score Interventions", href: "/portal/appraisal/scoring/score-intervention",         icon: <PenSquare className="h-4 w-4" /> },
-      { type: "link", title: "Scoring Reports",     href: "/portal/appraisal/scoring/reports", icon: <BarChart3 className="h-4 w-4" /> },
-    ],
-  },
+  // {
+  //   type: "group",
+  //   title: "Scoring",
+  //   icon: <LineChart className="h-5 w-5" />,
+  //   children: [
+  //     { type: "link", title: "Score Interventions", href: "/portal/appraisal/scoring/score-intervention",         icon: <PenSquare className="h-4 w-4" /> },
+  //     { type: "link", title: "Scoring Reports",     href: "/portal/appraisal/scoring/reports", icon: <BarChart3 className="h-4 w-4" /> },
+  //   ],
+  // },
 
+  {
+  type: "group",
+  title: "Evidence Weighting",
+  icon: <LineChart className="h-5 w-5" />,
+  children: [
+    { type: "link", title: "Assessment Evidence",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
+    // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Protocol Guide",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
+
+    { type: "link", title: "Panel Decision", href: "/portal/panel/decision",      icon: <FaFileContract className="h-4 w-4" /> },
+
+  ],
+},
+
+
+
+  { type: "divider" },
+    {
+    type: "group",
+    title: "Activity Tracker",
+    icon: <NotepadTextDashed className="h-5 w-5" />,
+    children: [
+      { type: "link", title: "home",  href: "/portal/activities/", icon: <HomeIcon className="h-4 w-4" /> },
+      { type: "link", title: "Create Task", href: "/portal/activities/#",      icon: <Plus className="h-4 w-4" /> },
+    ],
+  },
   { type: "divider" },
   { type: "section", title: "Common" },
 
   sharedCalendarEvents,
   sharedTaskManagement,
 ];
-
-
 
 
 

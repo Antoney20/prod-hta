@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { RotateCcw, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { FilterState, PageSize } from "../utils/types";
 
 interface InterventionFilterBarProps {
@@ -19,11 +19,11 @@ interface InterventionFilterBarProps {
   pageSize: PageSize;
   onPageSizeChange: (size: PageSize) => void;
   interventionTypes: string[];
+  packages: string[];
+  phases: string[];
   totalResults: number;
   totalAll: number;
 }
-
-// ── Page-size pill button ─────────────────────────────────────────────────
 
 function PageSizePill({
   size,
@@ -52,12 +52,17 @@ function PageSizePill({
 
 const PAGE_SIZES: PageSize[] = [25, 50, 75, 100];
 
+// sentinel for "not assigned" so the Select value is never an empty string
+const UNASSIGNED = "__none__";
+
 export function InterventionFilterBar({
   filters,
   onFiltersChange,
   pageSize,
   onPageSizeChange,
   interventionTypes,
+  packages,
+  phases,
   totalResults,
   totalAll,
 }: InterventionFilterBarProps) {
@@ -67,14 +72,14 @@ export function InterventionFilterBar({
   const hasActiveFilters =
     filters.search ||
     filters.interventionType !== "all" ||
+    filters.package_name !== "all" ||
+    filters.phase_name !== "all" ||
     filters.fromDate ||
     filters.toDate;
 
-
-
   return (
     <div className="space-y-3">
-      {/* Header row with title and clear button */}
+      {/* Header row with title */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-slate-700">
@@ -86,22 +91,65 @@ export function InterventionFilterBar({
             </span>
           )}
         </div>
-
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Search */}
+      {/* Search — full width */}
+      <div>
+        <Label className="text-xs text-slate-600 font-semibold">Search</Label>
+        <div className="relative mt-1.5">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+          <Input
+            placeholder="Keyword or reference #"
+            value={filters.search}
+            onChange={(e) => set({ search: e.target.value })}
+            className="pl-9 text-sm h-9"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Package */}
         <div>
-          <Label className="text-xs text-slate-600 font-semibold">Search</Label>
-          <div className="relative mt-1.5">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-            <Input
-              placeholder="Keyword or reference #"
-              value={filters.search}
-              onChange={(e) => set({ search: e.target.value })}
-              className="pl-9 text-sm h-9"
-            />
-          </div>
+          <Label className="text-xs text-slate-600 font-semibold">Package</Label>
+          <Select
+            value={filters.package_name}
+            onValueChange={(v) => set({ package_name: v })}
+          >
+            <SelectTrigger className="h-9 text-sm mt-1.5">
+              <SelectValue placeholder="All packages" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All packages</SelectItem>
+              {packages.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+              <SelectItem value={UNASSIGNED}>Unassigned</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Phase */}
+        <div>
+          <Label className="text-xs text-slate-600 font-semibold">Phase</Label>
+          <Select
+            value={filters.phase_name}
+            onValueChange={(v) => set({ phase_name: v })}
+          >
+            <SelectTrigger className="h-9 text-sm mt-1.5">
+              <SelectValue placeholder="All phases" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All phases</SelectItem>
+              {phases.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+              <SelectItem value={UNASSIGNED}>Not assigned</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Intervention Type */}

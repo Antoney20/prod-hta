@@ -1,23 +1,19 @@
 
 export interface CriteriaScore {
   criteria_name: string;
-  score_value: number;          // 0 if this reviewer hasn't scored this criteria yet
+  score_value: number;        
   notes?: string | null;
 }
-
-// ── Per-reviewer status within an intervention ────────────────────────────────
 
 export interface ReviewerStatus {
   user_id: number;
   full_name: string;
   email: string;
-  scored: boolean;              // true if they've scored at least one criteria
-  score_count: number;          // number of criteria scored
-  total_score: number;          // sum of their score_values for this intervention
-  criteria_scores: CriteriaScore[];  // one entry per unique criteria (0 if unscored)
+  scored: boolean;          
+  score_count: number;         
+  total_score: number;   
+  criteria_scores: CriteriaScore[]; 
 }
-
-// ── Per-intervention report ───────────────────────────────────────────────────
 
 export interface InterventionReport {
   intervention_id: string;
@@ -26,21 +22,19 @@ export interface InterventionReport {
   intervention_type: string | null;
   scored_at: string | null;
   system_categories: string[];
-  total_score: number;          // sum of ALL score_values from ALL reviewers
-  criteria_scored: number;      // unique criteria scored by any reviewer
-  criteria_total: number;       // total unique criteria available (from SelectionTool)
+  package: string | null;
+  phase: string | null;
+  total_score: number;        
+  criteria_scored: number;      
+  criteria_total: number;       
   reviewers: ReviewerStatus[];
-  unscored_reviewers: ReviewerStatus[];  // reviewers who haven't scored this intervention
+  unscored_reviewers: ReviewerStatus[];  
 }
-
-// ── Category grouping ─────────────────────────────────────────────────────────
 
 export interface CategoryGroup {
   category: string;             // "Uncategorized" for interventions with no category
   interventions: InterventionReport[];
 }
-
-// ── Top-level report ──────────────────────────────────────────────────────────
 
 export interface ScoringReport {
   success: boolean;

@@ -24,6 +24,7 @@ import { toast } from "react-toastify";
 import { WeightingReportSuccess, AggregateRankingEntry } from "@/types/new/weighting";
 import { WeightingFilters, SortOrder } from "./filters";
 import { exportAggregateCSV } from "./export";
+import { AdminOnly } from "@/app/context/role";
 
 
 const BRAND = "#27aae1";
@@ -106,32 +107,35 @@ export function AggregateTable({ report }: Props) {
           shownCount={filtered.length}
           totalCount={report.average_ranking.length}
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5" disabled={!filtered.length}>
-              <Download className="h-4 w-4" />
-              Export CSV
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => {
-                exportAggregateCSV(report, filtered);
-                toast.success(`Exported ${filtered.length} interventions.`);
-              }}
-            >
-              Export current view
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                exportAggregateCSV(report, report.average_ranking);
-                toast.success(`Exported all ${report.average_ranking.length} interventions.`);
-              }}
-            >
-              Export all
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+        <AdminOnly silent>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5" disabled={!filtered.length}>
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  exportAggregateCSV(report, filtered);
+                  toast.success(`Exported ${filtered.length} interventions.`);
+                }}
+              >
+                Export current view
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  exportAggregateCSV(report, report.average_ranking);
+                  toast.success(`Exported all ${report.average_ranking.length} interventions.`);
+                }}
+              >
+                Export all
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </AdminOnly>
       </div>
 
       <div className="border border-slate-200 rounded-xl overflow-x-auto bg-white shadow-sm">

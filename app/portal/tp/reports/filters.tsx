@@ -28,6 +28,9 @@ export interface ReportFiltersProps {
   shownCount: number;
   totalCount: number;
   dateRange: DateRange;
+  phaseFilter: string;
+onPhaseFilterChange: (v: string) => void;
+phases: string[]
   onDateRangeChange: (value: DateRange) => void;
 }
 
@@ -39,6 +42,9 @@ export function ReportFilters({
   categoryFilter,
   onCategoryFilterChange,
   categories,
+  phases,
+  phaseFilter,
+   onPhaseFilterChange,
   shownCount,
   totalCount,
   dateRange,
@@ -103,31 +109,14 @@ export function ReportFilters({
         )}
       </div>
 
-      {/* Category */}
-      {categories.length > 0 && (
-        <Select
-          value={categoryFilter || "__all__"}
-          onValueChange={(v) => onCategoryFilterChange(v === "__all__" ? "" : v)}
-        >
-          <SelectTrigger className="h-9 w-64 text-sm bg-white border-slate-200 truncate">
-            <SelectValue placeholder="All system categories" />
-          </SelectTrigger>
-          <SelectContent className="max-w-xs">
-            <SelectItem value="__all__">All system categories</SelectItem>
-            <SelectItem value="__none__">— No category assigned</SelectItem>
-            {categories.map((cat) => (
-              <SelectItem
-                key={cat}
-                value={cat}
-                className="whitespace-normal text-xs leading-snug py-2"
-              >
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-
+<Select value={phaseFilter || "all"} onValueChange={(v) => onPhaseFilterChange(v === "all" ? "" : v)}>
+  <SelectTrigger className="h-9 w-48 text-sm"><SelectValue placeholder="All phases" /></SelectTrigger>
+  <SelectContent>
+    <SelectItem value="all">All phases</SelectItem>
+    {phases.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+    <SelectItem value="__none__">Not assigned</SelectItem>
+  </SelectContent>
+</Select>
       {/* Count */}
       <span className="text-xs text-slate-400 ml-auto tabular-nums whitespace-nowrap">
         Showing <strong className="text-slate-600">{shownCount}</strong> of {totalCount}

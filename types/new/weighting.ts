@@ -99,6 +99,8 @@ export interface InterventionAggregateScore {
   intervention_id: string;
   intervention_name: string;
   reviewer_count: number;
+  package?: string | null;
+  phase?: string | null;
   averaged_criteria: Record<string, number>; // { criteria_name: averaged_weighted_score }
   average_value_score: number;
 }

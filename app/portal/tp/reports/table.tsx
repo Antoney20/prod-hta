@@ -321,15 +321,13 @@ export function ReportTable({ items }: ReportTableProps) {
                       </button>
                     </TableCell>
 
-                    {/* Name + type */}
-                    <TableCell className="align-middle py-3">
-                      <p className="font-medium text-sm text-slate-800 leading-snug">
-                        {item.intervention_name}
-                      </p>
-                      {item.intervention_type && (
-                        <span className="text-[10px] text-slate-400 mt-0.5 block">{item.intervention_type}</span>
-                      )}
-                    </TableCell>
+                  {/* Name + Type */}
+<TableCell className="align-middle py-3">
+  <p className="max-w-[300px] overflow-hidden break-words text-sm font-medium leading-snug text-slate-800 line-clamp-2">
+    {item.intervention_name}
+  </p>
+</TableCell>
+                     
 
                     {/* Category */}
                     <TableCell className="align-middle py-3">

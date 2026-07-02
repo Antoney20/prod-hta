@@ -44,7 +44,9 @@ export default function ScoringReportPage() {
 
   const [search, setSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<SortOrder>("score_desc");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
+
+const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [phaseFilter, setPhaseFilter] = useState<string>("");
   const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
 
   const load = useCallback(async (isRefresh = false) => {
@@ -79,14 +81,26 @@ export default function ScoringReportPage() {
     [report]
   );
 
+const allPhases = useMemo(() => {
+    const s = new Set<string>();
+    for (const i of allInterventions) if (i.phase) s.add(i.phase);
+    return [...s].sort((a, b) => a.localeCompare(b));
+  }, [allInterventions]);
+
   const filtered = useMemo(() => {
     let items = [...allInterventions];
 
-    // Category
     if (categoryFilter === "__none__") {
       items = items.filter((i) => !i.system_categories?.length);
     } else if (categoryFilter) {
       items = items.filter((i) => i.system_categories?.includes(categoryFilter));
+    }
+
+    // Phase
+    if (phaseFilter === "__none__") {
+      items = items.filter((i) => !i.phase);
+    } else if (phaseFilter) {
+      items = items.filter((i) => i.phase === phaseFilter);
     }
 
     // Search
@@ -121,7 +135,7 @@ export default function ScoringReportPage() {
     else if (sortOrder === "date_asc") items.sort((a, b) => new Date(a.scored_at ?? 0).getTime() - new Date(b.scored_at ?? 0).getTime());
 
     return items;
-  }, [allInterventions, sortOrder, categoryFilter, search, dateRange]);
+}, [allInterventions, sortOrder, categoryFilter, phaseFilter, search, dateRange]);
 
   return (
     <TooltipProvider>
@@ -261,6 +275,9 @@ export default function ScoringReportPage() {
               categoryFilter={categoryFilter}
               onCategoryFilterChange={(v) => startTransition(() => setCategoryFilter(v))}
               categories={allCategories}
+              phaseFilter={phaseFilter}
+              onPhaseFilterChange={(v) => startTransition(() => setPhaseFilter(v))}
+              phases={allPhases}
               shownCount={filtered.length}
               totalCount={report.total_interventions}
               dateRange={dateRange}

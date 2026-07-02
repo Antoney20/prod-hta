@@ -14,6 +14,7 @@ export interface SubmittedProposal {
   profession: string;
   organization: string;
   county: string;
+  package_name?: string;
   intervention_name: string | null;
   intervention_type: string | null;
   beneficiary: string;

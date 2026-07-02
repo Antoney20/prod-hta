@@ -200,6 +200,7 @@ export default function EvidenceListPage() {
                       <thead className="border-b border-slate-200">
                         <tr>
                           <th className={`${TH} w-32`}>Ref No.</th>
+                          <th className={`${TH} min-w-56`}>Package</th>
                           <th className={`${TH} min-w-48`}>Title</th>
                           <th className={`${TH} min-w-56`}>Justification</th>
                           {cols.map((c) => <th key={c.key} className={`${TH} min-w-40`}>{c.label}</th>)}
@@ -215,6 +216,11 @@ export default function EvidenceListPage() {
                           >
                             <td className={TD}>
                               <Link href={`/portal/interventions/${p.id}`} className="font-mono text-xs bg-slate-100 text-[#27aae1] px-2 py-1 rounded whitespace-nowrap hover:underline">{p.reference_number}</Link>
+                            </td>
+                              <td className={`${TD} text-xs text-slate-600`}>
+                              <p className="line-clamp-3 max-w-sm">
+                                {p.package_name}
+                              </p>
                             </td>
                             <td className={`${TD} font-medium text-slate-800`}>
                               <p className="line-clamp-2 max-w-md">{p.title}</p>

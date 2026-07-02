@@ -91,6 +91,7 @@ export function InterventionsTable({
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
             <th className={`${TH} w-10 text-center`}>Count</th>
+             <th className={`${TH} w-48`}>Package</th>
             <th className={`${TH} w-32`}>Ref No.</th>
             <th className={`${TH} min-w-60`}>Intervention Name</th>
             <th className={`${TH} w-28`}>Date Submitted</th>
@@ -110,6 +111,12 @@ export function InterventionsTable({
               >
                 <td className={`${TD} text-center text-xs text-slate-400 font-mono`}>
                   {(page - 1) * pageSize + idx + 1}
+                </td>
+
+                <td className={TD}>
+                  <p className="text-xs text-slate-700 line-clamp-2 max-w-90">
+                   {p.package_name ?? "—"}
+                  </p>
                 </td>
 
                 <td className={TD}>

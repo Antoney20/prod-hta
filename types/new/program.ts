@@ -49,6 +49,8 @@ export interface ProgramProposal {
   reference_number: string;
   title: string;
   justification?: string;
+  package?: string;
+  package_name?: string;
   data: Record<string, unknown>;   // dynamic, program-specific
   submitted_date: string;
   created_at: string;

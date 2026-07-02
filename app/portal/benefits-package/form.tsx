@@ -16,7 +16,7 @@ interface Props {
   onClose: () => void;
   onSubmit: (values: BenefitPackageInput) => void;
   defaultValues?: BenefitPackage;
-  fund?: string; // prefill when adding inside a fund group
+  fund?: string;
   isSubmitting?: boolean;
 }
 

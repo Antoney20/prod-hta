@@ -2,8 +2,7 @@ import React from 'react'
 
 function page() {
   return (
-    <div>
-      The panel page</div>
+    <div>page weights</div>
   )
 }
 

@@ -10,6 +10,7 @@ import {
 import {
   Plus, RefreshCw, Pencil, Trash2, Search, Layers, UploadCloud,
   ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown,
+  Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -21,6 +22,7 @@ import type { BenefitPackage, BenefitPackageInput } from "@/types/new/benefits-p
 import { PackageForm } from "./form";
 import { BulkUploadPackages } from "./bulk";
 import { AdminOnly } from "@/app/context/role";
+import { downloadPackagesCsv } from "./downloader";
 
 const STD = ["scope", "access_point", "tariff", "ppm", "access_rules"];
 const LABELS: Record<string, string> = {
@@ -209,6 +211,14 @@ export default function BenefitPackagesPage() {
                 <Plus className="mr-2 h-4 w-4" />Add package
               </Button>
             </AdminOnly>
+
+            <Button
+  variant="outline" size="sm"
+  onClick={() => downloadPackagesCsv(filtered)}
+  disabled={loading || filtered.length === 0}
+>
+  <Download className="mr-1.5 h-4 w-4" />Export CSV
+</Button>
 
         </div>
       </div>

@@ -274,9 +274,9 @@ const adminNavItems: NavItem[] = [
     title: "Configuration",
     icon: <Settings className="h-5 w-5" />,
     children: [
-      { type: "link", title: "Assessment Tool Info",     href: "/portal/appraisal/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
-      { type: "link", title: "Criteria Info", href: "/portal/appraisal/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
-       { type: "link", title: "Criteria Weights", href: "/portal/config/weights",         icon: <PenSquare className="h-4 w-4" /> },
+      { type: "link", title: "Assessment Tool Info",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
+      { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
+       { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },
   // {

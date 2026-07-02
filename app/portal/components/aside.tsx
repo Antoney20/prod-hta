@@ -38,6 +38,7 @@ import {
   AlertCircleIcon,
   CloudUpload,
   FileStackIcon,
+  Layers3,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -244,7 +245,10 @@ const adminNavItems: NavItem[] = [
     icon: <ClipboardList className="h-5 w-5" />,
     children: [
       { type: "link", title: "Review Status",  href: "/portal/tracker/review-status", icon: <ActivitySquare className="h-4 w-4" /> },
-      { type: "link", title: "Decision Types", href: "/portal/tracker/decision",      icon: <Gavel className="h-4 w-4" /> },
+      { type: "link", title: "Decision Types", href: "/portal/tracker/decision",      icon: <Gavel className="h-4 w-4" /> },  
+      
+      { type: "link", title: "Assign to a Batch/Phase", href: "/portal/tracker/phase",      icon: <Layers3 className="h-4 w-4" /> },
+
     ],
   },
 

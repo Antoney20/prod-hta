@@ -1,4 +1,3 @@
-// app/api/new/intervention-package/index.ts
 import api from "../../auth";
 import type {
   InterventionPackage,
@@ -17,7 +16,6 @@ const one = (res: any) => {
 export const errMsg = (e: any, fb = "Something went wrong"): string =>
   e?.response?.data?.message || e?.response?.data?.detail || e?.message || fb;
 
-// router.register(r"intervention-package", ...). Adjust the version prefix if yours differs.
 const PKG = "/v3/intervention-package/";
 
 

@@ -1,7 +1,3 @@
-// cc/bulk-excel.ts
-// Spreadsheet parsing, header→field mapping, and per-type validation.
-// Uses ExcelJS (actively maintained). Install: `npm i exceljs`.
-
 import type { ProgramField, FieldType, NationalProgram } from "@/types/new/program";
 
 export interface ParsedSheet {

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Search, RefreshCw, Upload, ChevronLeft, ChevronRight, Layers, FileStack, ArrowUpRight,
+  Download,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -16,6 +17,8 @@ import { htmlToText } from "@/components/shared/text";
 import { ProposalForm } from "../cc/proposal";
 import { ProgramSelect } from "../files/programs";
 import Link from "next/link";
+import { AdminOnly } from "@/app/context/role";
+import { downloadProposalsXlsx } from "../cc/downloader";
 
 const GROUPS_PER_PAGE = 4;   // programs per page
 const ROWS_PREVIEW = 5;      // rows shown per group before "view all"
@@ -114,9 +117,21 @@ export default function EvidenceListPage() {
             </p>
           </div>
         </div>
-        <Button variant="outline" size="icon" onClick={load} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-        </Button>
+        <div className="flex items-center gap-2">
+          <AdminOnly silent>
+            <Button
+              variant="outline" size="sm"
+              onClick={() => downloadProposalsXlsx(visiblePrograms, filteredProposals)}
+              disabled={loading || filteredProposals.length === 0}
+            >
+              <Download className="h-4 w-4 mr-2" /> Export Excel
+            </Button>
+          </AdminOnly>
+          <Button variant="outline" size="icon" onClick={load} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+        
       </div>
 
       {/* Filters */}

@@ -35,10 +35,10 @@ import {
   NotepadTextDashed,
   Plus,
   HomeIcon,
-  AlertCircleIcon,
   CloudUpload,
   FileStackIcon,
   Layers3,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,7 +46,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { UserProfile, UserRole } from "@/app/api/auth";
-import { FaCheck, FaFileContract, FaStethoscope } from "react-icons/fa";
+import { FaCheck, FaFileContract, FaStethoscope, FaWindows } from "react-icons/fa";
 
 interface AsideProps {
   isOpen: boolean;
@@ -303,6 +303,7 @@ const adminNavItems: NavItem[] = [
     icon: <ClipboardList className="h-5 w-5" />,
     children: [
       { type: "link", title: "Review Status",  href: "/portal/tracker/review-status", icon: <ActivitySquare className="h-4 w-4" /> },
+      { type: "link", title: "Feedback & Routing Decision",  href: "/portal/tracker/feedback-status", icon: <MessageSquare className="h-4 w-4" /> },
       { type: "link", title: "Decision Types", href: "/portal/tracker/decision",      icon: <Gavel className="h-4 w-4" /> },  
       
       { type: "link", title: "Assign to a Batch/Phase", href: "/portal/tracker/phase",      icon: <Layers3 className="h-4 w-4" /> },

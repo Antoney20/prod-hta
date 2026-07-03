@@ -132,18 +132,6 @@ export const AlertsSection: React.FC<AlertsProps> = ({
   // Build alerts list
   const alerts: AlertItem[] = []
 
-  // if (pendingTasks > 0 && !dismissedAlerts.has('pending-tasks')) {
-  //   alerts.push({
-  //     id: 'pending-tasks',
-  //     type: 'warning',
-  //     title: `${pendingTasks} Pending Task${pendingTasks !== 1 ? 's' : ''}`,
-  //     message: `You have ${pendingTasks} task${pendingTasks !== 1 ? 's' : ''} that need${pendingTasks === 1 ? 's' : ''} attention.`,
-  //     action: {
-  //       label: 'View Tasks',
-  //       href: '/portal/tasks',
-  //     },
-  //   })
-  // }
 
   if (pendingNotifications > 0 && !dismissedAlerts.has('pending-notifications')) {
     alerts.push({

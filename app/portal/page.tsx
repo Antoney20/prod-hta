@@ -2,54 +2,30 @@
 
 import React, { useState, useEffect } from 'react'
 import {
-  Calendar,
-  Clock,
-  Sunrise,
-  Sun,
-  Sunset,
-  Moon,
-  FileText,
-  CheckCircle2,
-  Activity,
-  Users,
-  RefreshCw,
-  AlertCircle,
+  Calendar, Clock, Sunrise, Sun, Sunset, Moon,
+  FileText, ClipboardList, ActivitySquare, CheckSquare, NotepadTextDashed,
+  RefreshCw, AlertCircle, Layers,
 } from 'lucide-react'
 
 import { globalUserStore } from '../context/guard'
 import { DashboardResponse, DashboardUIData } from '@/types/dashboard/home'
-
 import { getDashboardData } from '../api/dashboard/home'
-import { AlertsSection } from './components/alert'
-import { KpiGrid } from './components/kpi-cards'
-import { InterventionTrendChart } from './components/trends'
-import { TasksSection } from './components/tasks'
-import { TopicPrioritizationSection } from './components/tp'
-import { ScoringSection } from './components/scoring'
-import { DecisionsSection } from './components/decision'
-import { PanelSection } from './components/panel'
-import { UsersSection } from './components/users'
-import { FeedbackSection } from './components/feedback'
 
+
+import { InterventionTrendChart } from './components/trends'
+
+import { Section } from './components/section'
+import { StatCard, StatCards } from './components/cards'
+import { QuickNav } from './main'
 
 function transformResponse(r: DashboardResponse): DashboardUIData {
   return {
     ...r,
-    taskCompletionRate: r.tasks.total > 0
-      ? Math.round((r.tasks.completed / r.tasks.total) * 100)
-      : 0,
-    proposalScoringRate: r.scoring && r.proposals.total > 0
-      ? Math.round((r.scoring.scored_interventions / r.proposals.total) * 100)
-      : 0,
-    topCategory: r.topic_prioritization?.by_system_category?.[0] ?? null,
+    topPackage: r.packages?.by_package?.[0] ?? null,
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Greeting
-// ─────────────────────────────────────────────────────────────
 interface Greeting { text: string; Icon: React.FC<React.SVGProps<SVGSVGElement>>; color: string }
-
 function getGreeting(date: Date): Greeting {
   const h = date.getHours()
   if (h < 12) return { text: 'Good Morning', Icon: Sunrise, color: '#f97316' }
@@ -58,9 +34,6 @@ function getGreeting(date: Date): Greeting {
   return { text: 'Good Night', Icon: Moon, color: '#6366f1' }
 }
 
-// ─────────────────────────────────────────────────────────────
-// Page
-// ─────────────────────────────────────────────────────────────
 const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -68,13 +41,11 @@ const DashboardPage: React.FC = () => {
   const [now, setNow] = useState(new Date())
   const [user] = useState(globalUserStore.userData)
 
-  // Live clock
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
 
-  // Fetch
   useEffect(() => {
     ;(async () => {
       try {
@@ -95,16 +66,14 @@ const DashboardPage: React.FC = () => {
 
   const formatDate = () =>
     now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-
   const formatTime = () =>
     now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-  // ── Loading ──
   if (loading) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white border border-gray-200 shadow-sm mb-4">
-          <RefreshCw className="w-6 h-6 text-blue-500 animate-spin" />
+          <RefreshCw className="w-6 h-6 text-[#27aae1] animate-spin" />
         </div>
         <p className="text-gray-700 font-semibold">Loading dashboard…</p>
         <p className="text-sm text-gray-400 mt-1">Fetching your latest metrics</p>
@@ -112,7 +81,6 @@ const DashboardPage: React.FC = () => {
     </div>
   )
 
-  // ── Error ──
   if (error) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl border border-red-100 p-8 max-w-md w-full shadow-sm text-center">
@@ -123,7 +91,7 @@ const DashboardPage: React.FC = () => {
         <p className="text-sm text-gray-500 mb-6">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+          className="w-full py-2.5 bg-[#27aae1] hover:bg-[#1d8fc3] text-white font-medium rounded-xl transition-colors"
         >
           Retry
         </button>
@@ -133,54 +101,53 @@ const DashboardPage: React.FC = () => {
 
   if (!data) return null
 
-  // ── Build KPI cards ──
-  const kpiCards = [
+  const isAdmin = data.counts.scope === 'all'
+  const role = user?.role as string | undefined
+
+  const cards: StatCard[] = [
     {
-      label: 'Total Proposals',
-      value: data.proposals.total,
+      label: 'Intervention Proposals',
+      value: data.counts.total_intervention_proposals,
       icon: FileText,
-      iconColor: 'text-blue-600',
-      iconBg: 'bg-blue-50',
-      subValue: 'Submissions in system',
+      href: '/portal/interventions',
+      sub: 'View all',
     },
-    ...(data.scoring ? [{
-      label: 'Interventions Scored',
-      value: data.scoring.scored_interventions,
-      icon: CheckCircle2,
-      iconColor: 'text-emerald-600',
-      iconBg: 'bg-emerald-50',
-      subValue: `${data.scoring.progress_pct}% coverage`,
-    }] : []),
     {
-      label: 'Total Tasks',
-      value: data.tasks.total,
-      icon: Activity,
-      iconColor: 'text-indigo-600',
-      iconBg: 'bg-indigo-50',
-      subValue: `${data.tasks.completed} completed`,
+      label: 'National Programs',
+      value: data.counts.total_national_programs,
+      icon: ClipboardList,
+      href: '/portal/national-programs',
+      sub: 'Manage programs',
+      accent: '#6366f1',
     },
-    ...(data.users && data.users.scope === 'all' ? [{
-      label: 'Active Users',
-      value: data.users.total_active,
-      icon: Users,
-      iconColor: 'text-purple-600',
-      iconBg: 'bg-purple-50',
-      subValue: 'Registered accounts',
-    }] : []),
-    ...(data.decisions ? [{
-      label: 'Moved to Panel',
-      value: data.decisions.moved_to_panel,
-      icon: Activity,
-      iconColor: 'text-amber-600',
-      iconBg: 'bg-amber-50',
-      subValue: `${data.decisions.total_status_updates} total updates`,
-    }] : []),
-  ].slice(0, 4) // cap at 4
+    {
+      label: 'Program Proposals',
+      value: data.counts.total_national_program_proposals,
+      icon: ActivitySquare,
+      href: '/portal/national-programs/proposals',
+      sub: 'View proposals',
+      accent: '#0ea5e9',
+    },
+    {
+      label: isAdmin ? 'All Tasks' : 'My Tasks',
+      value: data.counts.my_tasks,
+      icon: CheckSquare,
+      href: '/portal/tasks',
+      sub: isAdmin ? 'Every task' : 'Assigned to me',
+      accent: '#10b981',
+    },
+    {
+      label: isAdmin ? 'All Activities' : 'My Activities',
+      value: data.counts.my_activities,
+      icon: NotepadTextDashed,
+      href: '/portal/activities',
+      sub: isAdmin ? 'Every activity' : 'Assigned to me',
+      accent: '#f59e0b',
+    },
+  ]
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AlertsSection pendingNotifications={0} customAlerts={[]} />
-
       {/* ── Header (unchanged) ── */}
       <div className="px-4 lg:px-8 py-6 border-b border-gray-200 bg-white">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -209,40 +176,43 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
+      <div className="px-4 py-8 max-w-screen-2xl mx-auto space-y-8">
 
-      <div className="px-4  py-8 max-w-screen-2xl mx-auto space-y-8">
+        <StatCards cards={cards} />
 
-        <KpiGrid cards={kpiCards as any} />
+        <InterventionTrendChart trends={data.trends} />
 
-        <InterventionTrendChart
-          daily={data.proposals.daily_trend}
-          monthly={data.proposals.monthly_trend}
-        />
+        {/* Interventions by package */}
+        <Section
+          title="Interventions by Package"
+          description={`${data.packages.total_packages} packages · ${data.packages.unassigned_interventions} unassigned`}
+          icon={Layers}
+          iconColor="text-[#27aae1]"
+        >
+          {data.packages.by_package.length === 0 ? (
+            <p className="text-sm text-gray-400 py-6 text-center">No packages yet.</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {data.packages.by_package.slice(0, 8).map((p) => {
+                const max = data.packages.by_package[0].intervention_count || 1
+                const pct = Math.round((p.intervention_count / max) * 100)
+                return (
+                  <div key={p.id} className="flex items-center gap-3 py-2.5">
+                    <span className="w-48 truncate text-sm text-gray-700">{p.name}</span>
+                    <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
+                      <div className="h-full rounded-full bg-[#27aae1]" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="w-10 text-right text-sm font-semibold text-gray-800 tabular-nums">
+                      {p.intervention_count}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </Section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TasksSection tasks={data.tasks} />
-          <TopicPrioritizationSection data={data.topic_prioritization} />
-        </div>
-
-        {(data.scoring || data.decisions) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {data.scoring && <ScoringSection scoring={data.scoring} />}
-            {data.decisions && <DecisionsSection decisions={data.decisions} />}
-          </div>
-        )}
-
-        {(data.panel || data.users) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {data.panel && <PanelSection panel={data.panel} />}
-            {data.users && <UsersSection users={data.users} />}
-          </div>
-        )}
-
-        {data.feedback && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <FeedbackSection feedback={data.feedback} />
-          </div>
-        )}
+        <QuickNav role={role} />
 
       </div>
     </div>

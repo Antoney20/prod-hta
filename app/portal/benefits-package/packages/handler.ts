@@ -1,7 +1,3 @@
-// app/api/new/intervention-package/handler.ts
-// Spreadsheet -> package bulk rows. Single header row (e.g. "Oncology | INTERV-SHA-...").
-// Map each column to a role: name | reference | field (extra -> field_schema) | ignore.
-// Then match the reference against interventions / national programs. Uses ExcelJS.
 
 import type { EvidenceInterventionRef } from "@/types/new/assessment";
 import type { ProgramProposal } from "@/types/new/program";

@@ -1,11 +1,5 @@
 "use client";
 
-// app/portal/.../benefits-package/bulk.tsx
-// Bulk import packages from CSV / XLSX / JSON.
-//  - CSV/XLSX: first row = headers; `name`/`fund` are special, the rest -> data.
-//  - JSON shape A: { funds: { CODE: { name, packages: { PackageName: {...fields} } } } }
-//      -> each package stored verbatim as `data` (scope/access_rules arrays, tariff, ppm...).
-//  - JSON shape B: an array of packages, a { "packages": [...] } wrapper, or one object.
 import { useRef, useState } from "react";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
@@ -15,7 +9,7 @@ import { UploadCloud, Loader2, FileSpreadsheet } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { createBenefitPackage } from "@/app/api/new/benefits-package";
-import type { BenefitPackageInput } from "@/types/new/benefits-package";
+import type { BenefitPackageInput, BenefitPackageItem } from "@/types/new/benefits-package";
 
 const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const slug = (s: unknown) =>
@@ -73,9 +67,36 @@ function toPackages(matrix: string[][]): BenefitPackageInput[] {
   }).filter((p) => p.name);
 }
 
+/** Split a raw package object into { fund, data, items }, lifting an `items` array out. */
+function splitObject(obj: any): { fund: string; data: Record<string, any>; items: BenefitPackageItem[] } {
+  const items: BenefitPackageItem[] = Array.isArray(obj?.items) ? obj.items : [];
+  const fund = String(obj?.fund ?? "").trim();
+
+  let data: Record<string, any> = {};
+  if (obj?.data && typeof obj.data === "object") {
+    data = obj.data;
+  } else if (obj && typeof obj === "object") {
+    Object.entries(obj).forEach(([k, v]) => {
+      const nk = norm(k);
+      if (nk === "name" || nk === "fund" || nk === "package" || nk === "items") return;
+      data[slug(k)] = v;
+    });
+  }
+  return { fund, data, items };
+}
+
 function jsonToPackages(text: string): BenefitPackageInput[] {
   let parsed: any;
   try { parsed = JSON.parse(text); } catch { return []; }
+
+  // Shape C (annex): { annex: { name, fund, items: [...] } } — or annex as an array of such
+  if (parsed?.annex) {
+    const list = Array.isArray(parsed.annex) ? parsed.annex : [parsed.annex];
+    return list.map((a: any) => {
+      const { fund, data, items } = splitObject(a);
+      return { name: String(a?.name ?? "").trim(), fund, data, items };
+    }).filter((p: BenefitPackageInput) => p.name);
+  }
 
   // Shape A: { funds: { CODE: { name, packages: { PackageName: {...fields} } } } }
   if (parsed?.funds && typeof parsed.funds === "object") {
@@ -84,11 +105,12 @@ function jsonToPackages(text: string): BenefitPackageInput[] {
       const fund = String(fundObj?.name ?? "").trim();
       const packages = fundObj?.packages ?? {};
       for (const [name, pkg] of Object.entries<any>(packages)) {
-        out.push({
-          name: String(name).trim(),
-          fund,
-          data: pkg && typeof pkg === "object" ? pkg : {}, // stored verbatim
-        });
+        const items: BenefitPackageItem[] = Array.isArray(pkg?.items) ? pkg.items : [];
+        // data verbatim, minus items
+        const data = pkg && typeof pkg === "object"
+          ? Object.fromEntries(Object.entries(pkg).filter(([k]) => norm(k) !== "items"))
+          : {};
+        out.push({ name: String(name).trim(), fund, data, items });
       }
     }
     return out.filter((p) => p.name);
@@ -103,23 +125,11 @@ function jsonToPackages(text: string): BenefitPackageInput[] {
         ? [parsed]
         : [];
 
-  return list
-    .map((it) => {
-      const name = String(it?.name ?? it?.package ?? "").trim();
-      const fund = String(it?.fund ?? "").trim();
-      let data: Record<string, any> = {};
-      if (it?.data && typeof it.data === "object") {
-        data = it.data;
-      } else if (it && typeof it === "object") {
-        Object.entries(it).forEach(([k, v]) => {
-          const nk = norm(k);
-          if (nk === "name" || nk === "fund" || nk === "package") return;
-          data[slug(k)] = v;
-        });
-      }
-      return { name, fund, data };
-    })
-    .filter((p) => p.name);
+  return list.map((it) => {
+    const name = String(it?.name ?? it?.package ?? "").trim();
+    const { fund, data, items } = splitObject(it);
+    return { name, fund, data, items };
+  }).filter((p) => p.name);
 }
 
 interface Props { open: boolean; onClose: () => void; onDone: () => void; }
@@ -177,7 +187,7 @@ export function BulkUploadPackages({ open, onClose, onDone }: Props) {
           >
             <UploadCloud className="h-8 w-8 text-slate-400" />
             <p className="text-sm font-medium text-slate-700">Drop a CSV / XLSX / JSON file, or click to browse</p>
-            <p className="text-xs text-slate-400">CSV/XLSX headers: name, fund, then fields · JSON: funds → packages, or an array</p>
+            <p className="text-xs text-slate-400">CSV/XLSX: name, fund, then fields · JSON: funds→packages, an array, or an annex with items[]</p>
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv,.json" className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0])} />
           </div>
@@ -190,7 +200,9 @@ export function BulkUploadPackages({ open, onClose, onDone }: Props) {
               {rows.slice(0, 50).map((p, i) => (
                 <div key={i} className="flex justify-between border-b border-slate-100 px-2 py-1">
                   <span className="font-medium text-slate-700">{p.name}</span>
-                  <span className="text-slate-400">{p.fund || "—"}</span>
+                  <span className="text-slate-400">
+                    {p.items?.length ? `${p.items.length} items` : (p.fund || "—")}
+                  </span>
                 </div>
               ))}
             </div>

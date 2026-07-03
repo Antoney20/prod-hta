@@ -22,7 +22,7 @@ import type { BenefitPackage, BenefitPackageInput } from "@/types/new/benefits-p
 import { PackageForm } from "./form";
 import { BulkUploadPackages } from "./bulk";
 import { AdminOnly } from "@/app/context/role";
-import { downloadPackagesCsv } from "./downloader";
+import { downloadPackagesXlsx } from "./downloader";
 
 const STD = ["scope", "access_point", "tariff", "ppm", "access_rules"];
 const LABELS: Record<string, string> = {
@@ -116,11 +116,12 @@ export default function BenefitPackagesPage() {
   const [bulkOpen, setBulkOpen] = useState(false);
   const [toDelete, setToDelete] = useState<BenefitPackage | null>(null);
 
-  const load = useCallback(async () => {
+const load = useCallback(async () => {
     setLoading(true);
     const data = await getBenefitPackages();
-    setPackages(data);
-    setExpanded(new Set(data.map((p) => p.id))); // default all open
+    const normal = data.filter((p) => !(p.items?.length));  
+    setPackages(normal);
+    setExpanded(new Set(normal.map((p) => p.id)));
     setLoading(false);
   }, []);
 
@@ -212,12 +213,12 @@ export default function BenefitPackagesPage() {
               </Button>
             </AdminOnly>
 
-            <Button
+<Button
   variant="outline" size="sm"
-  onClick={() => downloadPackagesCsv(filtered)}
+  onClick={() => downloadPackagesXlsx(filtered)}
   disabled={loading || filtered.length === 0}
 >
-  <Download className="mr-1.5 h-4 w-4" />Export CSV
+  <Download className="mr-1.5 h-4 w-4" />Export Excel
 </Button>
 
         </div>
@@ -325,22 +326,7 @@ export default function BenefitPackagesPage() {
         </div>
       )}
 
-      {/* <PackageForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleSubmit}
-        defaultValues={editing}
-        fund={presetFund}
-        isSubmitting={submitting}
-      />
-      <BulkUploadPackages open={bulkOpen} onClose={() => setBulkOpen(false)} onDone={load} />
-      <DeleteDialog
-        open={!!toDelete}
-        onOpenChange={(v) => !v && setToDelete(null)}
-        title="Delete package?"
-        description={<span><strong>{toDelete?.name}</strong> will be permanently removed.</span>}
-        onConfirm={handleDelete}
-      /> */}
+
 
       <AdminOnly silent>
   <PackageForm

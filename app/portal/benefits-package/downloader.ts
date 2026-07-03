@@ -1,4 +1,4 @@
-
+// downloader.ts
 import type { BenefitPackage } from "@/types/new/benefits-package";
 
 const STD_ORDER = ["scope", "access_point", "tariff", "ppm", "access_rules"];
@@ -22,11 +22,41 @@ function cellValue(value: unknown): string {
   return String(value);
 }
 
-/** RFC-4180: quote only when the field contains a comma, quote or newline. */
-const escapeCsv = (field: string): string =>
-  /[",\n\r]/.test(field) ? `"${field.replace(/"/g, '""')}"` : field;
+/** "620,000" | 620000 -> 620000; non-numeric stays as-is. */
+function coerceNumber(v: unknown): number | string {
+  if (typeof v === "number") return v;
+  const cleaned = String(v ?? "").replace(/[^0-9.]/g, "");
+  if (cleaned && !Number.isNaN(Number(cleaned))) return Number(cleaned);
+  return String(v ?? "");
+}
 
-export function packagesToCsv(packages: BenefitPackage[]): string {
+async function loadExcel() {
+  return (await import("exceljs")).default ?? (await import("exceljs"));
+}
+
+async function saveWorkbook(wb: any, filename: string) {
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+const stamp = () => new Date().toISOString().slice(0, 10);
+
+/** FUNCTION 1 — descriptive packages (data blob). One row per package. */
+export async function downloadPackagesXlsx(packages: BenefitPackage[], filename?: string) {
+  const ExcelJS: any = await loadExcel();
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Benefit Packages");
+
   const extras = new Set<string>();
   for (const p of packages)
     for (const k of Object.keys(p.data ?? {}))
@@ -35,31 +65,67 @@ export function packagesToCsv(packages: BenefitPackage[]): string {
   const dataKeys = [...STD_ORDER, ...[...extras].sort()];
   const header = ["Name", "Fund", ...dataKeys.map(label), "Created At", "Updated At", "ID"];
 
-  const rows = packages.map((p) => {
+  ws.addRow(header);
+  ws.getRow(1).font = { bold: true };
+
+  for (const p of packages) {
     const d = p.data ?? {};
-    return [
+    ws.addRow([
       p.name,
       p.fund ?? "",
       ...dataKeys.map((k) => cellValue(d[k])),
       p.created_at ? new Date(p.created_at).toLocaleString() : "",
       p.updated_at ? new Date(p.updated_at).toLocaleString() : "",
       p.id,
-    ];
+    ]);
+  }
+
+  ws.columns.forEach((col: any, i: number) => {
+    col.width = i < 2 ? 28 : 40;
+    col.alignment = { wrapText: true, vertical: "top" };
   });
 
-  return [header, ...rows].map((r) => r.map(escapeCsv).join(",")).join("\n");
+  await saveWorkbook(wb, filename ?? `benefit-packages-${stamp()}.xlsx`);
 }
 
-export function downloadPackagesCsv(packages: BenefitPackage[], filename?: string) {
-  const csv = packagesToCsv(packages);
-  const stamp = new Date().toISOString().slice(0, 10);
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" }); // BOM for Excel
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename ?? `benefit-packages-${stamp}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+/** FUNCTION 2 — annex line items (tariff reimbursements). One row per item. */
+export async function downloadAnnexXlsx(packages: BenefitPackage[], filename?: string) {
+  const ExcelJS: any = await loadExcel();
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Annex Tariffs");
+
+  const PREF = ["specialty", "intervention", "tariff"];
+  const keys = new Set<string>();
+  for (const p of packages)
+    for (const it of p.items ?? [])
+      for (const k of Object.keys(it ?? {})) keys.add(k);
+  const itemKeys = [...PREF.filter((k) => keys.has(k)), ...[...keys].filter((k) => !PREF.includes(k)).sort()];
+
+  const header = ["#", "Package", "Fund", ...itemKeys.map(label)];
+  ws.addRow(header);
+  ws.getRow(1).font = { bold: true };
+
+  let n = 0;
+  for (const p of packages) {
+    for (const it of p.items ?? []) {
+      n++;
+      ws.addRow([
+        n,
+        p.name,
+        p.fund ?? "",
+        ...itemKeys.map((k) => (k === "tariff" ? coerceNumber((it as any)?.[k]) : (it as any)?.[k] ?? "")),
+      ]);
+    }
+  }
+
+  ws.columns.forEach((col: any) => { col.width = 26; col.alignment = { vertical: "top", wrapText: true }; });
+  const tariffIdx = header.findIndex((h) => h.toLowerCase() === "tariff");
+  if (tariffIdx >= 0) {
+    const col = ws.getColumn(tariffIdx + 1);
+    col.numFmt = "#,##0";
+    col.width = 16;
+  }
+  ws.getColumn(1).width = 6; // "#"
+
+  await saveWorkbook(wb, filename ?? `annex-tariffs-${stamp()}.xlsx`);
 }

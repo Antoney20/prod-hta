@@ -46,7 +46,7 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { UserProfile, UserRole } from "@/app/api/auth";
-import { FaCheck, FaFileContract } from "react-icons/fa";
+import { FaCheck, FaFileContract, FaStethoscope } from "react-icons/fa";
 
 interface AsideProps {
   isOpen: boolean;
@@ -77,8 +77,10 @@ const sharedBenefitsPackage: NavItem = {
   icon: <ClipboardList className="h-5 w-5" />,
   children: [
     { type: "link", title: "Current Benefits Package",      href: "/portal/benefits-package",           icon: <FaCheck className="h-4 w-4" /> },
-    { type: "link", title: "Intervention by Package", href: "/portal/benefits-package/packages",  icon: <Gavel className="h-4 w-4" /> },
+        { type: "link", title: "Tariffs Reimbursements", href: "/portal/benefits-package/annex",  icon: <FaStethoscope className="h-4 w-4" /> },
     
+    { type: "link", title: "Intervention by Package", href: "/portal/benefits-package/packages",  icon: <Gavel className="h-4 w-4" /> },
+
   ],
 };
 

@@ -31,6 +31,8 @@ export interface GroupedPhaseMember {
   kind: "intervention" | "program";
   id: string;
   reference_number: string;
+  package?: string | null;
+  phase?: string | null;
   name: string | null;
 }
 
@@ -39,6 +41,7 @@ export interface GroupedPhase {
   name: string;
   description: string;
   order: number;
+
   is_active: boolean;
   members: GroupedPhaseMember[];
 }

@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   UploadCloud, FileSpreadsheet, Download, ArrowLeft, AlertTriangle,
-  CheckCircle2, Loader2, X, Plus, Trash2, ChevronRight,
+  CheckCircle2, Loader2, X, Plus, Trash2, ChevronRight, RefreshCw, MinusCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
-import { NationalProgram } from "@/types/new/program";
-import { createProposal } from "@/app/api/new/programs";
+import { NationalProgram, ProgramProposal } from "@/types/new/program";
+import { createProposal, updateProposal } from "@/app/api/new/programs";
 import {
-  buildTargets, autoMap, unmappedRequired, buildRows,
-  downloadTemplate, ParsedSheet, MapTarget, RowResult, parseSpreadsheet,
+  buildTargets, autoMap, unmappedRequired, buildRows, indexProposalsByRef,
+  downloadTemplate, ParsedSheet, MapTarget, RowResult, ImportMode, parseSpreadsheet,
 } from "./handler";
 
 type Step = "upload" | "map" | "importing";
@@ -24,6 +24,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   program: NationalProgram | null;
+  proposals: ProgramProposal[];   // existing proposals for reference-matching
   onComplete: () => void;
 }
 
@@ -33,11 +34,18 @@ const STEPS: { key: Step; label: string }[] = [
   { key: "importing", label: "Import" },
 ];
 
-export function BulkUpload({ open, onClose, program, onComplete }: Props) {
+const MODE_BADGE: Record<RowResult["mode"], { label: string; cls: string }> = {
+  create: { label: "New", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  update: { label: "Update", cls: "bg-[#27aae1]/10 text-[#27aae1] border-[#27aae1]/30" },
+  skip: { label: "Skip", cls: "bg-slate-100 text-slate-400 border-slate-200" },
+};
+
+export function BulkUpload({ open, onClose, program, proposals, onComplete }: Props) {
   const [step, setStep] = useState<Step>("upload");
   const [fileName, setFileName] = useState("");
   const [parsed, setParsed] = useState<ParsedSheet | null>(null);
   const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [importMode, setImportMode] = useState<ImportMode>("update");
   const [progress, setProgress] = useState({ done: 0, total: 0, ok: 0, fail: 0 });
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -47,20 +55,31 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
     [program],
   );
 
+  const refIndex = useMemo(() => indexProposalsByRef(proposals), [proposals]);
+
   const rows: RowResult[] = useMemo(
-    () => (parsed ? buildRows(parsed, mapping, targets) : []),
-    [parsed, mapping, targets],
+    () => (parsed ? buildRows(parsed, mapping, targets, refIndex, importMode) : []),
+    [parsed, mapping, targets, refIndex, importMode],
   );
-  const valid = rows.filter((r) => r.errors.length === 0);
-  const invalid = rows.filter((r) => r.errors.length > 0);
+
+  const importable = rows.filter((r) => r.mode !== "skip");
+  const valid = importable.filter((r) => r.errors.length === 0);
+  const invalid = importable.filter((r) => r.errors.length > 0);
+  const skipped = rows.filter((r) => r.mode === "skip");
+  const newCount = valid.filter((r) => r.mode === "create").length;
+  const updateCount = valid.filter((r) => r.mode === "update").length;
+
   const missingRequired = unmappedRequired(targets, mapping);
   const headerOptions = parsed?.headers ?? [];
+  const hasReferenceColumn = !!mapping["reference_number"];
 
   const reset = () => {
     setStep("upload"); setFileName(""); setParsed(null); setMapping({});
     setProgress({ done: 0, total: 0, ok: 0, fail: 0 }); setBusy(false);
   };
   const close = () => { reset(); onClose(); };
+
+  useEffect(() => { if (!open) reset(); }, [open]);
 
   const handleFile = async (file?: File | null) => {
     if (!file || !program) return;
@@ -79,7 +98,6 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
     }
   };
 
-  // ---- row editing (operates on the raw header-keyed source rows) ----
   const updateCell = (rowIdx: number, header: string, value: string) =>
     setParsed((p) => {
       if (!p) return p;
@@ -102,13 +120,16 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
     setProgress({ done: 0, total: valid.length, ok: 0, fail: 0 });
     let ok = 0, fail = 0;
     for (const r of valid) {
-     const res = await createProposal({
-  program: program.id,
-  title: r.title,
-  justification: r.justification,
-  data: r.data,
-  submitted_date: r.submitted_date,
-});
+      const payload = {
+        program: program.id,
+        title: r.title,
+        justification: r.justification,
+        data: r.data,
+        submitted_date: r.submitted_date,
+      };
+      const res = r.mode === "update" && r.match
+        ? await updateProposal(r.match.id, payload)
+        : await createProposal(payload);
       if ("error" in res && res.error) fail++; else ok++;
       setProgress({ done: ok + fail, total: valid.length, ok, fail });
     }
@@ -179,10 +200,35 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
               <span className="text-slate-600"><span className="font-medium">{fileName}</span></span>
               <div className="flex items-center gap-3 text-xs">
-                <span className="inline-flex items-center gap-1 text-green-700"><CheckCircle2 className="h-3.5 w-3.5" />{valid.length} valid</span>
-                {invalid.length > 0 && <span className="inline-flex items-center gap-1 text-red-600"><AlertTriangle className="h-3.5 w-3.5" />{invalid.length} with errors</span>}
-                <span className="text-slate-400">{rows.length} row{rows.length !== 1 ? "s" : ""}</span>
+                <span className="inline-flex items-center gap-1 text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" />{newCount} new</span>
+                <span className="inline-flex items-center gap-1 text-[#27aae1]"><RefreshCw className="h-3.5 w-3.5" />{updateCount} update</span>
+                {skipped.length > 0 && <span className="inline-flex items-center gap-1 text-slate-400"><MinusCircle className="h-3.5 w-3.5" />{skipped.length} skip</span>}
+                {invalid.length > 0 && <span className="inline-flex items-center gap-1 text-red-600"><AlertTriangle className="h-3.5 w-3.5" />{invalid.length} errors</span>}
               </div>
+            </div>
+
+            {/* existing-row handling toggle */}
+            <div className="flex flex-wrap items-center gap-3 border border-slate-200 bg-slate-50/60 px-3 py-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Existing references</span>
+              <div className="inline-flex border border-slate-200 bg-white text-xs">
+                {([
+                  { v: "update", label: "Update existing" },
+                  { v: "skip", label: "Skip existing" },
+                ] as { v: ImportMode; label: string }[]).map((o) => (
+                  <button
+                    key={o.v}
+                    onClick={() => setImportMode(o.v)}
+                    className={`px-3 py-1.5 ${importMode === o.v ? "bg-[#27aae1] text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+              {!hasReferenceColumn && (
+                <span className="text-xs text-amber-600">
+                  No reference column mapped — every row is treated as new.
+                </span>
+              )}
             </div>
 
             {/* mapping grid */}
@@ -196,6 +242,7 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
                       <div className="w-40 shrink-0 truncate text-sm">
                         <span className={missing ? "text-red-600" : "text-slate-700"}>{t.label}</span>
                         {t.required && <span className="text-red-500"> *</span>}
+                        {t.key === "reference_number" && <span className="ml-1 text-[10px] text-slate-400">(match)</span>}
                       </div>
                       <select
                         value={mapping[t.key] ?? ""}
@@ -237,7 +284,8 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
                       <tr>
                         <th className="px-2 py-1.5 text-left font-semibold text-slate-400 w-10">#</th>
                         <th className="px-2 py-1.5 text-left font-semibold text-slate-400 w-8" />
-                        {targets.map((t) => (
+                        <th className="px-2 py-1.5 text-left font-semibold text-slate-400 w-20">State</th>
+                        {targets.filter((t) => t.key !== "reference_number").map((t) => (
                           <th key={t.key} className="px-2 py-1.5 text-left font-semibold text-slate-400 whitespace-nowrap">
                             {t.label}{t.required && <span className="text-red-400"> *</span>}
                           </th>
@@ -247,16 +295,24 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {rows.map((r, i) => {
-                        const bad = r.errors.length > 0;
+                        const bad = r.mode !== "skip" && r.errors.length > 0;
+                        const badge = MODE_BADGE[r.mode];
                         return (
-                          <tr key={i} className={bad ? "bg-red-50/40" : ""}>
+                          <tr key={i} className={bad ? "bg-red-50/40" : r.mode === "skip" ? "bg-slate-50/60 opacity-60" : ""}>
                             <td className="px-2 py-1 font-mono text-slate-400">{i + 1}</td>
                             <td className="px-2 py-1">
-                              {bad
-                                ? <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label={r.errors.map((e) => e.message).join("; ")} />
-                                : <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+                              {r.mode === "skip"
+                                ? <MinusCircle className="h-3.5 w-3.5 text-slate-300" />
+                                : bad
+                                  ? <AlertTriangle className="h-3.5 w-3.5 text-red-500" aria-label={r.errors.map((e) => e.message).join("; ")} />
+                                  : <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
                             </td>
-                            {targets.map((t) => {
+                            <td className="px-2 py-1">
+                              <span className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-medium ${badge.cls}`}>
+                                {badge.label}
+                              </span>
+                            </td>
+                            {targets.filter((t) => t.key !== "reference_number").map((t) => {
                               const header = mapping[t.key];
                               const raw = header ? (parsed?.rows[i]?.[header] ?? "") : "";
                               return (
@@ -287,6 +343,9 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
               )}
               {invalid.length > 0 && (
                 <p className="mt-1.5 text-xs text-red-500">Rows with errors are skipped on import — hover the warning icon for details.</p>
+              )}
+              {skipped.length > 0 && (
+                <p className="mt-1 text-xs text-slate-400">{skipped.length} row{skipped.length !== 1 ? "s" : ""} already exist and will be skipped. Switch to “Update existing” to overwrite them.</p>
               )}
             </div>
           </div>
@@ -321,7 +380,8 @@ export function BulkUpload({ open, onClose, program, onComplete }: Props) {
                 style={{ backgroundColor: "#27aae1" }}
                 className="text-white"
               >
-                Import {valid.length} valid row{valid.length !== 1 ? "s" : ""}
+                Import {valid.length} row{valid.length !== 1 ? "s" : ""}
+                {updateCount > 0 && newCount > 0 ? ` (${newCount} new, ${updateCount} update)` : ""}
               </Button>
             </>
           )}

@@ -1,16 +1,19 @@
-
-
 import type { TopicPriority, TopicPriorityWritePayload, DecisionType } from "@/types/new/topic-prioritization";
-import { createTopicPriority, updateTopicPriority } from "@/app/api/new/tp";
+import { updateTopicPriority, createTopicPriority } from "@/app/api/new/tp";
+import { ProgramProposal } from "@/types/new/program";
 
 const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const clean = (s: unknown) => String(s ?? "").trim();
 
-
+export type ImportMode = "update" | "skip";
 export type ColRole = "ignore" | "reference" | "decision" | "decision_date" | "routing_decision" | "feedback";
 
 export interface SheetColumn { key: string; col: number; }
 export interface ParsedSheet { columns: SheetColumn[]; rows: Record<string, string>[]; }
+
+export type MatchKind = "intervention" | "national_proposal";
+
+/* ----------------------------- parse ----------------------------- */
 
 function cellText(value: any): string {
   if (value == null) return "";
@@ -64,8 +67,10 @@ export async function parseSpreadsheet(file: File): Promise<ParsedSheet> {
   return { columns, rows };
 }
 
+/* ----------------------------- auto-map ----------------------------- */
+
 const ALIASES: Record<Exclude<ColRole, "ignore">, string[]> = {
-  reference: ["reference", "reference number", "ref", "ref no", "intervention", "intervention no"],
+  reference: ["reference", "reference number", "ref", "ref no", "intervention", "intervention no", "intervention number"],
   decision: ["decision", "decision status", "status", "outcome"],
   decision_date: ["decision date", "date", "decided at"],
   routing_decision: ["routing decision", "routing", "route"],
@@ -89,21 +94,28 @@ export function autoMap(parsed: ParsedSheet): Record<string, ColRole> {
 
 /* ----------------------------- build + match ----------------------------- */
 
+export type RowMode = "create" | "update" | "skip";
+
 export interface FeedbackRow {
   index: number;
   reference: string;
-  decision: string;       // decision NAME from sheet (resolved to id at submit)
+  decision: string;
   decision_date: string;
   routing_decision: string;
   feedback: string;
   errors: string[];
-  match: TopicPriority | null;  // existing status row, if any
+  match: TopicPriority | null;         
+  nationalMatch: ProgramProposal | null; 
+  kind: MatchKind | null;
+  mode: RowMode;
 }
 
 export function buildRows(
   parsed: ParsedSheet,
   mapping: Record<string, ColRole>,
   records: TopicPriority[],
+  nationalProposals: ProgramProposal[],
+  importMode: ImportMode,
 ): FeedbackRow[] {
   const col = (role: ColRole) => parsed.columns.find((c) => mapping[c.key] === role)?.key;
   const refCol = col("reference");
@@ -112,14 +124,27 @@ export function buildRows(
   const routeCol = col("routing_decision");
   const fbCol = col("feedback");
 
-  const byRef = new Map(records.map((r) => [norm(r.reference_number), r]));
+  const byRefIntervention = new Map(records.map((r) => [norm(r.reference_number), r]));
+  const byRefNational = new Map(
+    nationalProposals
+      .filter((p) => p.reference_number)
+      .map((p) => [norm(p.reference_number), p]),
+  );
 
   return parsed.rows.map((row, i) => {
     const reference = clean(refCol ? row[refCol] : "");
     const errors: string[] = [];
     if (!reference) errors.push("Reference is required");
-    const match = reference ? byRef.get(norm(reference)) ?? null : null;
-    if (reference && !match) errors.push("No matching intervention/status record");
+
+    const key = norm(reference);
+    const match = reference ? byRefIntervention.get(key) ?? null : null;
+    const nationalMatch = !match && reference ? byRefNational.get(key) ?? null : null;
+    const kind: MatchKind | null = match ? "intervention" : nationalMatch ? "national_proposal" : null;
+
+    if (reference && !kind) errors.push("No matching intervention or national proposal");
+
+    let mode: RowMode = "skip";
+    if (kind) mode = importMode === "update" ? "update" : "skip";
 
     return {
       index: i + 1,
@@ -130,40 +155,54 @@ export function buildRows(
       feedback: clean(fbCol ? row[fbCol] : ""),
       errors,
       match,
+      nationalMatch,
+      kind,
+      mode,
     };
   });
 }
 
-/* ----------------------------- submit ----------------------------- */
-
-export interface BulkResult { updated: number; created: number; failed: number; }
+export interface BulkResult { updated: number; created: number; skipped: number; failed: number; firstError: string | null; }
 
 export async function submitRows(
   rows: FeedbackRow[],
   decisions: DecisionType[],
 ): Promise<BulkResult> {
   const decByName = new Map(decisions.map((d) => [norm(d.name), d.id]));
-  const result: BulkResult = { updated: 0, created: 0, failed: 0 };
+  const result: BulkResult = { updated: 0, created: 0, skipped: 0, failed: 0, firstError: null };
+  const fail = (msg: string) => { result.failed++; if (!result.firstError) result.firstError = msg; };
 
   for (const r of rows) {
-    if (r.errors.length || !r.match) { result.failed++; continue; }
+    if (r.mode === "skip") { result.skipped++; continue; }
+    if (r.errors.length || !r.kind) { fail(r.errors[0] ?? "Invalid row"); continue; }
 
-    const decisionId = r.decision ? decByName.get(norm(r.decision)) ?? null : null;
-    if (r.decision && !decisionId) { result.failed++; continue; } // unknown decision name
+    let decisionId: string | null = null;
+    if (r.decision) {
+      decisionId = decByName.get(norm(r.decision)) ?? null;
+      if (!decisionId) { fail(`Unknown decision "${r.decision}"`); continue; }
+    }
 
-    const payload: Partial<TopicPriorityWritePayload> = {
-      intervention: r.match.intervention_id,
-      decision: decisionId,
-      decision_date: r.decision_date || null,
-      routing_decision: r.routing_decision || null,
-      feedback: r.feedback,
-    };
+    // Build a partial payload — only fields present in the sheet.
+    const base: Partial<TopicPriorityWritePayload> = {};
+    if (r.decision) base.decision = decisionId;
+    if (r.decision_date) base.decision_date = r.decision_date;
+    if (r.routing_decision) base.routing_decision = r.routing_decision;
+    if (r.feedback) base.feedback = r.feedback;
 
-    // Existing status row → PATCH; scored-only (id null) → POST create
-    const ok = r.match.id
-      ? await updateTopicPriority(r.match.id, payload)
-      : await createTopicPriority(payload as TopicPriorityWritePayload);
-    ok ? (r.match.id ? result.updated++ : result.created++) : result.failed++;
+    if (r.kind === "intervention" && r.match) {
+      // existing status row → PATCH by id; scored-only (id null) → create with intervention target
+      if (r.match.id) {
+        const res = await updateTopicPriority(r.match.id, base);
+        res ? result.updated++ : fail(`Update failed for ${r.reference}`);
+      } else {
+        const res = await createTopicPriority({ ...base, intervention: r.match.intervention_id } as TopicPriorityWritePayload);
+        res ? result.created++ : fail(`Create failed for ${r.reference}`);
+      }
+    } else if (r.kind === "national_proposal" && r.nationalMatch) {
+      // national proposals have no pre-existing status row here → create with national_proposal target
+      const res = await createTopicPriority({ ...base, national_proposal: r.nationalMatch.id } as any);
+      res ? result.created++ : fail(`Create failed for ${r.reference}`);
+    }
   }
 
   return result;
@@ -225,9 +264,9 @@ export async function downloadTemplate() {
   const ExcelJS: any = (await import("exceljs")).default ?? (await import("exceljs"));
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Template");
-  ws.addRow(["Reference", "Decision", "Decision Date", "Routing Decision", "Feedback"]);
+  ws.addRow(["Reference", "Decision Date", "Routing Decision", "Feedback"]);
   ws.getRow(1).font = { bold: true };
-  ws.addRow(["INTERV-2026-03-11-0002", "Approved", "2026-03-20", "Routed to Panel A", "Meets criteria."]);
+  ws.addRow(["INTERV-2026-03-11-0002",  "2026-03-20", "Routed to Panel A", "Meets criteria."]);
   ws.columns.forEach((c: any) => (c.width = 24));
   const buf = await wb.xlsx.writeBuffer();
   const url = URL.createObjectURL(new Blob([buf], {

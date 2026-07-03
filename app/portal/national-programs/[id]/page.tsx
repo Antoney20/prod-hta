@@ -24,7 +24,6 @@ import { ProgramSelect } from "../files/programs";
 import { BulkUpload } from "../files/upload";
 import Link from "next/link";
 
-
 const PAGE_SIZE = 10;
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TD = "px-3 py-3 align-top";
@@ -55,7 +54,6 @@ export default function ProgramProposalsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [toDelete, setToDelete] = useState<ProgramProposal[] | null>(null);
 
-  // full program objects (incl. field_schema) power both the selector and the columns
   const program = useMemo(
     () => programs.find((p) => String(p.id) === String(programId)) ?? null,
     [programs, programId],
@@ -94,7 +92,6 @@ export default function ProgramProposalsPage() {
   );
   useEffect(() => { setPage(1); }, [search]);
 
-  // ---- selection ----
   const allSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id));
   const someSelected = selected.size > 0 && !allSelected;
   const toggleSelect = (id: string) =>
@@ -167,7 +164,6 @@ export default function ProgramProposalsPage() {
         </div>
       </div>
 
-      {/* No program selected */}
       {!program ? (
         <div className="border border-dashed border-slate-300 py-20 text-center">
           <Layers className="h-10 w-10 mx-auto text-slate-300 mb-3" />
@@ -176,13 +172,11 @@ export default function ProgramProposalsPage() {
         </div>
       ) : (
         <>
-          {/* Filter */}
           <div className="relative max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input className="pl-9" placeholder="Search title or ref no…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
 
-          {/* Selection toolbar */}
           {selected.size > 0 && (
             <div className="flex items-center justify-between border border-[#27aae1]/30 bg-[#27aae1]/5 px-4 py-2 text-sm">
               <span className="font-medium text-slate-700">{selected.size} selected</span>
@@ -198,7 +192,6 @@ export default function ProgramProposalsPage() {
             </div>
           )}
 
-          {/* Table */}
           <div className="overflow-x-auto border border-slate-200 shadow-sm bg-white">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-200">
@@ -272,7 +265,6 @@ export default function ProgramProposalsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
           {filtered.length > PAGE_SIZE && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-slate-500">
@@ -305,6 +297,7 @@ export default function ProgramProposalsPage() {
         open={bulkOpen}
         onClose={() => setBulkOpen(false)}
         program={program}
+        proposals={proposals}
         onComplete={loadProposals}
       />
 

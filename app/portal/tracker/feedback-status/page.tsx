@@ -5,14 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, RefreshCw, Download, UploadCloud } from "lucide-react";
-import { toast } from "react-toastify";
 
 import type { TopicPriority, DecisionType } from "@/types/new/topic-prioritization";
 import { getTopicPriorities, getDecisionTypes } from "@/app/api/new/tp";
+
 import { Column, DataTable } from "../../config/cc/table";
+import { BulkFeedbackDialog } from "./bulk";
 import { AdminOnly } from "@/app/context/role";
 import { downloadFeedbackXlsx } from "./handler";
-import { BulkFeedbackDialog } from "./bulk";
 
 function stripHtml(html: string): string {
   return String(html ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
@@ -26,10 +26,16 @@ export default function FeedbackStatusPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [recs, decs] = await Promise.all([getTopicPriorities(), getDecisionTypes()]);
-    setRecords(recs);
-    setDecisions(decs);
-    setLoading(false);
+    try {
+      const [recs, decs] = await Promise.all([
+        getTopicPriorities(),
+        getDecisionTypes(),
+      ]);
+      setRecords(recs);
+      setDecisions(decs);
+    } finally {
+      setLoading(false);   // always clears — page can never hang on a rejected fetch
+    }
   }, []);
   useEffect(() => { load(); }, [load]);
 

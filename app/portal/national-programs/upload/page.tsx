@@ -262,10 +262,11 @@ export default function ProgramProposalsPage() {
         isSubmitting={submitting}
       />
 
-      <BulkUpload
+  <BulkUpload
         open={bulkOpen}
         onClose={() => setBulkOpen(false)}
         program={program}
+        proposals={proposals}
         onComplete={loadProposals}
       />
 

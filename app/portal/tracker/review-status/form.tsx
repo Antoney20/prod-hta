@@ -19,174 +19,60 @@ import {
 import { getPublicProposals } from "@/app/api/public";
 import { PublicProposal } from "@/types/new/public";
 import { getDecisionTypes } from "@/app/api/new/tp";
+import { getNationalPrograms } from "@/app/api/new/search";
+import { ProgramProposal } from "@/types/new/program";
+import RichEditor from "@/components/shared/editor";
+
+type TargetType = "intervention" | "national_proposal";
 
 
-interface RichEditorProps {
-  value: string;
-  onChange: (val: string) => void;
-  placeholder?: string;
-  minHeight?: number;
+interface PickOption {
+  id: string;
+  reference_number: string;
+  name: string;
 }
 
-function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/on\w+="[^"]*"/gi, "");
-}
-
-function RichEditor({ value, onChange, placeholder, minHeight = 100 }: RichEditorProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInternalUpdate = useRef(false);
-
-  useEffect(() => {
-    if (ref.current && !isInternalUpdate.current) {
-      if (ref.current.innerHTML !== value) {
-        ref.current.innerHTML = value ?? "";
-      }
-    }
-    isInternalUpdate.current = false;
-  }, [value]);
-
-  const exec = (cmd: string, val?: string) => {
-    document.execCommand(cmd, false, val);
-    ref.current?.focus();
-  };
-
-  const handleInput = () => {
-    isInternalUpdate.current = true;
-    onChange(ref.current?.innerHTML ?? "");
-  };
-
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const html = e.clipboardData.getData("text/html");
-    const plain = e.clipboardData.getData("text/plain");
-    if (html) {
-      document.execCommand("insertHTML", false, sanitizeHtml(html));
-    } else if (plain) {
-      document.execCommand("insertText", false, plain);
-    }
-  };
-
-  const toolBtn = (label: string, style: React.CSSProperties, action: () => void) => (
-    <button
-      key={label}
-      type="button"
-      onMouseDown={(e) => { e.preventDefault(); action(); }}
-      style={{
-        padding: "2px 8px",
-        border: "1px solid #d1d5db",
-        borderRadius: 4,
-        background: "#fff",
-        cursor: "pointer",
-        fontSize: 12,
-        color: "#374151",
-        ...style,
-      }}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <div style={{ border: "1px solid #d1d5db", borderRadius: 6, overflow: "hidden", background: "#fff" }}>
-      <div style={{
-        display: "flex", gap: 2, padding: "6px 8px",
-        borderBottom: "1px solid #e5e7eb", background: "#f9fafb", flexWrap: "wrap",
-      }}>
-        {toolBtn("B", { fontWeight: 700 }, () => exec("bold"))}
-        {toolBtn("I", { fontStyle: "italic" }, () => exec("italic"))}
-        {toolBtn("U", { textDecoration: "underline" }, () => exec("underline"))}
-        <div style={{ width: 1, background: "#e5e7eb", margin: "0 4px" }} />
-        {toolBtn("• List", {}, () => exec("insertUnorderedList"))}
-        {toolBtn("1. List", {}, () => exec("insertOrderedList"))}
-        <div style={{ width: 1, background: "#e5e7eb", margin: "0 4px" }} />
-        {toolBtn("Link", {}, () => {
-          const url = prompt("Enter URL");
-          if (url && /^https?:\/\//i.test(url)) exec("createLink", url);
-        })}
-      </div>
-      <div
-        ref={ref}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={handleInput}
-        onPaste={handlePaste}
-        data-placeholder={placeholder}
-        style={{
-          minHeight,
-          maxHeight: 280,
-          padding: "10px 12px",
-          outline: "none",
-          fontSize: 13,
-          color: "#111827",
-          lineHeight: 1.6,
-          overflowY: "auto",
-        }}
-      />
-      <style>{`[contenteditable]:empty:before{content:attr(data-placeholder);color:#9ca3af;pointer-events:none}`}</style>
-    </div>
-  );
-}
-
-interface InterventionPickerProps {
-  proposals: PublicProposal[];
+interface PickerProps {
+  options: PickOption[];
   value: string;
   onChange: (id: string, name: string) => void;
   disabled?: boolean;
   disabledName?: string;
+  placeholder?: string;
   error?: string;
 }
 
-function InterventionPicker({ proposals, value, onChange, disabled, disabledName, error }: InterventionPickerProps) {
+function ProposalPicker({ options, value, onChange, disabled, disabledName, placeholder, error }: PickerProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selected = proposals.find((p) => p.id === value);
+  const selected = options.find((p) => p.id === value);
 
   const filtered = query.trim()
-    ? proposals.filter((p) => {
-        const name = (p.intervention_name ?? "").toLowerCase();
-        const ref = p.reference_number.toLowerCase();
+    ? options.filter((p) => {
         const q = query.toLowerCase();
-        return name.includes(q) || ref.includes(q);
+        return p.name.toLowerCase().includes(q) || p.reference_number.toLowerCase().includes(q);
       })
-    : proposals;
+    : options;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const pick = (p: PublicProposal) => {
-    onChange(p.id, p.intervention_name ?? "");
-    setOpen(false);
-    setQuery("");
-  };
+  const pick = (p: PickOption) => { onChange(p.id, p.name); setOpen(false); setQuery(""); };
+  const clear = (e: React.MouseEvent) => { e.stopPropagation(); onChange("", ""); setQuery(""); };
 
-  const clear = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onChange("", "");
-    setQuery("");
-  };
-
-  // In edit mode, show the intervention_name passed from defaultValues (not from proposals lookup)
   if (disabled) {
-    const displayName = disabledName ?? selected?.intervention_name ?? "—";
+    const displayName = disabledName ?? selected?.name ?? "—";
     const displayRef = selected?.reference_number ?? "";
     return (
       <div className="flex items-center gap-2 rounded-md border border-input bg-muted px-3 py-2 text-sm">
-        {displayRef && (
-          <span className="font-mono text-xs text-muted-foreground shrink-0">
-            {displayRef}
-          </span>
-        )}
+        {displayRef && <span className="font-mono text-xs text-muted-foreground shrink-0">{displayRef}</span>}
         <span className="truncate">{displayName}</span>
       </div>
     );
@@ -197,27 +83,23 @@ function InterventionPicker({ proposals, value, onChange, disabled, disabledName
       <div
         role="combobox"
         aria-expanded={open}
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={() => setOpen((v) => !v)}
         className={[
           "flex items-center gap-2 rounded-md border px-3 py-2 text-sm cursor-pointer select-none",
-          disabled ? "bg-muted cursor-not-allowed" : "bg-background hover:border-ring",
+          "bg-background hover:border-ring",
           error ? "border-destructive" : "border-input",
         ].join(" ")}
       >
         {selected ? (
           <>
-            <span className="font-mono text-xs text-muted-foreground shrink-0">
-              {selected.reference_number}
-            </span>
-            <span className="flex-1 truncate">{selected.intervention_name ?? "—"}</span>
-            {!disabled && (
-              <button type="button" onClick={clear} className="text-muted-foreground hover:text-foreground ml-auto">
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
+            <span className="font-mono text-xs text-muted-foreground shrink-0">{selected.reference_number}</span>
+            <span className="flex-1 truncate">{selected.name || "—"}</span>
+            <button type="button" onClick={clear} className="text-muted-foreground hover:text-foreground ml-auto">
+              <X className="h-3.5 w-3.5" />
+            </button>
           </>
         ) : (
-          <span className="text-muted-foreground flex-1">Select intervention…</span>
+          <span className="text-muted-foreground flex-1">{placeholder ?? "Select…"}</span>
         )}
       </div>
 
@@ -238,12 +120,9 @@ function InterventionPicker({ proposals, value, onChange, disabled, disabledName
               </button>
             )}
           </div>
-
           <div className="max-h-56 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-muted-foreground">
-                No interventions found
-              </div>
+              <div className="px-3 py-4 text-center text-sm text-muted-foreground">No results found</div>
             ) : (
               filtered.map((p) => (
                 <div
@@ -254,10 +133,8 @@ function InterventionPicker({ proposals, value, onChange, disabled, disabledName
                     p.id === value ? "bg-accent font-medium" : "",
                   ].join(" ")}
                 >
-                  <span className="font-mono text-xs text-muted-foreground shrink-0 w-36 truncate">
-                    {p.reference_number}
-                  </span>
-                  <span className="truncate">{p.intervention_name ?? "—"}</span>
+                  <span className="font-mono text-xs text-muted-foreground shrink-0 w-36 truncate">{p.reference_number}</span>
+                  <span className="truncate">{p.name || "—"}</span>
                 </div>
               ))
             )}
@@ -268,26 +145,27 @@ function InterventionPicker({ proposals, value, onChange, disabled, disabledName
   );
 }
 
-// ---------------------------------------------------------------------------
-// Form state
-// ---------------------------------------------------------------------------
 
 type FormState = {
-  intervention: string;        // proposal/intervention UUID
-  intervention_name: string;   // human-readable name (from defaultValues.intervention_name)
+  target_type: TargetType;
+  intervention: string;        // selected proposal UUID (either kind)
+  intervention_name: string;
   decision: string;
   decision_date: string;
   feedback: string;
+  routing_decision: string;
   notes: string;
   additional_info: string;
 };
 
 const empty: FormState = {
+  target_type: "intervention",
   intervention: "",
   intervention_name: "",
   decision: "none",
   decision_date: "",
   feedback: "",
+  routing_decision: "",
   notes: "",
   additional_info: "",
 };
@@ -309,77 +187,92 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [decisions, setDecisions] = useState<DecisionType[]>([]);
   const [proposals, setProposals] = useState<PublicProposal[]>([]);
+  const [national, setNational] = useState<ProgramProposal[]>([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
 
   const isEdit = !!defaultValues?.id && defaultValues.id !== null;
   const isCreate = defaultValues?.id === null;
 
   useEffect(() => {
-    if (open && proposals.length === 0) {
+    if (open && proposals.length === 0 && national.length === 0) {
       setLoadingMeta(true);
-      Promise.all([getDecisionTypes(), getPublicProposals()])
-        .then(([d, p]) => {
+      Promise.all([getDecisionTypes(), getPublicProposals(), getNationalPrograms()])
+        .then(([d, p, n]) => {
           setDecisions(Array.isArray(d) ? d : []);
           setProposals(Array.isArray(p) ? p : []);
+          setNational(Array.isArray(n) ? n : []);
         })
         .finally(() => setLoadingMeta(false));
     }
   }, [open]);
+
+  // Normalized option lists for the picker
+  const interventionOptions: PickOption[] = proposals.map((p) => ({
+    id: p.id,
+    reference_number: p.reference_number,
+    name: p.intervention_name ?? "",
+  }));
+  const nationalOptions: PickOption[] = national
+    .filter((p) => p.reference_number)
+    .map((p) => ({
+      id: p.id,
+      reference_number: p.reference_number,
+      name: p.title ?? "",
+    }));
+
+  const activeOptions = form.target_type === "intervention" ? interventionOptions : nationalOptions;
 
   // Initialize form based on defaultValues and mode
   useEffect(() => {
     if (!open) return;
     setErrors({});
 
-    if (!defaultValues) {
-      setForm(empty);
-      return;
-    }
+    if (!defaultValues) { setForm(empty); return; }
+
+    const targetType: TargetType =
+      defaultValues.target_type === "national_proposal" ? "national_proposal" : "intervention";
 
     if (isEdit) {
-      // Editing existing record: use intervention_id + intervention_name from the row
       setForm({
+        target_type: targetType,
         intervention: defaultValues.intervention_id ?? "",
         intervention_name: defaultValues.intervention_name ?? "",
         decision: defaultValues.decision?.id ?? "none",
         decision_date: defaultValues.decision_date ?? "",
         feedback: defaultValues.feedback ?? "",
+        routing_decision: defaultValues.routing_decision ?? "",
         notes: "",
         additional_info: "",
       });
     } else if (isCreate) {
-      // Creating from a scored intervention: pre-fill intervention_name from the row
       setForm({
+        target_type: targetType,
         intervention: defaultValues.intervention_id ?? "",
         intervention_name: defaultValues.intervention_name ?? "",
         decision: "none",
         decision_date: "",
         feedback: "",
+        routing_decision: "",
         notes: "",
         additional_info: "",
       });
     }
   }, [open, defaultValues, isEdit, isCreate]);
 
-  // Resolve reference_number → proposal id once proposals are available (null-id rows)
-  // Only needed if intervention_id wasn't available directly
+  // Resolve reference_number → id for scored-only create rows (id not directly available)
   useEffect(() => {
-    if (!proposals.length || !defaultValues || !isCreate) return;
-    if (form.intervention) return; // already resolved via intervention_id
-
+    if (!defaultValues || !isCreate || form.intervention) return;
     const ref = defaultValues.reference_number;
     if (!ref) return;
 
-    const match = proposals.find((p) => p.reference_number === ref);
-    if (match) {
-      setForm((f) => ({
-        ...f,
-        intervention: match.id,
-        // Only fall back to proposals name if intervention_name is still empty
-        intervention_name: f.intervention_name || match.intervention_name || "",
-      }));
+    if (form.target_type === "intervention") {
+      const match = proposals.find((p) => p.reference_number === ref);
+      if (match) setForm((f) => ({ ...f, intervention: match.id, intervention_name: f.intervention_name || match.intervention_name || "" }));
+    } else {
+      const match = national.find((p) => p.reference_number === ref);
+      if (match) setForm((f) => ({ ...f, intervention: match.id, intervention_name: f.intervention_name || match.title || "" }));
     }
-  }, [proposals, defaultValues, isCreate]);
+  }, [proposals, national, defaultValues, isCreate, form.target_type]);
 
   const setField = useCallback(
     <K extends keyof FormState>(field: K) =>
@@ -388,14 +281,17 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
     []
   );
 
-  // Picker onChange passes both id and name
-  const handleInterventionChange = useCallback((id: string, name: string) => {
+  const handleTargetChange = useCallback((id: string, name: string) => {
     setForm((f) => ({ ...f, intervention: id, intervention_name: name }));
   }, []);
 
+  // Switching target type clears the current selection
+  const switchTargetType = (t: TargetType) =>
+    setForm((f) => ({ ...f, target_type: t, intervention: "", intervention_name: "" }));
+
   const validate = () => {
     const e: Partial<Record<keyof FormState, string>> = {};
-    if (!form.intervention) e.intervention = "Select an intervention";
+    if (!form.intervention) e.intervention = "Select a proposal";
     if (form.decision !== "none" && !form.decision_date)
       e.decision_date = "Required when a decision is set";
     setErrors(e);
@@ -406,20 +302,34 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
     e.preventDefault();
     if (!validate()) return;
 
-    let interventionId = form.intervention;
-    if (isEdit && defaultValues?.intervention_id) {
-      interventionId = defaultValues.intervention_id;
-    }
+    let targetId = form.intervention;
+    if (isEdit && defaultValues?.intervention_id) targetId = defaultValues.intervention_id;
 
-    await onSubmit({
-      intervention: interventionId,
-      decision: form.decision !== "none" ? form.decision : null,
-      decision_date: form.decision_date || null,
-      feedback: form.feedback,
-      notes: form.notes,
-      additional_info: form.additional_info,
-    });
+    const payload: TopicPriorityWritePayload =
+      form.target_type === "national_proposal"
+        ? {
+            national_proposal: targetId,
+            decision: form.decision !== "none" ? form.decision : null,
+            decision_date: form.decision_date || null,
+            feedback: form.feedback,
+            routing_decision: form.routing_decision || null,
+            notes: form.notes,
+            additional_info: form.additional_info,
+          }
+        : {
+            intervention: targetId,
+            decision: form.decision !== "none" ? form.decision : null,
+            decision_date: form.decision_date || null,
+            feedback: form.feedback,
+            routing_decision: form.routing_decision || null,
+            notes: form.notes,
+            additional_info: form.additional_info,
+          };
+
+    await onSubmit(payload);
   };
+
+  const targetLabel = form.target_type === "national_proposal" ? "National Program Proposal" : "Intervention";
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
@@ -430,33 +340,54 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
           </SheetTitle>
           <SheetDescription>
             {isEdit
-              ? "Update the HTA review status for this intervention."
+              ? "Update the HTA review status for this proposal."
               : isCreate
                 ? `Assign an initial review status to ${defaultValues?.intervention_name}.`
-                : "Assign a review status to a submitted intervention."}
+                : "Assign a review status to a submitted proposal."}
           </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 py-6">
+          {/* Target type toggle — only on fresh create (not edit, not scored-only create) */}
+          {!isEdit && !isCreate && (
+            <div className="space-y-1.5">
+              <Label>Proposal type</Label>
+              <div className="inline-flex border border-input rounded-md overflow-hidden text-sm">
+                {([
+                  { v: "intervention", label: "Intervention" },
+                  { v: "national_proposal", label: "National Program" },
+                ] as { v: TargetType; label: string }[]).map((o) => (
+                  <button
+                    key={o.v}
+                    type="button"
+                    onClick={() => switchTargetType(o.v)}
+                    className={`px-4 py-1.5 ${form.target_type === o.v ? "bg-[#27aae1] text-white" : "text-muted-foreground hover:bg-accent"}`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1.5">
-            <Label>Intervention <span className="text-destructive">*</span></Label>
+            <Label>{targetLabel} <span className="text-destructive">*</span></Label>
             {loadingMeta ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading interventions…
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading {targetLabel.toLowerCase()}s…
               </div>
             ) : (
-              <InterventionPicker
-                proposals={proposals}
+              <ProposalPicker
+                options={activeOptions}
                 value={form.intervention}
-                onChange={handleInterventionChange}
+                onChange={handleTargetChange}
                 disabled={isEdit}
-                // disabledName={form.intervention_name}
+                disabledName={form.intervention_name}
+                placeholder={`Select ${targetLabel.toLowerCase()}…`}
                 error={errors.intervention}
               />
             )}
-            {errors.intervention && (
-              <p className="text-xs text-destructive">{errors.intervention}</p>
-            )}
+            {errors.intervention && <p className="text-xs text-destructive">{errors.intervention}</p>}
           </div>
 
           {/* Decision */}
@@ -483,9 +414,22 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
               value={form.decision_date}
               onChange={(e) => setField("decision_date")(e.target.value)}
             />
-            {errors.decision_date && (
-              <p className="text-xs text-destructive">{errors.decision_date}</p>
-            )}
+            {errors.decision_date && <p className="text-xs text-destructive">{errors.decision_date}</p>}
+          </div>
+
+          {/* Routing Decision */}
+          <div className="space-y-1.5">
+            <Label>
+              Routing Decision{" "}
+              <span className="text-xs text-muted-foreground">(optional)</span>
+            </Label>
+            <textarea
+              value={form.routing_decision}
+              onChange={(e) => setField("routing_decision")(e.target.value)}
+              placeholder="e.g. Routed to Panel A for clinical review…"
+              rows={2}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring"
+            />
           </div>
 
           {/* Feedback */}

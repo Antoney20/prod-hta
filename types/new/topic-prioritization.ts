@@ -14,7 +14,7 @@ export interface TopicPriority {
   package: string | null;
   phase: string | null;
   decision: DecisionType | null;
-  routing_decision: string | null;   // NEW
+  routing_decision: string | null;  
   decision_date: string | null;
   feedback: string | null;
   system_categories: string[];
@@ -26,11 +26,12 @@ export interface TopicPriority {
 
 // add routing_decision to the write payload
 export interface TopicPriorityWritePayload {
-  intervention: string;
+  intervention?: string;
+  national_proposal?: string;
   decision: string | null;
   decision_date: string | null;
   feedback: string;
-  routing_decision?: string | null;   // NEW
+  routing_decision?: string | null;
   notes?: string;
   additional_info?: string;
 }

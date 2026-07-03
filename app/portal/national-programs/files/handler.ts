@@ -1,4 +1,7 @@
-import type { ProgramField, FieldType, NationalProgram } from "@/types/new/program";
+import type { ProgramField, FieldType, NationalProgram, ProgramProposal } from "@/types/new/program";
+
+export type ImportMode = "update" | "skip";
+export type RowMode = "create" | "update" | "skip";
 
 export interface ParsedSheet {
   headers: string[];
@@ -6,24 +9,28 @@ export interface ParsedSheet {
 }
 
 export interface MapTarget {
-  key: string;            // "title" | "submitted_date" | field.key
+  key: string;           
   label: string;
   required: boolean;
   type: FieldType | "date" | "text";
   options?: string[];
-  special?: boolean;      // title / submitted_date (fixed columns, not in `data`)
+  special?: boolean;      // fixed columns, not part of `data`
 }
 
 export interface RowResult {
   index: number;
+  reference: string;
   title: string;
   justification?: string;
   submitted_date?: string;
-  data: Record<string, any>;
+  data: Record<string, any>;          // already merged with existing on update rows
+  match: ProgramProposal | null;      // existing proposal matched by reference
+  mode: RowMode;                       // create | update | skip
   errors: { target: string; message: string }[];
 }
 
 const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+const normRef = (s: unknown) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
 /* ---------------- parse ---------------- */
 
@@ -32,7 +39,6 @@ export async function parseSpreadsheet(file: File): Promise<ParsedSheet> {
   const wb = new ExcelJS.Workbook();
   const buf = await file.arrayBuffer();
 
-  // .csv vs .xlsx/.xls — ExcelJS has separate readers
   if (file.name.toLowerCase().endsWith(".csv")) {
     await wb.csv.read(streamFromBuffer(buf));
   } else {
@@ -42,7 +48,6 @@ export async function parseSpreadsheet(file: File): Promise<ParsedSheet> {
   const ws = wb.worksheets[0];
   if (!ws) return { headers: [], rows: [] };
 
-  // first non-empty row = headers
   const headerRow = ws.getRow(1);
   const headers: string[] = [];
   headerRow.eachCell({ includeEmpty: false }, (cell) => {
@@ -53,7 +58,7 @@ export async function parseSpreadsheet(file: File): Promise<ParsedSheet> {
 
   const rows: Record<string, any>[] = [];
   ws.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-    if (rowNumber === 1) return; // skip header
+    if (rowNumber === 1) return;
     const obj: Record<string, any> = {};
     let hasValue = false;
     headers.forEach((h, i) => {
@@ -67,28 +72,26 @@ export async function parseSpreadsheet(file: File): Promise<ParsedSheet> {
   return { headers, rows };
 }
 
-// ExcelJS cell values can be rich objects (formula/hyperlink/date) — flatten to text
 function cellText(value: any): string {
   if (value == null) return "";
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   if (typeof value === "object") {
-    if ("text" in value) return String((value as any).text ?? "");           // rich text / hyperlink
-    if ("result" in value) return String((value as any).result ?? "");        // formula
+    if ("text" in value) return String((value as any).text ?? "");
+    if ("result" in value) return String((value as any).result ?? "");
     if ("richText" in value) return (value as any).richText.map((t: any) => t.text).join("");
     return "";
   }
   return String(value).trim();
 }
 
-// ExcelJS csv.read wants a Node-ish readable; wrap the ArrayBuffer in a Blob stream
 function streamFromBuffer(buf: ArrayBuffer): any {
   return new Blob([buf]).stream();
 }
 
-/* ---------------- targets + auto-map ---------------- */
 
 export function buildTargets(fields: ProgramField[] = []): MapTarget[] {
   return [
+    { key: "reference_number", label: "Reference No.", required: false, type: "text", special: true },
     { key: "title", label: "Title", required: true, type: "text", special: true },
     { key: "justification", label: "Justification", required: false, type: "text", special: true },
     { key: "submitted_date", label: "Submitted date", required: false, type: "date", special: true },
@@ -102,24 +105,41 @@ export function buildTargets(fields: ProgramField[] = []): MapTarget[] {
   ];
 }
 
-/** Best-effort header→target mapping by normalized key or label. */
+// reference column may be named many ways — match generously
+const REF_ALIASES = [
+  "referenceno", "reference", "referencenumber", "refno", "ref",
+  "interventionnumber", "interventionno", "intervention",
+  "proposalref", "proposalreference", "programref", "nationalprogramref",
+];
+
 export function autoMap(headers: string[], targets: MapTarget[]): Record<string, string> {
   const map: Record<string, string> = {};
   const used = new Set<string>();
   for (const t of targets) {
-    const hit = headers.find(
-      (h) => !used.has(h) && (norm(h) === norm(t.key) || norm(h) === norm(t.label)),
-    );
-    if (hit) {
-      map[t.key] = hit;
-      used.add(hit);
-    }
+    const hit = headers.find((h) => {
+      if (used.has(h)) return false;
+      const nh = norm(h);
+      if (nh === norm(t.key) || nh === norm(t.label)) return true;
+      if (t.key === "reference_number" && REF_ALIASES.includes(nh)) return true;
+      return false;
+    });
+    if (hit) { map[t.key] = hit; used.add(hit); }
   }
   return map;
 }
 
 export function unmappedRequired(targets: MapTarget[], mapping: Record<string, string>): MapTarget[] {
   return targets.filter((t) => t.required && !mapping[t.key]);
+}
+
+/* ---------------- existing-proposal index ---------------- */
+
+export function indexProposalsByRef(proposals: ProgramProposal[]): Map<string, ProgramProposal> {
+  const m = new Map<string, ProgramProposal>();
+  for (const p of proposals) {
+    if (p.reference_number) m.set(normRef(p.reference_number), p);
+  }
+  return m;
 }
 
 /* ---------------- coercion + validation ---------------- */
@@ -166,41 +186,76 @@ function isEmpty(v: any) {
   return v == null || v === "" || (Array.isArray(v) && v.length === 0);
 }
 
-/** Build typed rows + collect per-cell errors against the mapping. */
+/* ---------------- build + match + validate ---------------- */
+
 export function buildRows(
   parsed: ParsedSheet,
   mapping: Record<string, string>,
   targets: MapTarget[],
+  refIndex: Map<string, ProgramProposal>,
+  importMode: ImportMode,
 ): RowResult[] {
+  const refHeader = mapping["reference_number"];
+
   return parsed.rows.map((row, i) => {
     const errors: RowResult["errors"] = [];
-    const data: Record<string, any> = {};
+
+    // resolve reference + existing match
+    const reference = refHeader ? String(row[refHeader] ?? "").trim() : "";
+    const match = reference ? refIndex.get(normRef(reference)) ?? null : null;
+    const mode: RowMode = !match ? "create" : importMode === "update" ? "update" : "skip";
+
+    // coerce every mapped target
+    const sheetData: Record<string, any> = {};
     let title = "";
     let justification: string | undefined;
     let submitted_date: string | undefined;
 
     for (const t of targets) {
+      if (t.key === "reference_number") continue; // handled above, not a data field
       const header = mapping[t.key];
       const raw = header ? row[header] : "";
       const { value, error } = coerce(raw, t.type);
 
-      if (t.required && isEmpty(value)) {
-        errors.push({ target: t.key, message: `${t.label} is required` });
-      } else if (error) {
-        errors.push({ target: t.key, message: `${t.label}: ${error}` });
-      } else if ((t.type === "select" || t.type === "multiselect") && t.options?.length && !isEmpty(value)) {
-        const vals = Array.isArray(value) ? value : [value];
-        const bad = vals.filter((v) => !t.options!.includes(v));
-        if (bad.length) errors.push({ target: t.key, message: `${t.label}: invalid option(s) "${bad.join(", ")}"` });
+      // skip rows aren't imported — don't burden them with validation
+      if (mode !== "skip") {
+        if (t.required && isEmpty(value) && !(mode === "update" && t.key === "title")) {
+          errors.push({ target: t.key, message: `${t.label} is required` });
+        } else if (error) {
+          errors.push({ target: t.key, message: `${t.label}: ${error}` });
+        } else if ((t.type === "select" || t.type === "multiselect") && t.options?.length && !isEmpty(value)) {
+          const vals = Array.isArray(value) ? value : [value];
+          const bad = vals.filter((v) => !t.options!.includes(v));
+          if (bad.length) errors.push({ target: t.key, message: `${t.label}: invalid option(s) "${bad.join(", ")}"` });
+        }
       }
 
       if (t.key === "title") title = String(value ?? "");
       else if (t.key === "justification") justification = value || undefined;
       else if (t.key === "submitted_date") submitted_date = value || undefined;
-      else if (!isEmpty(value)) data[t.key] = value;
+      else if (!isEmpty(value)) sheetData[t.key] = value;
     }
 
-    return { index: i + 1, title, justification, submitted_date, data, errors };
+    // on update, fall back to existing values and MERGE data (sheet overrides existing keys)
+    let finalData = sheetData;
+    if (mode === "update" && match) {
+      finalData = { ...(match.data ?? {}), ...sheetData };
+      if (!title) title = match.title ?? "";
+      if (justification === undefined) justification = match.justification ?? undefined;
+      if (submitted_date === undefined) submitted_date = (match.submitted_date as string) ?? undefined;
+    }
+
+    return {
+      index: i + 1,
+      reference,
+      title,
+      justification,
+      submitted_date,
+      data: finalData,
+      match,
+      mode,
+      errors,
+    };
   });
 }
 

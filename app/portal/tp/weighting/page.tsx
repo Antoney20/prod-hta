@@ -112,8 +112,6 @@ function StatCard({
   );
 }
 
-// ── Access denied panel ───────────────────────────────────────────────────────
-
 function AccessDenied({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-20 text-center border border-slate-200 rounded-xl bg-white shadow-sm">
@@ -126,7 +124,6 @@ function AccessDenied({ label }: { label: string }) {
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function WeightReportsPage() {
   const [report, setReport] = useState<WeightingReportSuccess | null>(null);

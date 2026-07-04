@@ -31,28 +31,41 @@ const LABELS: Record<string, string> = {
 const labelFor = (k: string) =>
   LABELS[k] ?? k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-/** Render any value: array -> bullets, object -> label/value pairs, else text. */
+
+const isPrimitive = (v: any) => v == null || typeof v !== "object";
+
+/** Render any value at any depth: array -> bullets, object -> key/value, else text. */
 function Val({ value }: { value: any }) {
   if (value == null || value === "") return <span className="text-slate-300">—</span>;
+
   if (Array.isArray(value)) {
     return (
       <ul className="list-disc space-y-1 pl-4">
-        {value.map((v, i) => <li key={i}>{String(v)}</li>)}
+        {value.map((v, i) => <li key={i}><Val value={v} /></li>)}
       </ul>
     );
   }
+
   if (typeof value === "object") {
     return (
-      <div className="space-y-2">
-        {Object.entries(value).map(([k, v]) => (
-          <div key={k}>
-            <p className="font-medium text-slate-700">{k}</p>
-            <p className="text-slate-600">{String(v)}</p>
-          </div>
-        ))}
+      <div className="space-y-1.5">
+        {Object.entries(value).map(([k, v]) =>
+          isPrimitive(v) ? (
+            <p key={k} className="text-slate-600">
+              <span className="font-medium text-slate-700">{labelFor(k)}:</span>{" "}
+              {v == null || v === "" ? "—" : String(v)}
+            </p>
+          ) : (
+            <div key={k}>
+              <p className="font-medium text-slate-700">{labelFor(k)}</p>
+              <div className="pl-3"><Val value={v} /></div>
+            </div>
+          ),
+        )}
       </div>
     );
   }
+
   return <p className="whitespace-pre-line">{String(value)}</p>;
 }
 
@@ -77,11 +90,17 @@ function PackageDetail({ data }: { data: Record<string, any> }) {
             <td className={cell}><Val value={d.access_point} /></td>
             <td className={cell}>
               <Val value={d.tariff} />
-              {d.ppm && (
-                <p className="mt-2 text-slate-600">
-                  <span className="font-medium">PPM:</span> {String(d.ppm)}
-                </p>
-              )}
+              {d.ppm != null && d.ppm !== "" &&
+                (typeof d.ppm === "object" ? (
+                  <div className="mt-2 text-slate-600">
+                    <p className="font-medium">PPM</p>
+                    <div className="pl-3"><Val value={d.ppm} /></div>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-slate-600">
+                    <span className="font-medium">PPM:</span> {String(d.ppm)}
+                  </p>
+                ))}
             </td>
             <td className={cell}><Val value={d.access_rules} /></td>
           </tr>

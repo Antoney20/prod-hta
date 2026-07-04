@@ -5,12 +5,10 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import {
   NationalProgram, NationalProgramPayload, ProgramField, FieldType,
 } from "@/types/new/program";
-
 const TYPES: FieldType[] = [
   "text", "textarea", "richtext", "number", "integer",
   "boolean", "date", "select", "multiselect", "url", "email",
@@ -85,7 +83,7 @@ export function ProgramForm({ open, onClose, onSubmit, defaultValues, isSubmitti
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto backdrop-blur-sm">
+      <DialogContent className="max-w-2xl min-w-xl max-h-[90vh] overflow-y-auto backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle>{editing ? "Edit Program" : "Create National Program"}</DialogTitle>
         </DialogHeader>
@@ -138,15 +136,16 @@ export function ProgramForm({ open, onClose, onSubmit, defaultValues, isSubmitti
               {fields.map((f, i) => (
                 <div key={i} className="border border-gray-200 p-2.5 rounded-md space-y-2">
                   <div className="flex gap-2">
+                  
                     <input
                       className={`${input} font-mono`}
-                      placeholder="variable"
+                      placeholder="variable (eg. tariff )"
                       value={f.key}
                       onChange={(e) => upField(i, { key: e.target.value.replace(/\s+/g, "_") })}
                     />
                     <input
                       className={input}
-                      placeholder="Label"
+                      placeholder="Label (Document headings)"
                       value={f.label}
                       onChange={(e) => upField(i, { label: e.target.value })}
                     />

@@ -103,12 +103,7 @@ export default function AppraisalToolPage() {
     />
   ),
 },
-{
-  header: "Score",
-  cell: (row) => row.score != null         
-    ? <Badge variant="secondary">{row.score}</Badge>
-    : <span className="text-muted-foreground text-sm">—</span>,
-},
+
     {
       header: "Score",
       cell: (row) => row.score != null

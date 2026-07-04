@@ -1,4 +1,3 @@
-// downloader.ts
 import type { BenefitPackage } from "@/types/new/benefits-package";
 
 const STD_ORDER = ["scope", "access_point", "tariff", "ppm", "access_rules"];
@@ -8,17 +7,32 @@ const LABELS: Record<string, string> = {
 const label = (k: string) =>
   LABELS[k] ?? k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-const primitive = (v: unknown): string =>
-  v == null ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
+const primitive = (v: unknown): string => (v == null ? "" : String(v));
 
-/** Any value -> one readable cell. Arrays -> bullet lines, objects -> "key: value" lines. */
-function cellValue(value: unknown): string {
+function cellValue(value: unknown, depth = 0): string {
   if (value == null || value === "") return "";
-  if (Array.isArray(value)) return value.map((v) => `• ${primitive(v)}`).join("\n");
-  if (typeof value === "object")
-    return Object.entries(value as Record<string, unknown>)
-      .map(([k, v]) => `${k}: ${primitive(v)}`)
+  const pad = "  ".repeat(depth);
+
+  if (Array.isArray(value)) {
+    return value
+      .map((v) =>
+        v != null && typeof v === "object"
+          ? cellValue(v, depth)
+          : `${pad}• ${primitive(v)}`,
+      )
       .join("\n");
+  }
+
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) =>
+        v != null && typeof v === "object"
+          ? `${pad}${k}:\n${cellValue(v, depth + 1)}`
+          : `${pad}${k}: ${primitive(v)}`,
+      )
+      .join("\n");
+  }
+
   return String(value);
 }
 

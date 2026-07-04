@@ -84,10 +84,8 @@ export const getEvidence = async (params?: {
     const qs = new URLSearchParams(
       Object.entries(params ?? {}).filter(([, v]) => v) as [string, string][]
     ).toString();
-    const res = await api.get<{ results: CriterionEvidence[] }>(
-      `/v3/evidence/${qs ? `?${qs}` : ""}`
-    );
-    return res.data.results ?? [];
+    const res = await api.get<CriterionEvidence[]>(`/v3/evidence/${qs ? `?${qs}` : ""}`);
+    return res.data ?? [];
   } catch {
     return [];
   }

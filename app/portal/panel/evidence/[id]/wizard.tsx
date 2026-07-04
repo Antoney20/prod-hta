@@ -168,7 +168,7 @@ export default function UploadWizard({
               <div>
                 <h3 className="font-semibold text-slate-800">Start with the right columns</h3>
                 <p className="text-sm text-slate-500">
-                  Your template carries a <strong>Reference No.</strong> column plus this criterion’s data labels.
+                  Your template carries a <strong>Reference No.</strong> column has data like (INTERV-... as rows/data),  plus this criterion’s data labels- these are other columns.
                   Missing columns? You can add them after upload.
                 </p>
               </div>

@@ -143,12 +143,13 @@ const onDelete = async (ids: string[]) => {
           Evidence for this criterion
         </h2>
         <EvidenceTable
-          criterion={criterion}
-          rows={evidence}
-          loading={evLoading}
-          onDelete={onDelete}
-          resolveTarget={resolveTarget}
-        />
+  criterion={criterion}
+  rows={evidence}
+  loading={evLoading}
+  onDelete={onDelete}
+  onEdited={loadEvidence}
+  resolveTarget={resolveTarget}
+/>
       </div>
     </div>
   );

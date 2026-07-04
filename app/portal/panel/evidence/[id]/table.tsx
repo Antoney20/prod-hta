@@ -7,12 +7,14 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Search, MoreHorizontal, Trash2, ChevronLeft, ChevronRight, Inbox,
+  Search, MoreHorizontal, Trash2, Pencil, Download, ChevronLeft, ChevronRight, Inbox,
 } from "lucide-react";
 import { htmlToText } from "@/components/shared/text";
 import { Criterion, CriterionEvidence } from "@/types/new/evidence-panel";
 import { AdminOnly } from "@/app/context/role";
 import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
+import { exportEvidence } from "./handler";
+import EvidenceEditDialog from "./dialogue";
 
 const SIZES = [20, 30, 50];
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
@@ -30,15 +32,17 @@ interface Props {
   rows: CriterionEvidence[];
   loading?: boolean;
   onDelete: (ids: string[]) => void;
+  onEdited?: () => void;
   resolveTarget?: (row: CriterionEvidence) => { reference: string; name: string; kind: string } | null;
 }
 
-export default function EvidenceTable({ criterion, rows, loading, resolveTarget, onDelete }: Props) {
+export default function EvidenceTable({ criterion, rows, loading, resolveTarget, onDelete, onEdited }: Props) {
   const [search, setSearch] = useState("");
   const [size, setSize] = useState(20);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [toDelete, setToDelete] = useState<CriterionEvidence[] | null>(null);
+  const [toEdit, setToEdit] = useState<CriterionEvidence | null>(null);
 
   const cols = criterion.headers ?? [];
 
@@ -73,6 +77,9 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
     setToDelete(null);
   };
 
+  const doExport = () =>
+    exportEvidence(criterion.criteria, criterion.id, cols, filtered, (r) => resolveTarget?.(r) ?? null);
+
   const selectedRows = filtered.filter((r) => selected.has(r.id));
 
   return (
@@ -84,6 +91,11 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
             onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500">
+          <AdminOnly silent>
+            <Button variant="outline" size="sm" onClick={doExport} disabled={filtered.length === 0}>
+              <Download className="mr-1.5 h-4 w-4" /> Export
+            </Button>
+          </AdminOnly>
           <span>Rows</span>
           <select value={size} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}
             className="border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#27aae1]">
@@ -119,14 +131,15 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
               <th className={`${TH} min-w-40`}>Reference / Target</th>
               <th className={`${TH} w-24`}>Type</th>
               {cols.map((c) => <th key={c.key} className={`${TH} min-w-40`}>{c.label}</th>)}
+         
               <th className={`${TH} w-16 text-right`} />
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={5 + cols.length} className="py-16 text-center text-sm text-slate-400">Loading…</td></tr>
+              <tr><td colSpan={6 + cols.length} className="py-16 text-center text-sm text-slate-400">Loading…</td></tr>
             ) : paged.length === 0 ? (
-              <tr><td colSpan={5 + cols.length} className="py-16 text-center">
+              <tr><td colSpan={6 + cols.length} className="py-16 text-center">
                 <Inbox className="mx-auto mb-2 h-8 w-8 text-slate-300" />
                 <p className="text-sm text-slate-400">No evidence yet. Upload a file to get started.</p>
               </td></tr>
@@ -162,6 +175,7 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
                       <p className="line-clamp-2 max-w-60">{cell((r.data as any)?.[c.key])}</p>
                     </td>
                   ))}
+               
                   <td className={`${TD} text-right`}>
                     <AdminOnly silent>
                       <DropdownMenu>
@@ -169,6 +183,9 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
                           <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setToEdit(r)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                          </DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => setToDelete([r])}>
                             <Trash2 className="mr-2 h-4 w-4" /> Delete
                           </DropdownMenuItem>
@@ -199,6 +216,15 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
           </div>
         </div>
       )}
+
+      <EvidenceEditDialog
+        open={!!toEdit}
+        onOpenChange={(v) => !v && setToEdit(null)}
+        criterion={criterion}
+        row={toEdit}
+        targetLabel={toEdit ? resolveTarget?.(toEdit)?.reference : undefined}
+        onSaved={() => { setToEdit(null); onEdited?.(); }}
+      />
 
       <DeleteDialog
         open={!!toDelete}

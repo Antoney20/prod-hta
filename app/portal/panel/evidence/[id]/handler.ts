@@ -250,3 +250,57 @@ export async function downloadTemplate(name: string, code: string, headers: Crit
   a.click();
   URL.revokeObjectURL(url);
 }
+
+
+export async function exportEvidence(
+  name: string,
+  code: string,
+  headers: CriterionHeader[],
+  rows: CriterionEvidence[],
+  resolveTarget: (row: CriterionEvidence) => { reference: string; name: string; kind: string } | null,
+): Promise<void> {
+  const ExcelJS = (await import("exceljs")).default ?? (await import("exceljs"));
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Evidence");
+
+  const cols = [
+    { header: "Reference No.", key: "ref", width: 22 },
+    { header: "Target", key: "name", width: 30 },
+    { header: "Type", key: "type", width: 14 },
+    ...headers.map((h) => ({ header: h.label, key: h.key, width: 22 })),
+    { header: "Score", key: "score", width: 10 },
+  ];
+  ws.columns = cols;
+  ws.getRow(1).font = { bold: true };
+  ws.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF27AAE1" } };
+  ws.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+  for (const r of rows) {
+    const t = resolveTarget(r);
+    ws.addRow({
+      ref: t?.reference ?? "",
+      name: t?.name ?? "",
+      type: r.intervention ? "Intervention" : "Program",
+      score: r.score ?? "",
+      ...Object.fromEntries(
+        headers.map((h) => {
+          const v = (r.data as any)?.[h.key];
+          return [h.key, Array.isArray(v) ? v.join(", ") : v ?? ""];
+        }),
+      ),
+    });
+  }
+
+  ws.autoFilter = { from: "A1", to: `${String.fromCharCode(64 + cols.length)}1` };
+  ws.views = [{ state: "frozen", ySplit: 1 }];
+
+  const buf = await wb.xlsx.writeBuffer();
+  const url = URL.createObjectURL(
+    new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+  );
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${code || slugKey(name) || "criterion"}-evidence-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  a.click();
+  URL.revokeObjectURL(url);
+}

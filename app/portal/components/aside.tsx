@@ -39,6 +39,7 @@ import {
   FileStackIcon,
   Layers3,
   MessageSquare,
+  ClipboardListIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -233,6 +234,7 @@ const panelNavItems: NavItem[] = [
   icon: <LineChart className="h-5 w-5" />,
   children: [
     { type: "link", title: "Assessment Evidence",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
+    { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
     // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Protocol Guide",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
@@ -358,6 +360,7 @@ const adminNavItems: NavItem[] = [
   icon: <LineChart className="h-5 w-5" />,
   children: [
     { type: "link", title: "Assessment Evidence",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
+    { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
     // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Protocol Guide",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },

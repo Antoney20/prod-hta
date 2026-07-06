@@ -392,7 +392,8 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
 
           {/* Decision */}
           <div className="space-y-1.5">
-            <Label>Decision</Label>
+            <Label>Decision  <span className="text-xs text-gray-600"> ** use Pending where no decision as been made yet - it defaults to under-review  </span></Label> 
+           
             <Select value={form.decision} onValueChange={setField("decision")}>
               <SelectTrigger>
                 <SelectValue placeholder="Select decision outcome…" />
@@ -426,7 +427,7 @@ export function ReviewStatusForm({ open, onClose, onSubmit, defaultValues, isSub
             <textarea
               value={form.routing_decision}
               onChange={(e) => setField("routing_decision")(e.target.value)}
-              placeholder="e.g. Routed to Panel A for clinical review…"
+              placeholder="e.g. Moved to panel…"
               rows={2}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring"
             />

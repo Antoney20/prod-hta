@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Download, UploadCloud, Loader2, ArrowLeft, ArrowRight, CheckCircle2,
   AlertTriangle, RefreshCw, PlusCircle, FileSpreadsheet, Sparkles, Check,
+  X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -47,6 +48,7 @@ export default function UploadWizard({
   const [pickedNew, setPickedNew] = useState<Set<string>>(new Set());
   const [savingLabels, setSavingLabels] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const headers = criterion.headers ?? [];
   const targetIndex = useMemo(() => buildTargetIndex(interventions, programs), [interventions, programs]);
@@ -128,6 +130,34 @@ export default function UploadWizard({
     }
   };
 
+const usedKeys = useMemo(() => {
+  const s = new Set<string>();
+  for (const e of existing) {
+    for (const [k, v] of Object.entries(e.data ?? {})) {
+      if (v != null && v !== "") s.add(k);
+    }
+  }
+  return s;
+}, [existing]);
+
+const removeLabel = async (key: string) => {
+  if (usedKeys.has(key)) {
+    toast.error("This label has evidence values — clear them first.");
+    return;
+  }
+  setRemoving(key);
+  const next = headers.filter((h) => h.key !== key);
+  const res = await updateCriterion(criterion.id, { headers: next });
+  setRemoving(null);
+  if (res.ok && res.data) {
+    onCriterionChanged(res.data);
+    setMapping((m) => { const n = { ...m }; delete n[key]; return n; });
+    toast.success("Label removed.");
+  } else {
+    toast.error(res.error ?? "Could not remove label.");
+  }
+};
+
   const activeIdx = STEPS.findIndex((s) => s.key === step);
   const canImport = importable.length > 0;
 
@@ -174,22 +204,49 @@ export default function UploadWizard({
               </div>
             </div>
 
-            <div className="border border-slate-200 bg-slate-50/60 p-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Current data labels</p>
-              {headers.length === 0 ? (
-                <p className="text-sm text-slate-400">
-                  None yet — upload a file and we’ll detect labels from your columns.
-                </p>
-              ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  {headers.map((h) => (
-                    <span key={h.key} className="rounded-full bg-[#27aae1]/10 px-2.5 py-1 text-xs font-medium text-[#27aae1]">
-                      {h.label}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+<div className="border border-slate-200 bg-slate-50/60 p-4">
+  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Current data labels</p>
+  {headers.length === 0 ? (
+    <p className="text-sm text-slate-400">
+      None yet — upload a file and we'll detect labels from your columns.
+    </p>
+  ) : (
+    <div className="flex flex-wrap gap-1.5">
+      {headers.map((h) => {
+        const inUse = usedKeys.has(h.key);
+        return (
+          <span key={h.key}
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#27aae1]/10 px-2.5 py-1 text-xs font-medium text-[#27aae1]">
+            {h.label}
+            {inUse ? (
+              <span className="rounded bg-white/60 px-1 text-[10px] text-slate-500" title="In use by evidence — can't remove">
+                in use
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => removeLabel(h.key)}
+                disabled={removing === h.key}
+                className="text-[#1d70b8] hover:text-red-500 disabled:opacity-50"
+                title="Remove label"
+              >
+                {removing === h.key
+                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                  : <X className="h-3 w-3" />}
+              </button>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  )}
+  {headers.some((h) => usedKeys.has(h.key)) && (
+    <p className="mt-2 text-xs text-slate-400">
+      Labels marked <span className="font-medium">in use</span> hold evidence values and can't be removed.
+      Clear or delete that evidence first.
+    </p>
+  )}
+</div>
 
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline"

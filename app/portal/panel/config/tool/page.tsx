@@ -103,7 +103,12 @@ export default function AppraisalToolPage() {
     />
   ),
 },
-
+{
+  header: "Score",
+  cell: (row) => row.score != null         
+    ? <Badge variant="secondary">{row.score}</Badge>
+    : <span className="text-muted-foreground text-sm">—</span>,
+},
     {
       header: "Score",
       cell: (row) => row.score != null
@@ -200,13 +205,14 @@ export default function AppraisalToolPage() {
         </CardContent>
       </Card>
  
-      <AppraisalToolForm
+   <AppraisalToolForm
         open={formOpen}
         onClose={closeForm}
         onSubmit={handleSubmit}
         defaultValues={selected}
         isSubmitting={submitting}
         onReload={load}
+        existing={criteria}
       />
  
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>

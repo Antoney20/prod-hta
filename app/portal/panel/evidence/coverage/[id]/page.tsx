@@ -102,7 +102,7 @@ export default function CoverageDetailPage() {
             href={
               detail.kind === "intervention"
                 ? `/portal/interventions/${detail.id}`
-                : `/portal/national-programs/${detail.id}`
+                : `/portal/interventions/${detail.id}`
             }
             className="mt-2 inline-flex items-center gap-1 text-sm font-medium rounded border py-2 px-6  text-[#27aae1] hover:underline"
           >

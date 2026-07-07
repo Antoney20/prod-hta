@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Search, RefreshCw, ClipboardList, ChevronLeft, ChevronRight, Inbox,
+  Search, RefreshCw, ClipboardList, ChevronLeft, ChevronRight, Inbox, Check, X,
 } from "lucide-react";
 
 import { CoverageMatrix, CoverageTarget, OverallStatus } from "@/types/new/evidence-coverage";
@@ -15,6 +15,23 @@ import { CELL_STYLE, OVERALL_STYLE } from "@/components/shared/status";
 const PAGE_SIZE = 20;
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TD = "px-3 py-3 align-top";
+const THC = "px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
+const TDC = "px-2 py-3 text-center align-middle";
+
+type CellStatus = "complete" | "incomplete" | "empty" | "missing";
+
+const critLabel = (raw: string) => { 
+  const n = (raw ?? "").trim().toLowerCase(); 
+  if (n.includes("burden") && n.includes("mortality")) return "BOD-Mort";
+  if (n.includes("burden") && n.includes("morbidity")) return "BOD-D";
+   if (n.includes("access") && n.includes("healthcare")) return "Access";
+    if (n.includes("budgetary") && n.includes("affordability")) return "Budgetary";
+   if (n.includes("feasibility") && n.includes("implementation ")) return "Feasibility";
+   if (n.includes("incidence") && n.includes("occurrence")) return "Incidence";
+   if (n.includes("catastrophic") && n.includes("expenditure")) return "Expenditure";
+   if (n.includes("congruence") && n.includes("existing")) return "Congruence";
+  return (raw ?? "").trim().split(/\s+/).slice(0, 3).join(" ");
+};
 
 const FILTERS: { key: OverallStatus | "all"; label: string }[] = [
   { key: "all", label: "All" },
@@ -43,6 +60,19 @@ export default function EvidenceCoveragePage() {
   const targets = matrix?.targets ?? [];
   const criteria = matrix?.criteria ?? [];
   const summary = matrix?.summary;
+
+  const columns = useMemo(() => {
+    const seen = new Map<string, { key: string; name: string; label: string }>();
+    for (const t of targets)
+      for (const c of t.criteria) {
+        const key = (c.criterion_name ?? "").toLowerCase();
+        if (key && !seen.has(key))
+          seen.set(key, { key, name: c.criterion_name, label: critLabel(c.criterion_name) });
+      }
+    return [...seen.values()];
+  }, [targets]);
+
+  const colCount = 6 + columns.length;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -115,9 +145,9 @@ export default function EvidenceCoveragePage() {
 
       {/* legend */}
       <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-        {(["complete", "incomplete", "empty", "missing"] as const).map((s) => (
+        {(["complete", "incomplete", "empty", "missing"] as CellStatus[]).map((s) => (
           <span key={s} className="inline-flex items-center gap-1.5">
-            <span className={`h-2.5 w-2.5 rounded-full ${CELL_STYLE[s].dot}`} />
+            <CritIcon status={s} />
             {CELL_STYLE[s].label}
           </span>
         ))}
@@ -128,26 +158,38 @@ export default function EvidenceCoveragePage() {
         <table className="w-full text-sm">
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
-              <th className={`${TH} min-w-36`}>Reference</th>
-              <th className={`${TH} min-w-48`}>Name</th>
-              <th className={`${TH} w-28`}>Package</th>
-              <th className={`${TH} w-24`}>Phase</th>
-              <th className={`${TH} min-w-44`}>Coverage</th>
-              <th className={`${TH} min-w-40`}>Criteria</th>
-              <th className={`${TH} w-28`}>Status</th>
+              <th rowSpan={2} className={`${TH} min-w-60`}>Reference</th>
+              <th rowSpan={2} className={`${TH} min-w-72`}>Name</th>
+              <th rowSpan={2} className={`${TH} w-28`}>Package</th>
+              <th rowSpan={2} className={`${TH} w-24`}>Phase</th>
+              <th rowSpan={2} className={`${TH} min-w-44`}>Coverage</th>
+              {columns.length > 0 && (
+                <th colSpan={columns.length} className={`${TH} border-l border-slate-200 text-center`}>
+                  Criteria
+                </th>
+              )}
+              <th rowSpan={2} className={`${TH} w-28 border-l border-slate-200`}>Status</th>
+            </tr>
+            <tr>
+              {columns.map((col) => (
+                <th key={col.key} className={THC} title={col.name}>{col.label}</th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={7} className="py-16 text-center text-sm text-slate-400">Loading…</td></tr>
+              <tr><td colSpan={colCount} className="py-16 text-center text-sm text-slate-400">Loading…</td></tr>
             ) : paged.length === 0 ? (
-              <tr><td colSpan={7} className="py-16 text-center">
+              <tr><td colSpan={colCount} className="py-16 text-center">
                 <Inbox className="mx-auto mb-2 h-8 w-8 text-slate-300" />
                 <p className="text-sm text-slate-400">No targets match this view.</p>
               </td></tr>
             ) : (
               paged.map((t) => {
                 const badge = OVERALL_STYLE[t.overall];
+                const cellByName = new Map(
+                  t.criteria.map((c) => [(c.criterion_name ?? "").toLowerCase(), c] as const)
+                );
                 return (
                   <tr key={`${t.kind}-${t.id}`} className="transition-colors hover:bg-slate-50/70">
                     <td className={TD}>
@@ -177,17 +219,21 @@ export default function EvidenceCoveragePage() {
                         </span>
                       </div>
                     </td>
-                    <td className={TD}>
-                      {/* per-criterion status strip */}
-                      <div className="flex flex-wrap gap-1">
-                        {t.criteria.map((c) => (
-                          <span key={c.criterion}
-                            title={`${c.criterion_name}: ${CELL_STYLE[c.status].label} (${c.filled}/${c.total})`}
-                            className={`h-3 w-3 rounded-sm ${CELL_STYLE[c.status].dot}`} />
-                        ))}
-                      </div>
-                    </td>
-                    <td className={TD}>
+                    {/* per-criterion columns */}
+                    {columns.map((col, i) => {
+                      const cell = cellByName.get(col.key);
+                      const st = (cell?.status ?? "empty") as CellStatus;
+                      return (
+                        <td
+                          key={col.key}
+                          className={`${TDC} ${i === 0 ? "border-l border-slate-100" : ""}`}
+                          title={cell ? `${col.name}: ${CELL_STYLE[st].label} (${cell.filled}/${cell.total})` : `${col.name}: —`}
+                        >
+                          <CritIcon status={st} />
+                        </td>
+                      );
+                    })}
+                    <td className={`${TD} border-l border-slate-100`}>
                       <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${badge.cls}`}>
                         {badge.label}
                       </span>
@@ -218,6 +264,15 @@ export default function EvidenceCoveragePage() {
       )}
     </div>
   );
+}
+
+function CritIcon({ status }: { status: CellStatus }) {
+  switch (status) {
+    case "complete":   return <Check className="inline h-4 w-4 text-emerald-500" strokeWidth={2.5} />;
+    case "missing":    return <X className="inline h-4 w-4 text-red-400" strokeWidth={2.5} />;
+    case "incomplete": return <span className="font-bold text-[#fe7105]">–</span>;
+    default:           return <span className="text-slate-300">–</span>;
+  }
 }
 
 function SummaryCard({ label, value, tone }: {

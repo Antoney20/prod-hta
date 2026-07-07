@@ -29,8 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import { SubmittedProposal } from "@/types/dashboard/submittedProposals";
-import { SystemCategory, InterventionSystemCategory, InterventionScore } from "@/types/new/client";
+import { SystemCategory, InterventionScore } from "@/types/new/client";
 import { TopicPriority } from "@/types/new/topic-prioritization";
 import { getSubmittedProposals } from "@/app/api/dashboard/submitted-proposals";
 import {
@@ -44,13 +43,18 @@ const BRAND = "#27aae1";
 const UNASSIGNED = "__unassigned__";
 const NO_PHASE = "__none__";
 
+type TargetTypeFilter = "all" | "intervention" | "national_proposal";
+
 interface EnrichedProposal {
-  proposal: SubmittedProposal;
+  id: string;
+  name: string;
+  refNumber: string | null;
+  targetType: "intervention" | "national_proposal";
   scored: boolean;
   reviewStatus?: TopicPriority;
-  packageName: string | null; // null → Unassigned
-  phaseName: string | null;   // null → Not assigned
-  categoryIds: string[];      // linked system categories
+  packageName: string | null; 
+  phaseName: string | null;   
+  categoryIds: string[];     
 }
 
 interface PackageGroup {
@@ -68,8 +72,9 @@ export default function BrowseByPackagePage() {
   const [categories, setCategories] = useState<SystemCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [targetTypeFilter, setTargetTypeFilter] = useState<TargetTypeFilter>("all");
   const [activePackage, setActivePackage] = useState<string>("all");
-  const [scFilter, setScFilter] = useState<string>("all");     // system category (optional)
+  const [scFilter, setScFilter] = useState<string>("all");    
   const [phaseFilter, setPhaseFilter] = useState<string>("all");
   const [showCats, setShowCats] = useState(false);
 
@@ -92,11 +97,14 @@ export default function BrowseByPackagePage() {
 
       const proposals = proposalsRes.results ?? [];
       const scoredIds = new Set(scores.map((s: InterventionScore) => String(s.intervention)));
+
+      // Intervention review status — keyed by intervention_id, nationals excluded
       const reviewStatusMap = new Map(
-        topicPriorities.map((tp) => [String(tp.intervention_id), tp])
+        topicPriorities
+          .filter((tp) => tp.target_type !== "national_proposal" && tp.intervention_id)
+          .map((tp) => [String(tp.intervention_id), tp])
       );
 
-      // per-intervention meta from the link rows (package/phase are per-intervention)
       const meta = new Map<string, { pkg: string | null; phase: string | null; cats: Set<string> }>();
       for (const link of allLinks) {
         const iid = String(link.intervention);
@@ -107,10 +115,13 @@ export default function BrowseByPackagePage() {
         meta.set(iid, m);
       }
 
-      const enriched: EnrichedProposal[] = proposals.map((p) => {
+      const interventionItems: EnrichedProposal[] = proposals.map((p) => {
         const m = meta.get(String(p.id));
         return {
-          proposal: p,
+          id: String(p.id),
+          name: p.intervention_name ?? "Untitled",
+          refNumber: p.reference_number ?? null,
+          targetType: "intervention",
           scored: scoredIds.has(String(p.id)),
           reviewStatus: reviewStatusMap.get(String(p.id)),
           packageName: m?.pkg ?? null,
@@ -119,7 +130,22 @@ export default function BrowseByPackagePage() {
         };
       });
 
-      setItems(enriched);
+      // National programs come straight from the TP results
+      const nationalItems: EnrichedProposal[] = topicPriorities
+        .filter((tp) => tp.target_type === "national_proposal" && tp.national_proposal_id)
+        .map((tp) => ({
+          id: String(tp.national_proposal_id),
+          name: tp.intervention_name || "Untitled",
+          refNumber: tp.reference_number ?? null,
+          targetType: "national_proposal",
+          scored: tp.is_scored,
+          reviewStatus: tp,
+          packageName: tp.package,
+          phaseName: tp.phase,
+          categoryIds: [],
+        }));
+
+      setItems([...interventionItems, ...nationalItems]);
       setCategories(cats);
     } finally {
       setLoading(false);
@@ -127,18 +153,28 @@ export default function BrowseByPackagePage() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [activePackage, scFilter, phaseFilter, tableSearch, pageSize]);
-
-  /* ----------------------------- derived ----------------------------- */
+  useEffect(() => {
+    setPage(1);
+  }, [activePackage, scFilter, phaseFilter, tableSearch, pageSize, targetTypeFilter]);
+  // Switching target scope resets package/category selection to avoid empty views
+  useEffect(() => { setActivePackage("all"); setScFilter("all"); }, [targetTypeFilter]);
 
   const catNameById = useMemo(
     () => new Map(categories.map((c) => [String(c.id), c.name])),
     [categories]
   );
 
+
+  const scopedItems = useMemo(
+    () => targetTypeFilter === "all"
+      ? items
+      : items.filter((i) => i.targetType === targetTypeFilter),
+    [items, targetTypeFilter]
+  );
+
   const packageGroups = useMemo(() => {
     const map = new Map<string, PackageGroup>();
-    for (const it of items) {
+    for (const it of scopedItems) {
       if (!it.packageName) continue;
       const key = it.packageName.trim().toLowerCase();
       const name = it.packageName.trim();
@@ -146,29 +182,32 @@ export default function BrowseByPackagePage() {
       map.get(key)!.interventions.push(it);
     }
     return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [items]);
+  }, [scopedItems]);
 
-  const unassignedItems = useMemo(() => items.filter((i) => !i.packageName), [items]);
+  const unassignedItems = useMemo(
+    () => scopedItems.filter((i) => !i.packageName),
+    [scopedItems]
+  );
 
   const phaseOptions = useMemo(() => {
     const s = new Set<string>();
-    for (const it of items) if (it.phaseName) s.add(it.phaseName);
+    for (const it of scopedItems) if (it.phaseName) s.add(it.phaseName);
     return [...s].sort((a, b) => a.localeCompare(b));
-  }, [items]);
+  }, [scopedItems]);
 
   const systemCategoryOptions = useMemo(() => {
     const s = new Set<string>();
-    for (const it of items) for (const cid of it.categoryIds) s.add(cid);
+    for (const it of scopedItems) for (const cid of it.categoryIds) s.add(cid);
     return [...s]
       .map((id) => ({ id, name: catNameById.get(id) ?? "Unknown category" }))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [items, catNameById]);
+  }, [scopedItems, catNameById]);
 
   const allItems = useMemo((): EnrichedProposal[] => {
-    if (activePackage === "all") return items;
+    if (activePackage === "all") return scopedItems;
     if (activePackage === UNASSIGNED) return unassignedItems;
     return packageGroups.find((g) => g.key === activePackage)?.interventions ?? [];
-  }, [activePackage, items, unassignedItems, packageGroups]);
+  }, [activePackage, scopedItems, unassignedItems, packageGroups]);
 
   const filteredItems = useMemo(() => {
     let arr = allItems;
@@ -182,8 +221,8 @@ export default function BrowseByPackagePage() {
       const q = tableSearch.toLowerCase();
       arr = arr.filter(
         (i) =>
-          i.proposal.intervention_name?.toLowerCase().includes(q) ||
-          i.proposal.reference_number?.toLowerCase().includes(q)
+          i.name?.toLowerCase().includes(q) ||
+          i.refNumber?.toLowerCase().includes(q)
       );
     }
     return arr;
@@ -192,29 +231,27 @@ export default function BrowseByPackagePage() {
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const paginatedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
 
-  /* ----------------------------- stats ----------------------------- */
 
-  const totalAll = items.length;
+  const totalAll = scopedItems.length;
 
   const decisionGroups = useMemo(() => {
     const map = new Map<string, number>();
-    for (const item of items) {
+    for (const item of scopedItems) {
       const name = item.reviewStatus?.decision?.name;
       if (name) map.set(name, (map.get(name) ?? 0) + 1);
     }
     return Array.from(map.entries());
-  }, [items]);
+  }, [scopedItems]);
 
   const totalPending = useMemo(
-    () => items.filter((i) => !i.scored && !i.reviewStatus?.decision).length,
-    [items]
+    () => scopedItems.filter((i) => !i.scored && !i.reviewStatus?.decision).length,
+    [scopedItems]
   );
   const totalScoredNoPendingDecision = useMemo(
-    () => items.filter((i) => i.scored && !i.reviewStatus?.decision).length,
-    [items]
+    () => scopedItems.filter((i) => i.scored && !i.reviewStatus?.decision).length,
+    [scopedItems]
   );
 
-  /* ----------------------------- sidebar ----------------------------- */
 
   const filteredPackageGroups = useMemo(() => {
     if (!sidebarSearch) return packageGroups;
@@ -241,15 +278,25 @@ export default function BrowseByPackagePage() {
     return pages;
   }, [page, totalPages]);
 
+  const scopeNoun =
+    targetTypeFilter === "intervention" ? "interventions"
+    : targetTypeFilter === "national_proposal" ? "national programs"
+    : "proposals";
+
   const activePackageLabel =
-    activePackage === "all" ? "All Interventions"
+    activePackage === "all" ? `All ${targetTypeFilter === "all" ? "Proposals" : scopeNoun.replace(/^\w/, (c) => c.toUpperCase())}`
     : activePackage === UNASSIGNED ? "Unassigned"
     : packageGroups.find((g) => g.key === activePackage)?.name ?? "";
 
   const activePackageDesc =
-    activePackage === "all" ? `${totalAll} interventions across ${packageGroups.length} package${packageGroups.length !== 1 ? "s" : ""}`
-    : activePackage === UNASSIGNED ? "These interventions have not been linked to a package."
-    : `Interventions in the ${activePackageLabel} package.`;
+    activePackage === "all" ? `${totalAll} ${scopeNoun} across ${packageGroups.length} package${packageGroups.length !== 1 ? "s" : ""}`
+    : activePackage === UNASSIGNED ? `These ${scopeNoun} have not been linked to a package.`
+    : `${scopeNoun.replace(/^\w/, (c) => c.toUpperCase())} in the ${activePackageLabel} package.`;
+
+  const detailRoute = (item: EnrichedProposal) =>
+    item.targetType === "national_proposal"
+      ? `/portal/interventions/${item.id}`
+      : `/portal/interventions/${item.id}`;
 
   const getReviewStatusBadge = (item: EnrichedProposal) => {
     const { reviewStatus, scored } = item;
@@ -288,7 +335,7 @@ export default function BrowseByPackagePage() {
     <nav className="flex-1 overflow-y-auto">
       <div className="divide-y divide-slate-100">
         <SidebarItem
-          label="All Interventions"
+          label={targetTypeFilter === "all" ? "All Proposals" : `All ${scopeNoun.replace(/^\w/, (c) => c.toUpperCase())}`}
           count={totalAll}
           active={activePackage === "all"}
           onClick={() => { setActivePackage("all"); onSelect?.(); }}
@@ -317,7 +364,7 @@ export default function BrowseByPackagePage() {
         )}
       </div>
 
-      {/* Optional system-category filter — collapsed by default */}
+      {/* Optional system-category filter — interventions only, collapsed by default */}
       <div className="border-t border-slate-200">
         <button
           onClick={() => setShowCats((v) => !v)}
@@ -385,10 +432,10 @@ export default function BrowseByPackagePage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-800 tracking-tight">
-              Interventions by Package
+              Proposals by Package
             </h1>
             <p className="text-sm text-slate-500 mt-0.5 hidden sm:block">
-              Select a package on the left to view its interventions, filter by phase and manage review status
+              Browse interventions and national programs by package, filter by phase and manage review status
             </p>
           </div>
         </div>
@@ -405,6 +452,30 @@ export default function BrowseByPackagePage() {
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
+      </div>
+
+      {/* Target-type scope toggle */}
+      <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+        {([
+          { v: "all", label: "All" },
+          { v: "intervention", label: "Interventions" },
+          { v: "national_proposal", label: "National Programs" },
+        ] as { v: TargetTypeFilter; label: string }[]).map((o) => {
+          const active = targetTypeFilter === o.v;
+          return (
+            <button
+              key={o.v}
+              onClick={() => setTargetTypeFilter(o.v)}
+              className={cn(
+                "px-3 py-1.5 text-xs font-semibold rounded-md transition-colors",
+                active ? "bg-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+              style={active ? { color: BRAND } : undefined}
+            >
+              {o.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Mobile active package pill */}
@@ -437,7 +508,7 @@ export default function BrowseByPackagePage() {
               <StatCard label="No decisions yet" value={0} sub="—" />
             ) : (
               decisionGroups.map(([name, count]) => (
-                <StatCard key={name} label={name} value={count} sub="interventions" />
+                <StatCard key={name} label={name} value={count} sub={scopeNoun} />
               ))
             )}
           </div>
@@ -447,7 +518,7 @@ export default function BrowseByPackagePage() {
 
         <div className="flex flex-col gap-1.5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Total</p>
-          <StatCard label="Interventions" value={totalAll} sub={`across ${packageGroups.length} package${packageGroups.length !== 1 ? "s" : ""}`} />
+          <StatCard label={scopeNoun.replace(/^\w/, (c) => c.toUpperCase())} value={totalAll} sub={`across ${packageGroups.length} package${packageGroups.length !== 1 ? "s" : ""}`} />
         </div>
       </div>
 
@@ -508,7 +579,7 @@ export default function BrowseByPackagePage() {
                 </div>
                 <div className="shrink-0 text-xs text-slate-500 pt-0.5">
                   <strong className="text-slate-700">{filteredItems.length}</strong>{" "}
-                  intervention{filteredItems.length !== 1 ? "s" : ""}
+                  {scopeNoun}
                   {(tableSearch || phaseFilter !== "all" || scFilter !== "all") && (
                     <span className="text-slate-400"> (filtered)</span>
                   )}
@@ -566,7 +637,7 @@ export default function BrowseByPackagePage() {
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
                   <ClipboardList className="h-10 w-10 opacity-20" />
                   <div className="text-center">
-                    <p className="text-sm font-medium text-slate-500">No interventions found</p>
+                    <p className="text-sm font-medium text-slate-500">No {scopeNoun} found</p>
                     <p className="text-xs text-slate-400 mt-1">
                       {tableSearch || phaseFilter !== "all" || scFilter !== "all"
                         ? "Try adjusting your filters."
@@ -580,7 +651,7 @@ export default function BrowseByPackagePage() {
                     <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
                       <TableHead className="w-10 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">#</TableHead>
                       <TableHead className="w-44 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Reference</TableHead>
-                      <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Intervention Name</TableHead>
+                      <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Name</TableHead>
                       <TableHead className="w-32 hidden sm:table-cell text-[11px] font-semibold uppercase tracking-wider text-slate-400">Phase</TableHead>
                       <TableHead className="w-40 hidden lg:table-cell text-[11px] font-semibold uppercase tracking-wider text-slate-400">Package</TableHead>
                       <TableHead className="w-28 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Scored</TableHead>
@@ -591,9 +662,10 @@ export default function BrowseByPackagePage() {
                   </TableHeader>
                   <TableBody>
                     {paginatedItems.map((item, idx) => {
-                      const { proposal, scored, packageName, phaseName } = item;
+                      const { scored, packageName, phaseName } = item;
+                      const isNational = item.targetType === "national_proposal";
                       return (
-                        <TableRow key={proposal.id} className="hover:bg-slate-50/70 transition-colors border-b border-slate-100">
+                        <TableRow key={`${item.targetType}-${item.id}`} className="hover:bg-slate-50/70 transition-colors border-b border-slate-100">
 
                           <TableCell className="text-center text-xs text-slate-400 font-mono">
                             {(page - 1) * pageSize + idx + 1}
@@ -601,17 +673,24 @@ export default function BrowseByPackagePage() {
 
                           <TableCell>
                             <button
-                              onClick={() => router.push(`/portal/interventions/${proposal.id}`)}
+                              onClick={() => router.push(detailRoute(item))}
                               className="font-mono text-xs bg-slate-100 hover:bg-[#27aae1]/10 hover:text-[#27aae1] px-2 py-1 rounded transition-colors text-[#27aae1] whitespace-nowrap"
                             >
-                              {proposal.reference_number ?? "—"}
+                              {item.refNumber ?? "—"}
                             </button>
                           </TableCell>
 
                           <TableCell>
-                            <p className="font-medium text-sm text-slate-800 leading-snug truncate max-w-[200px] sm:max-w-xs lg:max-w-sm">
-                              {proposal.intervention_name ?? "Untitled"}
-                            </p>
+                            <div className="flex items-center gap-2 max-w-[200px] sm:max-w-xs lg:max-w-sm">
+                              <p className="font-medium text-sm text-slate-800 leading-snug truncate">
+                                {item.name ?? "Untitled"}
+                              </p>
+                              {isNational && (
+                                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-200">
+                                  National
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
 
                           <TableCell className="hidden sm:table-cell">
@@ -631,7 +710,9 @@ export default function BrowseByPackagePage() {
                           </TableCell>
 
                           <TableCell>
-                            {scored ? (
+                            {isNational ? (
+                              <span className="text-slate-300 text-xs">—</span>
+                            ) : scored ? (
                               <Badge className="text-xs bg-emerald-100 text-emerald-700 border-emerald-200">Yes</Badge>
                             ) : (
                               <Badge variant="outline" className="text-xs text-slate-500">No</Badge>
@@ -653,17 +734,28 @@ export default function BrowseByPackagePage() {
                           </TableCell>
 
                           <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant={scored ? "outline" : "default"}
-                              className="h-7 text-xs gap-1"
-                              style={!scored ? { background: BRAND, borderColor: BRAND, color: "#fff" } : undefined}
-                              onClick={() => router.push(`/portal/tp/score/${proposal.id}`)}
-                            >
-                              {scored
-                                ? <><Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span></>
-                                : <><span className="hidden sm:inline">Score</span> <ChevronRight className="h-3.5 w-3.5" /></>}
-                            </Button>
+                            {isNational ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs gap-1"
+                                onClick={() => router.push(detailRoute(item))}
+                              >
+                                <Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span>
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant={scored ? "outline" : "default"}
+                                className="h-7 text-xs gap-1"
+                                style={!scored ? { background: BRAND, borderColor: BRAND, color: "#fff" } : undefined}
+                                onClick={() => router.push(`/portal/tp/score/${item.id}`)}
+                              >
+                                {scored
+                                  ? <><Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span></>
+                                  : <><span className="hidden sm:inline">Score</span> <ChevronRight className="h-3.5 w-3.5" /></>}
+                              </Button>
+                            )}
                           </TableCell>
 
                         </TableRow>

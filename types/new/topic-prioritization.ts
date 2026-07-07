@@ -4,17 +4,17 @@ export interface DecisionType {
   description: string;
 }
 
-// add routing_decision to the read row
 export interface TopicPriority {
   id: string | null;
-  target_type?: "intervention" | "national_proposal";
+  target_type: "intervention" | "national_proposal";
   reference_number: string;
-  intervention_id: string;
-  intervention_name: string;
+  intervention_id: string | null;
+  national_proposal_id: string | null;
+  intervention_name: string;          
   package: string | null;
   phase: string | null;
   decision: DecisionType | null;
-  routing_decision: string | null;  
+  routing_decision: string | null;
   decision_date: string | null;
   feedback: string | null;
   system_categories: string[];
@@ -24,7 +24,6 @@ export interface TopicPriority {
   updated_at: string | null;
 }
 
-// add routing_decision to the write payload
 export interface TopicPriorityWritePayload {
   intervention?: string;
   national_proposal?: string;
@@ -43,11 +42,7 @@ export interface TopicPriorityResponse {
   results: TopicPriority[];
 }
 
-
-
-export type BulkMoveToPanelPayload = {   
-  ids: string[];
-};
+export type BulkMoveToPanelPayload = { ids: string[] };
 
 export interface UndoMoveToPanelResult {
   detail: string;

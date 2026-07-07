@@ -40,6 +40,7 @@ import {
   Layers3,
   MessageSquare,
   ClipboardListIcon,
+  File,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -237,7 +238,9 @@ const panelNavItems: NavItem[] = [
     { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
     // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Criteria Rules and Guides",   href: "/portal/panel/rules", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Appraisal Template", href: "/portal/panel/data",      icon: <File className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
+  
 
     { type: "link", title: "Panel Decision", href: "/portal/panel/decision",      icon: <FaFileContract className="h-4 w-4" /> },
 
@@ -363,6 +366,7 @@ const adminNavItems: NavItem[] = [
     { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
     // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Criteria Rules and Guides",   href: "/portal/panel/rules", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    { type: "link", title: "Appraisal Template", href: "/portal/panel/data",      icon: <File className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
 
     { type: "link", title: "Panel Decision", href: "/portal/panel/decision",      icon: <FaFileContract className="h-4 w-4" /> },

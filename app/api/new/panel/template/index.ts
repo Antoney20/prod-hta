@@ -1,43 +1,41 @@
 import api from "@/app/api/auth";
-import { DecisionTemplate, GenerateInput, GenerateResult, Write } from "@/types/new/decision-template";
+import {
+  EvidenceRow, EvidenceTarget, GenerateInput, GenerateResult, ListResult,
+} from "@/types/new/decision-template";
+
+const BASE = "/v3/decision-templates/";
 
 const errMsg = (e: any): string =>
   e?.response?.data?.error ?? e?.response?.data?.detail ?? e?.message ?? "Something went wrong";
 
-/** All templates with full criteria — the comparison grid. */
-export const getAllTemplatesFull = async (): Promise<DecisionTemplate[]> => {
-  try {
-    const res = await api.get<DecisionTemplate[]>(`/v3/decision-templates/?full=1`);
-    return res.data ?? [];
-  } catch {
-    return [];
-  }
-};
+const unwrap = <T>(res: any): T => (res?.data?.data ?? res?.data) as T;
 
-export const getTemplate = async (id: string): Promise<DecisionTemplate | null> => {
+/** Compact index — targets that have evidence. */
+export const listTargets = async (kind?: EvidenceRow["kind"]): Promise<EvidenceRow[]> => {
   try {
-    const res = await api.get<DecisionTemplate>(`/v3/decision-templates/${id}/`);
-    return res.data ?? null;
-  } catch {
-    return null;
-  }
-};
-
-/** Generate = create. POST to the collection builds templates from criteria + rules + evidence. */
-export const generateTemplates = async (payload?: GenerateInput): Promise<Write<GenerateResult>> => {
-  try {
-    const res = await api.post<GenerateResult>(`/v3/decision-templates/`, payload ?? {});
-    return { ok: true, data: res.data };
+    const res = await api.get(BASE, { params: kind ? { kind } : {} });
+    return unwrap<ListResult>(res).targets ?? [];
   } catch (e) {
-    return { ok: false, error: errMsg(e) };
+    throw new Error(errMsg(e));
   }
 };
 
-export const deleteTemplate = async (id: string): Promise<Write<null>> => {
+/** Full evidence payload for one target. */
+export const getTarget = async (id: string): Promise<EvidenceTarget> => {
   try {
-    await api.delete(`/v3/decision-templates/${id}/`);
-    return { ok: true };
+    const res = await api.get(`${BASE}/${id}`);
+    return unwrap<EvidenceTarget>(res);
   } catch (e) {
-    return { ok: false, error: errMsg(e) };
+    throw new Error(errMsg(e));
+  }
+};
+
+/** Full AI feed — all targets, or a scoped subset. */
+export const generatePayload = async (body: GenerateInput = {}): Promise<EvidenceTarget[]> => {
+  try {
+    const res = await api.post(BASE, body);
+    return unwrap<GenerateResult>(res).targets ?? [];
+  } catch (e) {
+    throw new Error(errMsg(e));
   }
 };

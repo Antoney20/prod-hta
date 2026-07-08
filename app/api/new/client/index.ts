@@ -1,7 +1,11 @@
-import { BulkRescorePayload, InterventionProposal, InterventionScore, InterventionScoreResponse, InterventionSystemCategory, ScorePatchPayload, SelectionTool, SystemCategory } from "@/types/new/client";
+import {
+  BulkRescorePayload, InterventionProposal, InterventionScore, InterventionScoreResponse,
+  InterventionSystemCategory, ScorePatchPayload, SelectionTool, SystemCategory,
+} from "@/types/new/client";
 import api from "../../auth";
 import { PaginatedResponse } from "@/types/new/shared";
 
+// ── Selection tools ───────────────────────────────────────────────────────────
 
 export const getSelectionTools = async (): Promise<SelectionTool[]> => {
   try {
@@ -51,6 +55,7 @@ export const deleteSelectionTool = async (id: string): Promise<boolean> => {
   }
 };
 
+// ── System categories ─────────────────────────────────────────────────────────
 
 export const getSystemCategories = async (): Promise<SystemCategory[]> => {
   try {
@@ -100,6 +105,7 @@ export const deleteSystemCategory = async (id: string): Promise<boolean> => {
   }
 };
 
+// ── Intervention ↔ category links ─────────────────────────────────────────────
 
 export const getInterventionCategories = async (interventionId?: string): Promise<InterventionSystemCategory[]> => {
   try {
@@ -131,11 +137,24 @@ export const deleteInterventionCategory = async (id: string): Promise<boolean> =
   }
 };
 
+// ── Scores (interventions + national programs, same endpoint) ─────────────────
 
 export const getInterventionScores = async (interventionId?: string): Promise<InterventionScore[]> => {
   try {
     const params = interventionId ? { intervention: interventionId } : undefined;
     const res = await api.get<PaginatedResponse<InterventionScore>>("/v3/intervention-scores/", { params });
+    return res.data.results ?? [];
+  } catch {
+    return [];
+  }
+};
+
+/** National-program scores — same endpoint, national_proposal query param. */
+export const getNationalScores = async (nationalProposalId: string): Promise<InterventionScore[]> => {
+  try {
+    const res = await api.get<PaginatedResponse<InterventionScore>>("/v3/intervention-scores/", {
+      params: { national_proposal: nationalProposalId },
+    });
     return res.data.results ?? [];
   } catch {
     return [];
@@ -151,16 +170,13 @@ export const getInterventionScoreDetail = async (id: string): Promise<Interventi
   }
 };
 
-
-
-
 export const createInterventionScore = async (
-  scores: Pick<InterventionScore, "intervention" | "criteria" | "score" | "comment">[]
+  scores: Array<
+    Pick<InterventionScore, "criteria" | "score" | "comment"> &
+      ({ intervention: string } | { national_proposal: string })
+  >
 ): Promise<InterventionScore[]> => {
-  const res = await api.post<InterventionScore[]>(
-    "/v3/intervention-scores/bulk/",
-    { scores }
-  );
+  const res = await api.post<InterventionScore[]>("/v3/intervention-scores/bulk/", { scores });
   return res.data;
 };
 
@@ -185,72 +201,57 @@ export const deleteInterventionScore = async (id: string): Promise<boolean> => {
   }
 };
 
-
+// ── Proposals ─────────────────────────────────────────────────────────────────
 
 export const getInterventionProposals = async (): Promise<InterventionProposal[]> => {
   try {
     const res = await api.get<PaginatedResponse<InterventionProposal>>("/v3/re-open/");
     return res.data.results ?? [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
+};
+
+/** Single national program proposal by id (for scoring/detail headers). */
+export const getNationalProgramById = async (id: string): Promise<any | null> => {
+  try {
+    const res = await api.get(`/v3/program-proposals/${id}/`);
+    return res.data;
+  } catch {
+    return null;
+  }
 };
 
 // ---------------------------------------------------------------------------
 // Rescore window  (admin / SWG / secretariat only)
 // ---------------------------------------------------------------------------
- 
-/**
- * Open the rescore window for a specific intervention.
- * Only admin / SWG / secretariat can call this.
- *
- * POST /v3/interventions/<id>/open-rescore/
- */
+
 export const openRescoreWindow = async (
   interventionId: string
 ): Promise<{ detail: string } | null> => {
   try {
-    const res = await api.post<{ detail: string }>(
-      `/v3/re-open/${interventionId}/open-rescore/`
-    );
+    const res = await api.post<{ detail: string }>(`/v3/re-open/${interventionId}/open-rescore/`);
     return res.data;
   } catch {
     return null;
   }
 };
- 
-/**
- * Close the rescore window for a specific intervention.
- * Only admin / SWG / secretariat can call this.
- *
- * POST /v3/interventions/<id>/close-rescore/
- */
+
 export const closeRescoreWindow = async (
   interventionId: string
 ): Promise<{ detail: string } | null> => {
   try {
-    const res = await api.post<{ detail: string }>(
-      `/v3/re-open/${interventionId}/close-rescore/`
-    );
+    const res = await api.post<{ detail: string }>(`/v3/re-open/${interventionId}/close-rescore/`);
     return res.data;
   } catch {
     return null;
   }
 };
- 
- 
 
-
- 
 // ---------------------------------------------------------------------------
 // Rescoring  — edits the existing row in-place, requires rescore window open
 // ---------------------------------------------------------------------------
- 
-/**
- * Rescore a single existing score.
- * Reviewer patches their own row — intervention rescore window must be open.
- * Can only be done once per score (is_rescored flips to true).
- *
- * PATCH /v3/intervention-scores/<id>/rescore/
- */
+
 export const rescoreIntervention = async (
   scoreId: string,
   payload: ScorePatchPayload
@@ -265,14 +266,7 @@ export const rescoreIntervention = async (
     return null;
   }
 };
- 
-/**
- * Rescore all scores for one intervention in a single call.
- * Reviewer patches their own rows — intervention rescore window must be open.
- * Already-rescored criteria are rejected by the backend.
- *
- * POST /v3/intervention-scores/bulk-rescore/
- */
+
 export const bulkRescoreIntervention = async (
   payload: BulkRescorePayload
 ): Promise<InterventionScoreResponse[]> => {

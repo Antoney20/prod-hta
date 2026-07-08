@@ -69,7 +69,9 @@ export interface InterventionSystemCategory {
 export interface InterventionScore {
   id: UUID;
   reviewer: UUID;
-  intervention: UUID;
+  intervention: UUID | null;
+  national_proposal: UUID | null;
+  target_type: "intervention" | "national_proposal";
   criteria: UUID;
   score: Record<string, unknown>;
   comment: string | null;
@@ -77,10 +79,11 @@ export interface InterventionScore {
   updated_at: ISODateString;
   reviewer_name: string;
   reviewer_email: string;
-  intervention_name: string;
+  intervention_name: string;      
   intervention_reference: string;
+  package: string | null;
+  phase: string | null;
 }
-
 
 
 

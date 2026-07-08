@@ -20,8 +20,7 @@ import { toast } from "react-toastify";
 
 import { WeightingReportSuccess, ReviewerInterventionScore } from "@/types/new/weighting";
 import { WeightingFilters, SortOrder } from "./filters";
-import { exportIndividualCSV } from "./export";
-
+import { exportIndividualXLSX } from "./export";
 
 const BRAND = "#27aae1";
 const PAGE_SIZES = [20, 30, 50, 100];
@@ -86,7 +85,11 @@ export function IndividualRankingTable({ report }: { report: WeightingReportSucc
     let items: ReviewerInterventionScore[] = report.reviewer_scores.filter((r) => r.reviewer_id === selectedId);
     if (search.trim()) {
       const q = search.toLowerCase();
-      items = items.filter((r) => r.intervention_name.toLowerCase().includes(q));
+      items = items.filter(
+        (r) =>
+          r.intervention_name.toLowerCase().includes(q) ||
+          (r.intervention_reference?.toLowerCase().includes(q) ?? false)
+      );
     }
     if (sortOrder === "score_desc") items.sort((a, b) => b.total_score - a.total_score);
     else if (sortOrder === "score_asc") items.sort((a, b) => a.total_score - b.total_score);
@@ -120,10 +123,10 @@ export function IndividualRankingTable({ report }: { report: WeightingReportSucc
           size="sm"
           className="gap-1.5"
           disabled={!filtered.length}
-          onClick={() => { exportIndividualCSV(report); toast.success("Exported individual scores."); }}
+          onClick={async () => { await exportIndividualXLSX(report); toast.success("Exported individual scores."); }}
         >
           <Download className="h-4 w-4" />
-          Export CSV
+          Export Excel
         </Button>
       </div>
 
@@ -132,7 +135,7 @@ export function IndividualRankingTable({ report }: { report: WeightingReportSucc
         <Table className="min-w-max w-full text-sm">
           <TableHeader>
             <TableRow className="border-b-0">
-              <TableHead colSpan={3} className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
+              <TableHead colSpan={4} className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
                 Intervention
               </TableHead>
               <TableHead
@@ -145,6 +148,7 @@ export function IndividualRankingTable({ report }: { report: WeightingReportSucc
             </TableRow>
             <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
               <TableHead className="w-14 text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-100 px-4">Rank</TableHead>
+              <TableHead className="w-36 text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-4">Ref No.</TableHead>
               <TableHead className="min-w-[220px] text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-4">Intervention</TableHead>
               <TableHead className="w-28 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-200 px-4">Total score</TableHead>
               {criteriaNames.map((name) => (
@@ -163,7 +167,7 @@ export function IndividualRankingTable({ report }: { report: WeightingReportSucc
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
+                <TableCell colSpan={4 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
                   {totalForReviewer === 0 ? "This reviewer has no recorded scores." : "No interventions match the current filters."}
                 </TableCell>
               </TableRow>
@@ -174,6 +178,11 @@ export function IndividualRankingTable({ report }: { report: WeightingReportSucc
                   <TableRow key={row.intervention_id} className="hover:bg-slate-50/70 transition-colors border-b border-slate-100 last:border-0">
                     <TableCell className="py-3 px-4 border-r border-slate-100 text-center">
                       {rank != null ? <RankBadge rank={rank} /> : <span className="text-slate-300 text-xs">—</span>}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 align-middle">
+                      <span className="font-mono text-xs text-slate-600 whitespace-nowrap">
+                        {row.intervention_reference ?? "—"}
+                      </span>
                     </TableCell>
                     <TableCell className="py-3 px-4 align-middle">
                       <p className="font-medium text-sm text-slate-800 leading-snug">{row.intervention_name}</p>

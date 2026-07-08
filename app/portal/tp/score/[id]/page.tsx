@@ -18,25 +18,41 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-import { SubmittedProposal } from "@/types/dashboard/submittedProposals";
 import { InterventionScore, SelectionTool } from "@/types/new/client";
 import { CriteriaInformation } from "@/types/new/criteria-info";
 import { DraftScore, groupTools } from "@/types/new/score";
-import { getSubmittedProposalById } from "@/app/api/dashboard/submitted-proposals";
-import { createInterventionScore, getInterventionScores, getSelectionTools } from "@/app/api/new/client";
-import { getCriteriaInfoByIntervention } from "@/app/api/new/criteria-info";
+import {
+  createInterventionScore,
+  getInterventionScores,
+  getNationalScores,
+  getSelectionTools,
+} from "@/app/api/new/client";
+import { getCriteriaInfo } from "@/app/api/new/criteria-info";
+import { getProposalById } from "@/app/api/dashboard/lookup";
 
 import { ScoringWizard } from "./wizard";
 import { ActiveCriteriaPanel, BasicInfoPanel, NoCriteriaPanel } from "./details";
 import { useGlobalUser } from "@/app/context/guard";
 
+type TargetType = "intervention" | "national_proposal";
+
+interface ScoringTarget {
+  id: string;
+  name: string;
+  reference_number: string | null;
+}
 
 export default function InterventionScoringPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user, isInitialized } = useGlobalUser();
 
-  const [proposal, setProposal] = useState<SubmittedProposal | null>(null);
+  // Target type is resolved from the proposal itself (authoritative), not the URL.
+  const [resolvedType, setResolvedType] = useState<TargetType>("intervention");
+  const isNational = resolvedType === "national_proposal";
+  const targetNoun = isNational ? "national program" : "intervention";
+
+  const [target, setTarget] = useState<ScoringTarget | null>(null);
   const [tools, setTools] = useState<SelectionTool[]>([]);
   const [savedScores, setSavedScores] = useState<InterventionScore[]>([]);
   const [criteriaInfoList, setCriteriaInfoList] = useState<CriteriaInformation[]>([]);
@@ -46,19 +62,29 @@ export default function InterventionScoringPage() {
   const [activeCriteriaLabel, setActiveCriteriaLabel] = useState<string>("");
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
-
+  // Storage key uses the id only; type is resolved after load.
   const STORAGE_KEY = `scoring-drafts:${id}`;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [p, toolList, scoreList, criteriaList] = await Promise.all([
-        getSubmittedProposalById(id),
+      const t = await getProposalById(id);
+      if (!t) {
+        setTarget(null);
+        return;
+      }
+
+      const type: TargetType = t.target_type;
+      setResolvedType(type);
+      const national = type === "national_proposal";
+
+      const [toolList, scoreList, criteriaList] = await Promise.all([
         getSelectionTools(),
-        getInterventionScores(id),
-        getCriteriaInfoByIntervention(id),
+        national ? getNationalScores(id) : getInterventionScores(id),
+        getCriteriaInfo(type, id),
       ]);
-      setProposal(p);
+
+      setTarget({ id: t.id, name: t.name ?? "Untitled", reference_number: t.reference_number });
       setTools(toolList);
       setSavedScores(scoreList);
       setCriteriaInfoList(criteriaList);
@@ -68,10 +94,6 @@ export default function InterventionScoringPage() {
       setLoading(false);
     }
   }, [id]);
-
-
-
-
 
   useEffect(() => {
     load();
@@ -95,84 +117,70 @@ export default function InterventionScoringPage() {
     });
   };
 
-
-  
   useEffect(() => {
     if (!hasUnsavedDrafts) return;
-
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = ""; 
+      e.returnValue = "";
     };
-
     window.addEventListener("beforeunload", handler);
-    return () => {
-      window.removeEventListener("beforeunload", handler);
-    };
+    return () => window.removeEventListener("beforeunload", handler);
   }, [hasUnsavedDrafts]);
 
   const canScore = isInitialized
     ? user?.role === "admin" || user?.role === "swg"
     : null;
 
-const handleSubmitAll = async () => {
-  if (!canScore) {
-    toast.error("Your role does not allow scoring. Please contact an admin.");
-    return;
-  }
-  setSubmitting(true);
-  try {
-    const payload = Object.values(drafts).map((d) => ({
-      intervention: id,
-      criteria: d.tool_id,
-      score: {
-        tool_id: d.tool_id,
-        scoring_mechanism: d.scoring_mechanism,
-        score_value: d.score_value,
-        criteria_label: d.criteriaGroupLabel,
-      },
-      comment: d.comment,
-    }));
-
-    const result = await createInterventionScore(payload);
-
-    toast.success(`${result.length} scores submitted successfully.`);
-    setDrafts({});
-    localStorage.removeItem(STORAGE_KEY);
-    await load();
-
-  } catch (err: any) {
-    const data = err?.response?.data;
-
-    if (data?.errors?.length) {
-      // Per-item validation errors from bulk_create
-      data.errors.forEach((e: any) => {
-        const field = Object.values(e.errors ?? {}).flat().join(", ");
-        toast.error(`Criteria ${e.index + 1}: ${field}`, { autoClose: 6000 });
-      });
-    } else {
-      // Fallback — detail string or generic
-      const msg = data?.detail ?? "Submission failed — no scores were saved.";
-      toast.error(msg);
+  const handleSubmitAll = async () => {
+    if (!canScore) {
+      toast.error("Your role does not allow scoring. Please contact an admin.");
+      return;
     }
+    setSubmitting(true);
+    try {
+      const payload = Object.values(drafts).map((d) => ({
+        // key off the RESOLVED type, not the URL
+        ...(isNational ? { national_proposal: id } : { intervention: id }),
+        criteria: d.tool_id,
+        score: {
+          tool_id: d.tool_id,
+          scoring_mechanism: d.scoring_mechanism,
+          score_value: d.score_value,
+          criteria_label: d.criteriaGroupLabel,
+        },
+        comment: d.comment,
+      }));
 
-  } finally {
-    setSubmitting(false);
-  }
-};
+      const result = await createInterventionScore(payload);
 
-
-  const handleBack = () => {
-    if (hasUnsavedDrafts) {
-      setShowLeaveConfirm(true);
-    } else {
-      router.back();
+      toast.success(`${result.length} scores submitted successfully.`);
+      setDrafts({});
+      localStorage.removeItem(STORAGE_KEY);
+      await load();
+    } catch (err: any) {
+      const data = err?.response?.data;
+      if (data?.errors?.length) {
+        data.errors.forEach((e: any) => {
+          const field = Object.values(e.errors ?? {}).flat().join(", ");
+          toast.error(`Criteria ${Number(e.index) + 1}: ${field}`, { autoClose: 6000 });
+        });
+      } else {
+        const msg = data?.detail ?? "Submission failed — no scores were saved.";
+        toast.error(msg);
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  const handleBack = () => {
+    if (hasUnsavedDrafts) setShowLeaveConfirm(true);
+    else router.back();
+  };
+
   const confirmLeave = () => {
-    localStorage.removeItem(STORAGE_KEY); // clean up drafts when leaving
-    setDrafts({});                        // optional: clear in-memory too
+    localStorage.removeItem(STORAGE_KEY);
+    setDrafts({});
     setShowLeaveConfirm(false);
     router.back();
   };
@@ -185,7 +193,7 @@ const handleSubmitAll = async () => {
     );
   }
 
-  if (!proposal) {
+  if (!target) {
     return (
       <div className="text-center py-20 text-slate-400">
         <p>Proposal not found.</p>
@@ -210,12 +218,17 @@ const handleSubmitAll = async () => {
                 : <ClipboardCheck className="h-4 w-4 text-teal-600" />}
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-800 leading-none">
+              <h1 className="text-lg font-bold text-slate-800 leading-none flex items-center gap-2">
                 {isAlreadyScored ? "Scoring Review" : "Selection Scoring"}
+                {isNational && (
+                  <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-200">
+                    National
+                  </span>
+                )}
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
                 {isAlreadyScored
-                  ? "Your submitted scores for this intervention"
+                  ? `Your submitted scores for this ${targetNoun}`
                   : !hasCriteriaInfo
                   ? "Scoring locked — criteria information required"
                   : "Score each criteria using next/prev, then submit all at once"}
@@ -242,13 +255,12 @@ const handleSubmitAll = async () => {
           </Button>
         </div>
       </div>
-      {/* <ScoringWindowStatus scoringWindow={scoringWindow} /> */}
 
-      {!hasCriteriaInfo && <NoCriteriaPanel />}
+      {!hasCriteriaInfo && <NoCriteriaPanel targetNoun={targetNoun} />}
 
       {hasCriteriaInfo && (
         <div className="space-y-5">
-          <BasicInfoPanel criteriaInfo={criteriaInfo} interventionId={id} />
+          <BasicInfoPanel criteriaInfo={criteriaInfo} />
 
           <div className="grid grid-cols-1 lg:grid-cols-[65fr_35fr] gap-5 items-start">
             <div className="lg:sticky lg:top-4">
@@ -274,27 +286,21 @@ const handleSubmitAll = async () => {
         </div>
       )}
 
-      {/* Confirm leave dialog */}
       <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Leave without saving?</AlertDialogTitle>
             <AlertDialogDescription>
-              You have <strong>{Object.keys(drafts).length} unsaved score</strong> 
+              You have <strong>{Object.keys(drafts).length} unsaved score</strong>
               that will be lost if you leave this page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Stay here</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmLeave}
-            >
-              Leave & discard drafts
-            </AlertDialogAction>
+            <AlertDialogAction onClick={confirmLeave}>Leave & discard drafts</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   );
 }
-

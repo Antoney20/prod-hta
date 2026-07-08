@@ -3,6 +3,7 @@ import api from "../../auth";
 import { CriteriaInformation, CriteriaInformationPayload } from "@/types/new/criteria-info";
 import { ApiResponse } from "../shared";
 
+type TargetType = "intervention" | "national_proposal";
 
 export const getAllCriteriaInfo = async (): Promise<CriteriaInformation[]> => {
   try {
@@ -22,16 +23,25 @@ export const getCriteriaInfoById = async (id: string): Promise<CriteriaInformati
   }
 };
 
-export const getCriteriaInfoByIntervention = async (interventionId: string): Promise<CriteriaInformation[]> => {
+/** Criteria info for either target — the view picks the FK by which param is sent. */
+export const getCriteriaInfo = async (
+  targetType: TargetType,
+  id: string
+): Promise<CriteriaInformation[]> => {
   try {
-    const res = await api.get<ApiResponse<CriteriaInformation[]>>("/v3/criteria-information/by-intervention/", {
-      params: { intervention: interventionId },
-    });
+    const res = await api.get<ApiResponse<CriteriaInformation[]>>(
+      "/v3/criteria-information/by-intervention/",
+      { params: { [targetType]: id } }
+    );
     return res.data.data ?? [];
   } catch {
     return [];
   }
 };
+
+
+export const getCriteriaInfoByIntervention = (id: string) =>
+  getCriteriaInfo("intervention", id);
 
 export const createCriteriaInfo = async (body: CriteriaInformationPayload): Promise<CriteriaInformation | null> => {
   try {
@@ -51,11 +61,7 @@ export const updateCriteriaInfo = async (id: string, body: Partial<CriteriaInfor
   }
 };
 
-
-
-export const deleteCriteriaInfo = async (
-  id: string
-): Promise<boolean> => {
+export const deleteCriteriaInfo = async (id: string): Promise<boolean> => {
   try {
     await api.delete(`/v3/criteria-information/${id}/delete/`);
     return true;

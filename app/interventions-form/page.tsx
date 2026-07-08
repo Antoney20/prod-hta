@@ -28,7 +28,6 @@ export const metadata: Metadata = {
   category: "Healthcare",
 };
 
-// one container, used everywhere → consistent edges + tight mobile gutters
 const CONTAINER = "mx-auto w-full container px-4 sm:px-6 lg:px-8";
 
 export default function Page() {

@@ -518,7 +518,7 @@ export default function BrowseByPackagePage() {
 
         <div className="flex flex-col gap-1.5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Total</p>
-          <StatCard label={scopeNoun.replace(/^\w/, (c) => c.toUpperCase())} value={totalAll} sub={`across ${packageGroups.length} package${packageGroups.length !== 1 ? "s" : ""}`} />
+          <StatCard label={scopeNoun.replace(/^\w/, (c) => c.toUpperCase())} value={totalAll} sub={`Count`} />
         </div>
       </div>
 
@@ -734,28 +734,20 @@ export default function BrowseByPackagePage() {
                           </TableCell>
 
                           <TableCell className="text-right">
-                            {isNational ? (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs gap-1"
-                                onClick={() => router.push(detailRoute(item))}
-                              >
-                                <Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span>
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                variant={scored ? "outline" : "default"}
-                                className="h-7 text-xs gap-1"
-                                style={!scored ? { background: BRAND, borderColor: BRAND, color: "#fff" } : undefined}
-                                onClick={() => router.push(`/portal/tp/score/${item.id}`)}
-                              >
-                                {scored
-                                  ? <><Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span></>
-                                  : <><span className="hidden sm:inline">Score</span> <ChevronRight className="h-3.5 w-3.5" /></>}
-                              </Button>
-                            )}
+                            <Button
+                              size="sm"
+                              variant={scored ? "outline" : "default"}
+                              className="h-7 text-xs gap-1"
+                              style={!scored ? { background: BRAND, borderColor: BRAND, color: "#fff" } : undefined}
+                              onClick={() =>
+                                router.push(`/portal/tp/score/${item.id}`
+                                )
+                              }
+                            >
+                              {scored
+                                ? <><Eye className="h-3.5 w-3.5" /><span className="hidden sm:inline"> View</span></>
+                                : <><span className="hidden sm:inline">Score</span> <ChevronRight className="h-3.5 w-3.5" /></>}
+                            </Button>
                           </TableCell>
 
                         </TableRow>

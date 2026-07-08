@@ -21,14 +21,16 @@ import { Button } from "@/components/ui/button";
 import { Download, Users } from "lucide-react";
 import { toast } from "react-toastify";
 
-import { WeightingReportSuccess, AggregateRankingEntry } from "@/types/new/weighting";
+import { WeightingReportSuccess } from "@/types/new/weighting";
 import { WeightingFilters, SortOrder } from "./filters";
-import { exportAggregateCSV } from "./export";
+import { exportAggregateXLSX } from "./export";
 import { AdminOnly } from "@/app/context/role";
-
 
 const BRAND = "#27aae1";
 const PAGE_SIZES = [20, 30, 50, 100];
+
+
+const FIXED_COLS = 6; 
 
 interface Props {
   report: WeightingReportSuccess;
@@ -54,7 +56,6 @@ export function AggregateTable({ report }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  // Collect all criteria names from average_scores
   const criteriaNames = useMemo(() => {
     const names = new Set<string>();
     for (const s of report.average_scores) {
@@ -63,7 +64,7 @@ export function AggregateTable({ report }: Props) {
     return Array.from(names).sort();
   }, [report.average_scores]);
 
-  // Detail map: intervention_id → averaged_criteria
+  // intervention_id → full aggregate detail (ref, package, phase, criteria)
   const detailMap = useMemo(
     () => Object.fromEntries(report.average_scores.map((s) => [s.intervention_id, s])),
     [report.average_scores]
@@ -73,7 +74,11 @@ export function AggregateTable({ report }: Props) {
     let items = [...report.average_ranking];
     if (search.trim()) {
       const q = search.toLowerCase();
-      items = items.filter((r) => r.intervention_name.toLowerCase().includes(q));
+      items = items.filter(
+        (r) =>
+          r.intervention_name.toLowerCase().includes(q) ||
+          (r.intervention_reference?.toLowerCase().includes(q) ?? false)
+      );
     }
     if (sortOrder === "score_desc") items.sort((a, b) => b.value - a.value);
     else if (sortOrder === "score_asc") items.sort((a, b) => a.value - b.value);
@@ -113,21 +118,21 @@ export function AggregateTable({ report }: Props) {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5" disabled={!filtered.length}>
                 <Download className="h-4 w-4" />
-                Export CSV
+                Export Excel
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => {
-                  exportAggregateCSV(report, filtered);
+                onClick={async () => {
+                  await exportAggregateXLSX(report, filtered);
                   toast.success(`Exported ${filtered.length} interventions.`);
                 }}
               >
                 Export current view
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => {
-                  exportAggregateCSV(report, report.average_ranking);
+                onClick={async () => {
+                  await exportAggregateXLSX(report, report.average_ranking);
                   toast.success(`Exported all ${report.average_ranking.length} interventions.`);
                 }}
               >
@@ -144,7 +149,7 @@ export function AggregateTable({ report }: Props) {
             {/* Group header */}
             <TableRow className="border-b-0">
               <TableHead
-                colSpan={4}
+                colSpan={FIXED_COLS}
                 className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400"
               >
                 Intervention
@@ -163,10 +168,17 @@ export function AggregateTable({ report }: Props) {
               <TableHead className="w-14 text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-100">
                 Rank
               </TableHead>
-              <TableHead className="min-w-[220px] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Intervention
+              <TableHead className="w-36 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Ref No.
               </TableHead>
-              <TableHead className="w-24 text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap">
+         
+              <TableHead className="w-32 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Package
+              </TableHead>
+              <TableHead className="w-28 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Phase
+              </TableHead>
+              <TableHead className="w-24 text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap border-r border-slate-200">
                 Reviewers
               </TableHead>
               <TableHead className="w-28 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-200 pr-4">
@@ -193,7 +205,7 @@ export function AggregateTable({ report }: Props) {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
+                <TableCell colSpan={FIXED_COLS + 1 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
                   No interventions match the current filters.
                 </TableCell>
               </TableRow>
@@ -208,12 +220,28 @@ export function AggregateTable({ report }: Props) {
                     <TableCell className="py-3 border-r border-slate-100 text-center">
                       <RankBadge rank={row.rank} />
                     </TableCell>
+        
                     <TableCell className="py-3 align-middle">
-                      <p className="font-medium text-sm text-slate-800 leading-snug">
-                        {row.intervention_name}
-                      </p>
+                      <span className="font-mono text-xs text-slate-600 whitespace-nowrap">
+                        {row.intervention_name ?? "—"}
+                      </span>
+                    </TableCell>
+                   
+                    <TableCell className="py-3 align-middle">
+                      {detail?.package ? (
+                        <span className="text-xs text-slate-600">{detail.package}</span>
+                      ) : (
+                        <span className="text-xs text-slate-300 italic">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="py-3 align-middle">
+                      {detail?.phase ? (
+                        <span className="text-xs text-slate-600">{detail.phase}</span>
+                      ) : (
+                        <span className="text-xs text-slate-300 italic">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-3 align-middle border-r border-slate-200">
                       <span className="flex items-center gap-1.5 text-sm text-slate-700">
                         <Users className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <span className="tabular-nums font-medium">{row.reviewer_count}</span>

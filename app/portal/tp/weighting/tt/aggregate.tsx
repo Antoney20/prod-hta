@@ -23,11 +23,11 @@ import { toast } from "react-toastify";
 
 import { WeightingReportSuccess } from "@/types/new/weighting";
 import { WeightingFilters, SortOrder } from "./filters";
-import { exportAggregateCSV } from "./export";
-
+import { exportAggregateXLSX } from "./export";
 
 const BRAND = "#27aae1";
 const PAGE_SIZES = [20, 30, 50, 100];
+const FIXED_COLS = 6; // Rank, Ref No., Intervention, Package, Phase, Reviewers (Avg is separate group cell)
 
 function RankBadge({ rank }: { rank: number }) {
   const cls =
@@ -74,7 +74,11 @@ export function AggregateTable({ report }: { report: WeightingReportSuccess }) {
     let items = [...report.average_ranking];
     if (search.trim()) {
       const q = search.toLowerCase();
-      items = items.filter((r) => r.intervention_name.toLowerCase().includes(q));
+      items = items.filter(
+        (r) =>
+          r.intervention_name.toLowerCase().includes(q) ||
+          (r.intervention_reference?.toLowerCase().includes(q) ?? false)
+      );
     }
     if (sortOrder === "score_desc") items.sort((a, b) => b.value - a.value);
     else if (sortOrder === "score_asc") items.sort((a, b) => a.value - b.value);
@@ -103,17 +107,17 @@ export function AggregateTable({ report }: { report: WeightingReportSuccess }) {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1.5" disabled={!filtered.length}>
               <Download className="h-4 w-4" />
-              Export CSV
+              Export Excel
               {filtered.length > 0 && (
                 <span className="ml-1 text-[10px] font-medium text-slate-400 tabular-nums">({filtered.length})</span>
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => { exportAggregateCSV(report, filtered); toast.success(`Exported ${filtered.length} interventions.`); }}>
+            <DropdownMenuItem onClick={async () => { await exportAggregateXLSX(report, filtered); toast.success(`Exported ${filtered.length} interventions.`); }}>
               Export current view
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { exportAggregateCSV(report, report.average_ranking); toast.success(`Exported all ${report.average_ranking.length} interventions.`); }}>
+            <DropdownMenuItem onClick={async () => { await exportAggregateXLSX(report, report.average_ranking); toast.success(`Exported all ${report.average_ranking.length} interventions.`); }}>
               Export all
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -126,7 +130,7 @@ export function AggregateTable({ report }: { report: WeightingReportSuccess }) {
           <TableHeader>
             {/* Group headers */}
             <TableRow className="border-b-0">
-              <TableHead colSpan={4} className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
+              <TableHead colSpan={FIXED_COLS} className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400">
                 Intervention
               </TableHead>
               <TableHead
@@ -140,8 +144,11 @@ export function AggregateTable({ report }: { report: WeightingReportSuccess }) {
             {/* Column headers */}
             <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
               <TableHead className="w-14 text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-100 px-4">Rank</TableHead>
+              <TableHead className="w-36 text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-4">Ref No.</TableHead>
               <TableHead className="min-w-[220px] text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-4">Intervention</TableHead>
-              <TableHead className="w-24 text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap px-4">Reviewers</TableHead>
+              <TableHead className="w-32 text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-4">Package</TableHead>
+              <TableHead className="w-28 text-[10px] font-semibold uppercase tracking-wider text-slate-400 px-4">Phase</TableHead>
+              <TableHead className="w-24 text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap px-4 border-r border-slate-200">Reviewers</TableHead>
               <TableHead className="w-28 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-r border-slate-200 px-4">Avg score</TableHead>
               {criteriaNames.map((name) => (
                 <TableHead key={name} className="w-28 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-l border-slate-100 bg-sky-50/60 px-3 py-2">
@@ -159,7 +166,7 @@ export function AggregateTable({ report }: { report: WeightingReportSuccess }) {
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
+                <TableCell colSpan={FIXED_COLS + 1 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
                   No interventions match the current filters.
                 </TableCell>
               </TableRow>
@@ -172,9 +179,28 @@ export function AggregateTable({ report }: { report: WeightingReportSuccess }) {
                       <RankBadge rank={row.rank} />
                     </TableCell>
                     <TableCell className="py-3 px-4 align-middle">
+                      <span className="font-mono text-xs text-slate-600 whitespace-nowrap">
+                        {row.intervention_reference ?? "—"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-3 px-4 align-middle">
                       <p className="font-medium text-sm text-slate-800 leading-snug">{row.intervention_name}</p>
                     </TableCell>
                     <TableCell className="py-3 px-4 align-middle">
+                      {detail?.package ? (
+                        <span className="text-xs text-slate-600">{detail.package}</span>
+                      ) : (
+                        <span className="text-xs text-slate-300 italic">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 align-middle">
+                      {detail?.phase ? (
+                        <span className="text-xs text-slate-600">{detail.phase}</span>
+                      ) : (
+                        <span className="text-xs text-slate-300 italic">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-3 px-4 align-middle border-r border-slate-200">
                       <span className="flex items-center gap-1.5 text-sm text-slate-700">
                         <Users className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         <span className="tabular-nums font-medium">{row.reviewer_count}</span>

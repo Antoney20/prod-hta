@@ -8,7 +8,6 @@ import { ExternalLink, Info, Tag, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CriteriaInformation } from "@/types/new/criteria-info";
 import { sanitizeHtml } from "@/app/portal/config/criteria-information/cc/clean";
-import Link from "next/link";
 
 
 function fuzzyKey(text: string): string {
@@ -48,6 +47,20 @@ function getMatchedEntry(activeCriteriaLabel: string) {
   return null;
 }
 
+function resolveTarget(ci: CriteriaInformation) {
+  const isNational = ci.target_type === "national_proposal";
+  const id = (isNational ? ci.national_proposal : ci.intervention) ?? "";
+  return {
+    isNational,
+    id,
+    name: (isNational ? ci.national_proposal_name : ci.intervention_name) ?? "—",
+    ref: (isNational ? ci.national_proposal_reference_number : ci.intervention_reference_number) ?? null,
+    detailRoute: isNational
+      ? `/portal/interventions/${id}`
+      : `/portal/interventions/${id}`,
+  
+  };
+}
 
 function HtmlContent({ html }: { html: string }) {
   const clean = sanitizeHtml(html);
@@ -71,14 +84,9 @@ function HtmlContent({ html }: { html: string }) {
   );
 }
 
-function CriteriaHeader({
-  criteriaInfo,
-  interventionId,
-}: {
-  criteriaInfo: CriteriaInformation;
-  interventionId: string;
-}) {
+function CriteriaHeader({ criteriaInfo }: { criteriaInfo: CriteriaInformation }) {
   const router = useRouter();
+  const t = resolveTarget(criteriaInfo);
   return (
     <div className="bg-gradient-to-r from-teal-600 to-teal-500 px-5 py-4 -mt-6 rounded-t-lg">
       <div className="flex items-start justify-between gap-3">
@@ -87,11 +95,11 @@ function CriteriaHeader({
             Criteria Information
           </p>
           <h2 className="text-sm font-bold text-white leading-snug truncate">
-            {criteriaInfo.intervention_name}
+            {t.name}
           </h2>
-          {criteriaInfo.system_category_name && (
+          {criteriaInfo.package_name && (
             <p className="text-[11px] text-teal-200 mt-0.5 leading-snug line-clamp-1">
-              {criteriaInfo.system_category_name}
+              {criteriaInfo.package_name}
             </p>
           )}
         </div>
@@ -99,12 +107,12 @@ function CriteriaHeader({
           variant="ghost"
           size="sm"
           className="h-auto p-0 hover:bg-transparent shrink-0"
-          onClick={() => router.push(`/portal/interventions/${interventionId}`)}
+          onClick={() => router.push(t.detailRoute)}
         >
           <div className="flex flex-col items-end gap-1.5">
-            {criteriaInfo.intervention_reference_number && (
+            {t.ref && (
               <Badge className="bg-white/20 hover:bg-white/30 text-white border-white/30 text-xs font-mono gap-1 cursor-pointer">
-                {criteriaInfo.intervention_reference_number}
+                {t.ref}
                 <ExternalLink className="h-2.5 w-2.5" />
               </Badge>
             )}
@@ -120,18 +128,10 @@ function CriteriaHeader({
   );
 }
 
-
-
-export function BasicInfoPanel({
-  criteriaInfo,
-  interventionId,
-}: {
-  criteriaInfo: CriteriaInformation;
-  interventionId: string;
-}) {
+export function BasicInfoPanel({ criteriaInfo }: { criteriaInfo: CriteriaInformation }) {
   return (
     <Card className="border-slate-200 shadow-sm bg-white overflow-hidden">
-      <CriteriaHeader criteriaInfo={criteriaInfo} interventionId={interventionId} />
+      <CriteriaHeader criteriaInfo={criteriaInfo} />
 
       <CardContent className="p-5 space-y-4">
         <div className="flex items-center gap-1.5">
@@ -167,8 +167,6 @@ export function BasicInfoPanel({
   );
 }
 
-
-
 export function ActiveCriteriaPanel({
   criteriaInfo,
   activeCriteriaLabel,
@@ -180,7 +178,7 @@ export function ActiveCriteriaPanel({
   const matchedHtml = matchedEntry
     ? (criteriaInfo[matchedEntry.field] as string | null)
     : null;
-
+  const t = resolveTarget(criteriaInfo);
 
   const displayLabel = matchedEntry
     ? matchedEntry.label
@@ -214,8 +212,6 @@ export function ActiveCriteriaPanel({
           </Badge>
         </div>
 
-
-
         {matchedHtml ? (
           <div className="bg-teal-50/60 border border-teal-100 rounded-md px-4 py-3 min-h-[80px]">
             <HtmlContent html={matchedHtml} />
@@ -228,25 +224,15 @@ export function ActiveCriteriaPanel({
                 : "No matching criteria section found."}
             </p>
 
-            {criteriaInfo?.id && (
-              <Link
-                href={`/portal/tp/score/ci/${criteriaInfo.intervention}`}
-                className="text-xs text-teal-600 hover:text-teal-700 font-medium underline"
-              >
-                See details
-              </Link>
-            )}
+           
           </div>
         )}
-
       </CardContent>
     </Card>
   );
 }
 
-
-
-export function NoCriteriaPanel() {
+export function NoCriteriaPanel({ targetNoun = "intervention" }: { targetNoun?: string }) {
   return (
     <Card className="border-amber-200 bg-amber-50 shadow-sm">
       <CardContent className="p-6 flex flex-col items-center text-center gap-3">
@@ -256,7 +242,7 @@ export function NoCriteriaPanel() {
         <div>
           <p className="text-sm font-semibold text-amber-800">No Criteria Information</p>
           <p className="text-xs text-amber-600 mt-1 leading-relaxed max-w-sm">
-            This intervention has no available criteria info. Scoring is locked until criteria
+            This {targetNoun} has no available criteria info. Scoring is locked until criteria
             information is added.
           </p>
         </div>
@@ -267,17 +253,15 @@ export function NoCriteriaPanel() {
 
 export function CriteriaInfoDetail({
   criteriaInfo,
-  interventionId,
   activeCriteriaLabel,
 }: {
   criteriaInfo: CriteriaInformation | null;
-  interventionId: string;
   activeCriteriaLabel?: string;
 }) {
   if (!criteriaInfo) return <NoCriteriaPanel />;
   return (
     <div className="space-y-4">
-      <BasicInfoPanel criteriaInfo={criteriaInfo} interventionId={interventionId} />
+      <BasicInfoPanel criteriaInfo={criteriaInfo} />
       <ActiveCriteriaPanel criteriaInfo={criteriaInfo} activeCriteriaLabel={activeCriteriaLabel} />
     </div>
   );

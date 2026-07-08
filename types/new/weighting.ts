@@ -11,6 +11,7 @@ export interface NormalisedScore {
 
 export interface InterventionNormalised {
   intervention_id: string;
+  intervention_reference: string | null;
   intervention_name: string;
   normalised: NormalisedScore[];
 }
@@ -51,8 +52,6 @@ export interface CriteriaWeighting {
   weight_percentage: number;
 }
 
-// ── Per-reviewer CRITIC result ────────────────────────────────────────────────
-
 export interface ReviewerWeightingResult {
   reviewer_id: string;
   reviewer_email: string | null;
@@ -65,23 +64,21 @@ export interface ReviewerWeightingResult {
   weightings: CriteriaWeighting[];
 }
 
-// ── Reviewer scores (raw_score × weight) ─────────────────────────────────────
-
 export interface ReviewerInterventionScore {
   reviewer_id: string;
   reviewer_email: string | null;
   reviewer_username: string | null;
   intervention_id: string;
+  intervention_reference: string | null;
   intervention_name: string;
-  weighted_criteria: Record<string, number>; // { criteria_name: weighted_score }
+  weighted_criteria: Record<string, number>;
   total_score: number;
 }
-
-// ── Individual ranking ────────────────────────────────────────────────────────
 
 export interface ReviewerInterventionRank {
   rank: number;
   intervention_id: string;
+  intervention_reference: string | null;
   intervention_name: string;
   total_score: number;
 }
@@ -93,26 +90,25 @@ export interface ReviewerRanking {
   ranked_interventions: ReviewerInterventionRank[];
 }
 
-// ── Aggregate ─────────────────────────────────────────────────────────────────
-
 export interface InterventionAggregateScore {
   intervention_id: string;
+  intervention_reference: string | null;
   intervention_name: string;
   reviewer_count: number;
   package?: string | null;
   phase?: string | null;
-  averaged_criteria: Record<string, number>; // { criteria_name: averaged_weighted_score }
+  averaged_criteria: Record<string, number>;
   average_value_score: number;
 }
 
 export interface AggregateRankingEntry {
   rank: number;
   intervention_id: string;
+  intervention_reference: string | null;
   intervention_name: string;
   reviewer_count: number;
   value: number;
 }
-
 
 export interface WeightingReportSuccess {
   success: true;

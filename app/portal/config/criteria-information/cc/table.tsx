@@ -29,7 +29,7 @@ function targetOf(row: CriteriaInformation) {
     name: (isNational ? row.national_proposal_name : row.intervention_name) ?? "—",
     ref: (isNational ? row.national_proposal_reference_number : row.intervention_reference_number) ?? "—",
     route: isNational
-      ? `/portal/national-programs/${row.national_proposal}`
+      ? `/portal/interventions/${row.national_proposal}`
       : `/portal/interventions/${row.intervention}`,
     typeLabel: isNational ? "National" : "Intervention",
   };

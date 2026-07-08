@@ -99,6 +99,7 @@ export interface InterventionAggregateScore {
   phase?: string | null;
   averaged_criteria: Record<string, number>;
   average_value_score: number;
+  target_type: "intervention" | "national_proposal"
 }
 
 export interface AggregateRankingEntry {

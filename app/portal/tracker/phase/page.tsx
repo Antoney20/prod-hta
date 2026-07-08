@@ -75,7 +75,7 @@ export default function InterventionPhasePage() {
         <div className="flex items-center gap-3">
           <div className="bg-[#27aae1]/10 p-2 rounded-lg"><Layers3 className="h-5 w-5 text-[#27aae1]" /></div>
           <div>
-            <h1 className="text-xl font-bold">Assign/group intervention by phase</h1>
+            <h1 className="text-xl font-bold">Assign/group intervention by batch</h1>
             <p className="text-sm text-muted-foreground">
               {filtered.length} phase{filtered.length !== 1 ? "s" : ""} —  Helps track, organize, group,  and manage interventions and national programs during the topic prioritization, the review process up to the final decision.  ie. the first batch iss batch 001, which has all interventions up to mid may 2026.
             </p>

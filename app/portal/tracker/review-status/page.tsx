@@ -380,11 +380,11 @@ export default function ReviewStatusPage() {
                 columns={columns}
                 searchPlaceholder="Search by intervention, reference, package or batch no..."
                 searchFn={(row, q) =>
-                  row.intervention_name.toLowerCase().includes(q) ||
-                  row.reference_number.toLowerCase().includes(q) ||
-                  (row.package ?? "").toLowerCase().includes(q) ||
-                  (row.phase ?? "").toLowerCase().includes(q)
-                }
+  (row.intervention_name ?? "").toLowerCase().includes(q) ||
+  (row.reference_number ?? "").toLowerCase().includes(q) ||
+  (row.package ?? "").toLowerCase().includes(q) ||
+  (row.phase ?? "").toLowerCase().includes(q)
+}
               />
             )}
           </CardContent>

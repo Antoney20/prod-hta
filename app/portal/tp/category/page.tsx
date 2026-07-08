@@ -652,7 +652,6 @@ export default function BrowseByPackagePage() {
                       <TableHead className="w-10 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400">#</TableHead>
                       <TableHead className="w-44 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Reference</TableHead>
                       <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Name</TableHead>
-                      <TableHead className="w-32 hidden sm:table-cell text-[11px] font-semibold uppercase tracking-wider text-slate-400">Phase</TableHead>
                       <TableHead className="w-40 hidden lg:table-cell text-[11px] font-semibold uppercase tracking-wider text-slate-400">Package</TableHead>
                       <TableHead className="w-28 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Scored</TableHead>
                       <TableHead className="w-40 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Decision</TableHead>
@@ -693,13 +692,7 @@ export default function BrowseByPackagePage() {
                             </div>
                           </TableCell>
 
-                          <TableCell className="hidden sm:table-cell">
-                            {phaseName ? (
-                              <Badge variant="secondary" className="text-xs">{phaseName}</Badge>
-                            ) : (
-                              <span className="text-slate-300 text-xs">—</span>
-                            )}
-                          </TableCell>
+           
 
                           <TableCell className="hidden lg:table-cell">
                             {packageName ? (

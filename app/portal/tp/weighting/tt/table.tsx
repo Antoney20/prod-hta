@@ -29,8 +29,7 @@ import { AdminOnly } from "@/app/context/role";
 const BRAND = "#27aae1";
 const PAGE_SIZES = [20, 30, 50, 100];
 
-
-const FIXED_COLS = 6; 
+const FIXED_COLS = 6;
 
 interface Props {
   report: WeightingReportSuccess;
@@ -64,7 +63,7 @@ export function AggregateTable({ report }: Props) {
     return Array.from(names).sort();
   }, [report.average_scores]);
 
-  // intervention_id → full aggregate detail (ref, package, phase, criteria)
+  // target_id → full aggregate detail (ref, package, phase, criteria)
   const detailMap = useMemo(
     () => Object.fromEntries(report.average_scores.map((s) => [s.intervention_id, s])),
     [report.average_scores]
@@ -125,7 +124,7 @@ export function AggregateTable({ report }: Props) {
               <DropdownMenuItem
                 onClick={async () => {
                   await exportAggregateXLSX(report, filtered);
-                  toast.success(`Exported ${filtered.length} interventions.`);
+                  toast.success(`Exported ${filtered.length} proposals.`);
                 }}
               >
                 Export current view
@@ -133,7 +132,7 @@ export function AggregateTable({ report }: Props) {
               <DropdownMenuItem
                 onClick={async () => {
                   await exportAggregateXLSX(report, report.average_ranking);
-                  toast.success(`Exported all ${report.average_ranking.length} interventions.`);
+                  toast.success(`Exported all ${report.average_ranking.length} proposals.`);
                 }}
               >
                 Export all
@@ -152,7 +151,7 @@ export function AggregateTable({ report }: Props) {
                 colSpan={FIXED_COLS}
                 className="bg-slate-50 border-b border-slate-200 border-r border-slate-200 py-1.5 text-[9px] font-semibold uppercase tracking-widest text-slate-400"
               >
-                Intervention
+                Proposal
               </TableHead>
               <TableHead
                 colSpan={criteriaNames.length}
@@ -171,7 +170,9 @@ export function AggregateTable({ report }: Props) {
               <TableHead className="w-36 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                 Ref No.
               </TableHead>
-         
+              <TableHead className="min-w-[220px] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Name
+              </TableHead>
               <TableHead className="w-32 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                 Package
               </TableHead>
@@ -206,12 +207,13 @@ export function AggregateTable({ report }: Props) {
             {paginated.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={FIXED_COLS + 1 + criteriaNames.length} className="text-center py-16 text-slate-400 text-sm">
-                  No interventions match the current filters.
+                  No proposals match the current filters.
                 </TableCell>
               </TableRow>
             ) : (
               paginated.map((row) => {
                 const detail = detailMap[row.intervention_id];
+                const isNational = detail?.target_type === "national_proposal";
                 return (
                   <TableRow
                     key={row.intervention_id}
@@ -220,13 +222,26 @@ export function AggregateTable({ report }: Props) {
                     <TableCell className="py-3 border-r border-slate-100 text-center">
                       <RankBadge rank={row.rank} />
                     </TableCell>
-        
+
                     <TableCell className="py-3 align-middle">
                       <span className="font-mono text-xs text-slate-600 whitespace-nowrap">
-                        {row.intervention_name ?? "—"}
+                        {row.intervention_reference ?? "—"}
                       </span>
                     </TableCell>
-                   
+
+                    <TableCell className="py-3 align-middle">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm text-slate-800 leading-snug truncate max-w-[200px]">
+                          {row.intervention_name}
+                        </p>
+                        {isNational && (
+                          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-200">
+                            National
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+
                     <TableCell className="py-3 align-middle">
                       {detail?.package ? (
                         <span className="text-xs text-slate-600">{detail.package}</span>

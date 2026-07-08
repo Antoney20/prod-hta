@@ -157,7 +157,7 @@ export default function WeightReportsPage() {
     [phases]
   );
 
-  // intervention_id → phase name, from the aggregate scores
+  // target_id → phase name, from the aggregate scores
   const phaseById = useMemo(() => {
     const m = new Map<string, string | null>();
     for (const s of report?.average_scores ?? []) m.set(s.intervention_id, s.phase ?? null);
@@ -176,17 +176,22 @@ export default function WeightReportsPage() {
     return [...present].sort((a, b) => a.localeCompare(b));
   }, [phaseById, activePhaseNames]);
 
-  const keepIds = useMemo<Set<string> | null>(() => {
-    if (!report) return new Set();
-    if (!anyPhaseAssigned) return null;             
-    const s = new Set<string>();
-    for (const [id, name] of phaseById) {
-      if (!name || !activePhaseNames.has(name)) continue;      
-      if (selectedPhase !== ALL && name !== selectedPhase) continue;
-      s.add(id);
+const keepIds = useMemo<Set<string> | null>(() => {
+  if (!report) return new Set();
+  if (!anyPhaseAssigned) return null;
+  const s = new Set<string>();
+  for (const [id, name] of phaseById) {
+    // No phase assigned → always visible under "All", hidden only under a specific phase
+    if (!name) {
+      if (selectedPhase === ALL) s.add(id);
+      continue;
     }
-    return s;
-  }, [report, phaseById, activePhaseNames, selectedPhase, anyPhaseAssigned]);
+    if (!activePhaseNames.has(name)) continue;
+    if (selectedPhase !== ALL && name !== selectedPhase) continue;
+    s.add(id);
+  }
+  return s;
+}, [report, phaseById, activePhaseNames, selectedPhase, anyPhaseAssigned]);
 
   const filteredReport = useMemo(() => {
     if (!report) return null;
@@ -194,7 +199,7 @@ export default function WeightReportsPage() {
     return filterReport(report, keepIds);
   }, [report, keepIds]);
 
-  const topIntervention = filteredReport?.average_ranking[0]?.intervention_name ?? "—";
+  const topProposal = filteredReport?.average_ranking[0]?.intervention_name ?? "—";
 
   return (
     <TooltipProvider>
@@ -220,7 +225,7 @@ export default function WeightReportsPage() {
             <div>
               <h1 className="text-xl font-bold text-slate-800 tracking-tight">Weighting Report</h1>
               <p className="text-sm text-slate-500 mt-0.5">
-                CRITIC-weighted scores and rankings for intervention proposals
+                CRITIC-weighted scores and rankings for interventions and national programs
               </p>
             </div>
           </div>
@@ -275,8 +280,8 @@ export default function WeightReportsPage() {
             {/* Stat cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <StatCard label="Reviewers" value={report.reviewer_results.length} icon={<Users className="h-4 w-4" />} color={BRAND} />
-              <StatCard label="Interventions ranked" value={filteredReport.average_ranking.length} icon={<BarChart3 className="h-4 w-4" />} />
-              <StatCard label="Top intervention" value={topIntervention} icon={<Trophy className="h-4 w-4" />} color="#f59e0b" />
+              <StatCard label="Proposals ranked" value={filteredReport.average_ranking.length} icon={<BarChart3 className="h-4 w-4" />} />
+              <StatCard label="Top proposal" value={topProposal} icon={<Trophy className="h-4 w-4" />} color="#f59e0b" />
             </div>
 
             {/* Tab bar */}

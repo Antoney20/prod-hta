@@ -76,7 +76,7 @@ export function LinkPhaseDialog({
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto backdrop-blur-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Link2 className="h-5 w-5 text-[#27aae1]" /> Link to a phase</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><Link2 className="h-5 w-5 text-[#27aae1]" /> Link to a batch</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -115,10 +115,10 @@ export function LinkPhaseDialog({
           </div>
 
           <div>
-            <label className="text-xs text-slate-500">Phase</label>
+            <label className="text-xs text-slate-500">Phase/Batch number</label>
             <select value={phaseId} onChange={(e) => setPhaseId(e.target.value ? Number(e.target.value) : "")}
               className="mt-1 h-9 w-full border border-slate-200 px-2 text-sm">
-              <option value="">Select a phase…</option>
+              <option value="">Select a batch …</option>
               {phases.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>

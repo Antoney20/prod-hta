@@ -193,16 +193,15 @@ export default function RuleDetailPage() {
         </div>
       )}
 
-      {/* scoring bands — grouped per field when multi-field */}
       <div className="space-y-4">
         {bandGroups.map((g, gi) => (
           <div key={gi} className="border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
               <ListChecks className="h-4 w-4 text-slate-400" />
               <h2 className="text-sm font-semibold text-slate-700">
-                {g.field ? `Bands · ${g.field}` : "Scoring bands"}
+                {g.field ? `Bands · ${g.field}` : "Scoring Categories "}
               </h2>
-              <span className="text-xs text-slate-400">· higher score = stronger case</span>
+              <span className="text-xs text-slate-400"> - Guides how the scores are allocated per criteria</span>
             </div>
             {g.bands.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-slate-400">No bands for this field.</p>

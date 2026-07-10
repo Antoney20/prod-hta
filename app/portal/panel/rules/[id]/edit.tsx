@@ -20,13 +20,13 @@ interface Props {
 }
 
 const OPS: { v: NonNullable<RuleBand["op"]>; label: string }[] = [
-  { v: "<=", label: "at most (≤)" },
+  { v: "<=", label: "less than or equal to (≤)" },
   { v: "<",  label: "less than (<)" },
-  { v: ">=", label: "at least (≥)" },
-  { v: ">",  label: "more than (>)" },
+  { v: ">=", label: "greater than or equal to (≥)" },
+  { v: ">",  label: "greater than (>)" },
   { v: "between", label: "in range (a–b)" },
   { v: "==", label: "equals (=)" },
-  { v: "!=", label: "not equal (≠)" },
+  { v: "!=", label: "not equal to (≠)" },
   { v: "in", label: "one of (a,b,c)" },
 ];
 

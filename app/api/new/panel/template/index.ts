@@ -23,15 +23,25 @@ export const listTargets = async (kind?: EvidenceRow["kind"]): Promise<EvidenceR
 /** Full evidence payload for one target. */
 export const getTarget = async (id: string): Promise<EvidenceTarget> => {
   try {
-    const res = await api.get(`${BASE}/${id}`);
+    const res = await api.get(`${BASE}${id}`);
     return unwrap<EvidenceTarget>(res);
   } catch (e) {
     throw new Error(errMsg(e));
   }
 };
 
-/** Full AI feed — all targets, or a scoped subset. */
-export const generatePayload = async (body: GenerateInput = {}): Promise<EvidenceTarget[]> => {
+/** Page load — full feed, read-only, for everyone. */
+export const generatePayload = async (kind?: EvidenceTarget["kind"]): Promise<EvidenceTarget[]> => {
+  try {
+    const res = await api.get(BASE, { params: kind ? { kind } : {} });
+    return unwrap<GenerateResult>(res).targets ?? [];
+  } catch (e) {
+    throw new Error(errMsg(e));
+  }
+};
+
+
+export const regeneratePayload = async (body: GenerateInput = {}): Promise<EvidenceTarget[]> => {
   try {
     const res = await api.post(BASE, body);
     return unwrap<GenerateResult>(res).targets ?? [];

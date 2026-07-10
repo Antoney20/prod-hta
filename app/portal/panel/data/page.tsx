@@ -13,8 +13,9 @@ import { EvidenceTarget } from "@/types/new/decision-template";
 
 import TargetsTable from "./table";
 import { exportGrid } from "./handler";
-import { generatePayload } from "@/app/api/new/panel/template";
+import { generatePayload, regeneratePayload } from "@/app/api/new/panel/template";
 import { buildColumns } from "./cols";
+import { globalUserStore } from "@/app/context/guard";
 
 type KindFilter = "all" | EvidenceTarget["kind"];
 const FILTERS: { key: KindFilter; label: string }[] = [
@@ -24,8 +25,13 @@ const FILTERS: { key: KindFilter; label: string }[] = [
 ];
 const PAGE_SIZES = [20, 30, 50, 100];
 
+const REGEN_ROLES = new Set(["admin", "secretariat"]);
+
 export default function DecisionTemplatesPage() {
   const router = useRouter();
+  const [user] = useState(globalUserStore.userData);
+  const canRegenerate = !!user?.role && REGEN_ROLES.has(user.role);
+
   const [targets, setTargets] = useState<EvidenceTarget[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -37,13 +43,14 @@ export default function DecisionTemplatesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setTargets(await generatePayload());
+      // admin/secretariat regenerate (POST); everyone else reads (GET)
+      setTargets(canRegenerate ? await regeneratePayload() : await generatePayload());
     } catch (e: any) {
       toast.error(e.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canRegenerate]);
 
   useEffect(() => { load(); }, [load]);
 

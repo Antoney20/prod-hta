@@ -23,7 +23,6 @@ const LOGS       = "/v3/feedback-email-logs";
 
 
 
-
  
 export const getAllFeedbackCategories =
   async (): Promise<FeedbackCategoryListResponse> =>

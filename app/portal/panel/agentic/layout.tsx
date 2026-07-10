@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Sparkles, FileText, Table2, Scale, Award, Settings, ChevronRight, Home,
+  Sparkles, Table2, Scale, Award, Settings, ChevronRight, Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,20 +10,28 @@ const BRAND = "#27aae1";
 const BASE = "/portal/panel/agentic";
 
 const PAGES = [
-  { slug: "run",       label: "Appraisal Run",         icon: Sparkles },
-  { slug: "appraisal", label: "Appraisal",             icon: FileText },
-  { slug: "results",   label: "Appraisal Results",     icon: Table2 },
-  { slug: "ranking",   label: "Weighting & Ranking",   icon: Scale },
-  { slug: "final",     label: "Final Recommendations", icon: Award },
-  { slug: "settings",  label: "Settings",              icon: Settings },
+  { slug: "",         label: "Overview",            icon: Home },
+  { slug: "run",      label: "Appraisal Run",       icon: Sparkles },
+  { slug: "results",  label: "Appraisal Results",   icon: Table2 },
+  { slug: "ranking",  label: "Weighting & Ranking", icon: Scale },
+  { slug: "final",    label: "Final Results",       icon: Award },
+  { slug: "settings", label: "Settings",            icon: Settings },
 ] as const;
 
 export default function AgenticLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const current = PAGES.find((p) => pathname.startsWith(`${BASE}/${p.slug}`)) ?? PAGES[0];
+
+  const isActive = (slug: string) =>
+    slug === ""
+      ? pathname === BASE || pathname === `${BASE}/`
+      : pathname.startsWith(`${BASE}/${slug}`);
+
+  const current = PAGES.find((p) => isActive(p.slug)) ?? null;
+  const onOverview = current?.slug === "";
 
   return (
-    <div className=" px-4 py-4 space-y-5">
+    <div className="mx-auto py-5 space-y-5">
+      {/* Breadcrumbs */}
       <nav className="flex items-center gap-1.5 text-xs text-slate-400">
         <Link href="/portal" className="flex items-center gap-1 hover:text-slate-600">
           <Home className="h-3 w-3" /> Portal
@@ -31,21 +39,27 @@ export default function AgenticLayout({ children }: { children: React.ReactNode 
         <ChevronRight className="h-3 w-3" />
         <Link href="/portal/panel" className="hover:text-slate-600">Panel</Link>
         <ChevronRight className="h-3 w-3" />
-        <Link href={`${BASE}/run`} className="hover:text-slate-600">Agentic Appraisal</Link>
-        <ChevronRight className="h-3 w-3" />
-        <span className="font-medium text-slate-600">{current.label}</span>
+        {onOverview || !current ? (
+          <span className="font-medium text-slate-600">Agentic Appraisal</span>
+        ) : (
+          <>
+            <Link href={BASE} className="hover:text-slate-600">Agentic Appraisal</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="font-medium text-slate-600">{current.label}</span>
+          </>
+        )}
       </nav>
 
       {/* Section tabs */}
       <div className="overflow-x-auto border-b border-slate-200">
         <div className="flex min-w-max items-center gap-1">
           {PAGES.map((p) => {
-            const active = p.slug === current.slug;
+            const active = isActive(p.slug);
             const Icon = p.icon;
             return (
               <Link
-                key={p.slug}
-                href={`${BASE}/${p.slug}`}
+                key={p.slug || "overview"}
+                href={p.slug ? `${BASE}/${p.slug}` : BASE}
                 className={cn(
                   "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-colors",
                   active ? "border-current" : "border-transparent text-slate-500 hover:text-slate-700"

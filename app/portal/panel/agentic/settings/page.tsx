@@ -110,7 +110,7 @@ export default function AISettingsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto py-8 space-y-6">
+    <div className=" mx-auto  space-y-6">
       <ToastContainer position="top-right" autoClose={4000} />
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-lg" style={{ background: `${BRAND}18`, border: `1px solid ${BRAND}30` }}>

@@ -43,7 +43,6 @@ export default function DecisionTemplatesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // admin/secretariat regenerate (POST); everyone else reads (GET)
       setTargets(canRegenerate ? await regeneratePayload() : await generatePayload());
     } catch (e: any) {
       toast.error(e.message);

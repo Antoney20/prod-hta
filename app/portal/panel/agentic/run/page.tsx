@@ -13,6 +13,7 @@ import { EvidenceRow } from "@/types/new/decision-template";
 import { GenerateResult } from "@/types/new/agentic";
 import { listTargets } from "@/app/api/new/panel/template";
 import { generateBatch } from "@/app/api/new/panel/agentic";
+import ConfirmRunDialog from "../_shared/confirm";
 
 const BRAND = "#27aae1";
 const PER_PAGE = [25, 50, 75, 100] as const;
@@ -35,6 +36,7 @@ export default function AppraisalRunPage() {
   const [kind, setKind] = useState<string>(ALL);
   const [perPage, setPerPage] = useState<number>(25);
   const [page, setPage] = useState(1);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
@@ -106,23 +108,31 @@ export default function AppraisalRunPage() {
       return next;
     });
 
-  const run = async () => {
-    if (running) return;
-    if (selected.size === 0) { toast.warning("Select at least one proposal."); return; }
-    setRunning(true);
-    setResults(null);
-    const targets = [...selected].map((id) => {
-      const r = rowById.get(id)!;
-      return { target_type: r.kind, target_id: r.id };
-    });
-    const res = await generateBatch(targets);
-    setRunning(false);
-    if (!res) { toast.error("Run failed."); return; }
-    setResults(res.results);
-    const ok = res.results.filter((r) => r.success).length;
-    toast.success(`Completed ${res.count} — ${ok} scored, ${res.count - ok} with issues.`);
-  };
+const openConfirm = () => {
+  if (running) return;
+  if (selected.size === 0) { toast.warning("Select at least one proposal."); return; }
+  setConfirmOpen(true);
+};
 
+const run = async () => {
+  setConfirmOpen(false);
+  if (running) return;
+  setRunning(true);
+  setResults(null);
+  const targets = [...selected].map((id) => {
+    const r = rowById.get(id)!;
+    return { target_type: r.kind, target_id: r.id };
+  });
+  const res = await generateBatch(targets);
+  setRunning(false);
+  if (!res) { toast.error("Run failed."); return; }
+  setResults(res.results);
+  const ok = res.results.filter((r) => r.success).length;
+  toast.success(`Completed ${res.count} — ${ok} scored, ${res.count - ok} with issues.`);
+};
+
+
+  
   const from = filtered.length === 0 ? 0 : (page - 1) * perPage + 1;
   const to = Math.min(page * perPage, filtered.length);
 
@@ -295,53 +305,91 @@ export default function AppraisalRunPage() {
                 className="p-2 text-slate-400 hover:text-slate-600 disabled:opacity-50">
                 <X className="h-4 w-4" />
               </button>
-              <button onClick={run} disabled={running}
-                className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
-                style={{ background: BRAND }}>
-                {running
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Running…</>
-                  : <><Play className="h-4 w-4" /> Run {selected.size}</>}
-              </button>
+              <button onClick={openConfirm} disabled={running}
+  className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white disabled:opacity-60"
+  style={{ background: BRAND }}>
+  {running
+    ? <><Loader2 className="h-4 w-4 animate-spin" /> Running…</>
+    : <><Play className="h-4 w-4" /> Run {selected.size}</>}
+</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Results */}
-      {results && (
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 bg-slate-50/50 px-5 py-3 text-sm font-semibold text-slate-800">
-            Run results ({results.length})
-          </div>
-          <div className="divide-y divide-slate-50">
-            {results.map((r, i) => {
-              const row = rowById.get(r.target_id);
-              return (
-                <div key={i} className="flex items-center gap-3 px-5 py-3">
-                  {r.success
-                    ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-                    : <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-800">{row?.name ?? r.target_id}</p>
-                    <p className="text-xs text-slate-400">
-                      {r.success
-                        ? `Total ${r.total_score?.toFixed(2)} · ${r.scores.length} criteria`
-                        : r.error ?? "Failed"}
-                    </p>
-                  </div>
-                  {r.success && r.appraisal_id && (
-                    <button onClick={() => router.push(`/portal/appraisal/ai-results/${r.appraisal_id}`)}
-                      className="flex shrink-0 items-center gap-1 text-xs font-medium" style={{ color: BRAND }}>
-                      View <ChevronRight className="h-3 w-3" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+{/* Results */}
+{results && (
+  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3">
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-semibold text-slate-800">Run complete</span>
+        {(() => {
+          const ok = results.filter((r) => r.success).length;
+          const bad = results.length - ok;
+          return (
+            <div className="flex items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600">
+                <CheckCircle2 className="h-3 w-3" /> {ok} scored
+              </span>
+              {bad > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-semibold text-amber-600">
+                  <AlertCircle className="h-3 w-3" /> {bad} with issues
+                </span>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+      <button onClick={() => router.push("/portal/panel/agentic/results")}
+        className="flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-white"
+        style={{ background: BRAND }}>
+        View all results <ChevronRight className="h-3.5 w-3.5" />
+      </button>
     </div>
+
+    {/* Per-target outcome list */}
+    <div className="divide-y divide-slate-50">
+      {results.map((r, i) => {
+        const row = rowById.get(r.target_id);
+        return (
+          <div key={i} className="flex items-center gap-3 px-5 py-3">
+            {r.success
+              ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+              : <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-slate-800">{row?.name ?? r.target_id}</p>
+              <p className="text-xs text-slate-400">
+                {r.success
+                  ? `Total ${r.total_score?.toFixed(2)} · ${r.scores.length} criteria`
+                  : r.error ?? "Failed"}
+              </p>
+            </div>
+            {r.success
+              ? <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">Scored</span>
+              : <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600">Issue</span>}
+          </div>
+        );
+      })}
+    </div>
+
+    <div className="border-t border-slate-100 bg-slate-50/30 px-5 py-3 text-center">
+      <button onClick={() => router.push("/portal/panel/agentic/results")}
+        className="inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: BRAND }}>
+        Review, verify and rank in Appraisal Results <ChevronRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  </div>
+)}
+
+
+      <ConfirmRunDialog
+  open={confirmOpen}
+  count={selected.size}
+  onCancel={() => setConfirmOpen(false)}
+  onConfirm={run}
+/>
+    </div>
+    
   );
 }
 

@@ -1,92 +1,325 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { RefreshCw, FileText } from "lucide-react";
-import { PanelAppraisal } from "@/types/new/agentic";
-import { getAppraisals } from "@/app/api/new/panel/agentic";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import {
+  Table2, Loader2, Search, RefreshCw, Download, Trash2, ChevronLeft, ChevronRight, X,
+} from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { cn } from "@/lib/utils";
+
+import { AdminOnly } from "@/app/context/role";
+import { AgenticResultRow, AppraisalScoreResult } from "@/types/new/agentic-results";
+import { bulkDelete, deleteAppraisal, listAgenticResults } from "@/app/api/new/panel/results";
+import { deriveColumns } from "../_shared/cols";
+import { exportResults } from "../_shared/export";
+import ResultsTable from "./table";
+import ScoreDialog from "./dialogue";
+import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 
 const BRAND = "#27aae1";
+const PER_PAGE = [20, 30, 50, 100] as const;
+const ALL = "__all__";
 
 export default function AppraisalResultsPage() {
-  const router = useRouter();
-  const [rows, setRows] = useState<PanelAppraisal[]>([]);
+  const [rows, setRows] = useState<AgenticResultRow[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
+  const [pkg, setPkg] = useState(ALL);
+  const [phase, setPhase] = useState(ALL);
+  const [kind, setKind] = useState(ALL);
+  const [perPage, setPerPage] = useState<number>(20);
+  const [page, setPage] = useState(1);
 
-  const load = () => {
+  const [selected, setSelected] = useState<Set<string>>(new Set()); // by latest_appraisal_id
+  const [activeScore, setActiveScore] = useState<AppraisalScoreResult | null>(null);
+  const [rowToDelete, setRowToDelete] = useState<AgenticResultRow | null>(null);
+  const [toDelete, setToDelete] = useState<{ id: string; label: string } | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  const load = useCallback(() => {
     setLoading(true);
-    getAppraisals().then(setRows).finally(() => setLoading(false));
-  };
-  useEffect(load, []);
+    listAgenticResults()
+      .then(setRows)
+      .finally(() => setLoading(false));
+  }, []);
+  useEffect(() => { load(); }, [load]);
 
-  const filtered = rows.filter((r) => {
-    const q = search.toLowerCase();
-    return !q || r.target_name.toLowerCase().includes(q) || (r.reference_number?.toLowerCase().includes(q) ?? false);
-  });
+  const packages = useMemo(() => [...new Set(rows.map((r) => r.package).filter(Boolean) as string[])].sort(), [rows]);
+  const phases = useMemo(() => [...new Set(rows.map((r) => r.phase).filter(Boolean) as string[])].sort(), [rows]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (pkg !== ALL && (r.package ?? "") !== pkg) return false;
+      if (phase !== ALL && (r.phase ?? "") !== phase) return false;
+      if (kind !== ALL && r.target_type !== kind) return false;
+      if (q) {
+        const hit = (r.name?.toLowerCase().includes(q) ?? false) ||
+                    (r.reference_number?.toLowerCase().includes(q) ?? false);
+        if (!hit) return false;
+      }
+      return true;
+    });
+  }, [rows, search, pkg, phase, kind]);
+
+  useEffect(() => { setPage(1); }, [search, pkg, phase, kind, perPage]);
+
+  const columns = useMemo(() => deriveColumns(rows), [rows]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const pageRows = useMemo(() => filtered.slice((page - 1) * perPage, page * perPage), [filtered, page, perPage]);
+
+  const allSelected = filtered.length > 0 && filtered.every((r) => selected.has(r.latest_appraisal_id));
+  const someSelected = filtered.some((r) => selected.has(r.latest_appraisal_id));
+
+  const toggle = (id: string) =>
+    setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleAll = () =>
+    setSelected((s) => {
+      const n = new Set(s);
+      if (allSelected) filtered.forEach((r) => n.delete(r.latest_appraisal_id));
+      else filtered.forEach((r) => n.add(r.latest_appraisal_id));
+      return n;
+    });
+
+  // patch a single score in place after edit
+  const onSaved = (updated: AppraisalScoreResult) =>
+    setRows((rs) => rs.map((r) => {
+      const ap = r.appraisals[0];
+      if (!ap || !ap.scores.some((s) => s.id === updated.id)) return r;
+      return { ...r, appraisals: [{ ...ap, scores: ap.scores.map((s) => s.id === updated.id ? updated : s) }, ...r.appraisals.slice(1)] };
+    }));
+
+  const confirmDeleteRow = async () => {
+    if (!rowToDelete) return;
+    const res = await deleteAppraisal(rowToDelete.latest_appraisal_id);
+    if (!res.ok) { toast.error(res.error ?? "Delete failed."); return; }
+    toast.success("Appraisal deleted.");
+    setRowToDelete(null);
+    load();
+  };
+
+  const confirmDelete = async () => {
+  if (!toDelete) return;
+  const res = await deleteAppraisal(toDelete.id);
+  if (!res.ok) { toast.error(res.error ?? "Delete failed."); return; }
+  toast.success("Appraisal deleted.");
+  setToDelete(null);
+  load();
+};
+
+  const confirmBulk = async () => {
+    const ids = [...selected];
+    const res = await bulkDelete({ appraisal_ids: ids });
+    if (!res.ok) { toast.error(res.error ?? "Bulk delete failed."); return; }
+    toast.success(`Deleted ${res.data?.appraisals?.deleted ?? ids.length} appraisal(s).`);
+    setSelected(new Set());
+    setBulkOpen(false);
+    load();
+  };
+
+  const from = filtered.length === 0 ? 0 : (page - 1) * perPage + 1;
+  const to = Math.min(page * perPage, filtered.length);
 
   return (
-    <div className="max-w-5xl mx-auto py-8 space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <ToastContainer position="top-right" autoClose={4000} />
+
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg" style={{ background: `${BRAND}18`, border: `1px solid ${BRAND}30` }}>
-            <FileText className="h-5 w-5" style={{ color: BRAND }} />
+          <div className="rounded-lg p-2" style={{ background: `${BRAND}18`, border: `1px solid ${BRAND}30` }}>
+            <Table2 className="h-5 w-5" style={{ color: BRAND }} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">AI Appraisal Results</h1>
-            <p className="text-sm text-slate-500 mt-0.5">All generated appraisals with scores and reasoning.</p>
+            <h1 className="text-xl font-bold text-slate-800">Appraisal Results</h1>
+            <p className="mt-0.5 text-sm text-slate-500">
+              Scored results per proposal across all criteria. Click a cell's eye to view reasoning or edit the score.
+            </p>
           </div>
         </div>
-        <button onClick={load} className="p-2 border border-slate-200 rounded-lg" disabled={loading}>
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-        </button>
+        <div className="flex items-center gap-2">
+          <AdminOnly silent>
+            <button onClick={() => exportResults(filtered, columns)}
+              className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+              <Download className="h-4 w-4" /> Export Excel
+            </button>
+          </AdminOnly>
+          <button onClick={load} disabled={loading}
+            className="rounded-lg border border-slate-200 p-2 disabled:opacity-50">
+            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          </button>
+        </div>
       </div>
 
-      <input
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by name or reference…"
-        className="w-full max-w-sm px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
+      {/* Filters */}
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-slate-600">Search</label>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder="Keyword or reference #"
+              className="w-full rounded-lg border border-slate-300 py-2.5 pl-10 pr-3 text-sm outline-none focus:border-slate-400" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-600">Package</label>
+            <select value={pkg} onChange={(e) => setPkg(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400">
+              <option value={ALL}>All packages</option>
+              {packages.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-600">Phase</label>
+            <select value={phase} onChange={(e) => setPhase(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400">
+              <option value={ALL}>All phases</option>
+              {phases.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-600">Type</label>
+            <select value={kind} onChange={(e) => setKind(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-400">
+              <option value={ALL}>All types</option>
+              <option value="intervention">Intervention</option>
+              <option value="national_proposal">National programme</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-semibold text-slate-600">Results per page</span>
+          <div className="flex items-center gap-1">
+            {PER_PAGE.map((n) => {
+              const active = perPage === n;
+              return (
+                <button key={n} onClick={() => setPerPage(n)}
+                  className={cn("rounded-lg border px-3 py-1.5 text-xs font-semibold",
+                    active ? "border-transparent text-white" : "border-slate-200 text-slate-600 hover:bg-slate-50")}
+                  style={active ? { background: BRAND } : undefined}>
+                  {n}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Count */}
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-200" />
+        <span className="text-sm text-slate-500">
+          <strong className="text-slate-700">{filtered.length}</strong> result{filtered.length === 1 ? "" : "s"}
+        </span>
+        <div className="h-px flex-1 bg-slate-200" />
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-slate-300" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="py-16 text-center text-sm text-slate-400">
+          {rows.length === 0 ? "No appraisal results yet — run an appraisal first." : "No matches for these filters."}
+        </div>
+      ) : (
+        <>
+        <ResultsTable
+  rows={pageRows}
+  columns={columns}
+  selected={selected}
+  onToggle={toggle}
+  onToggleAll={toggleAll}
+  allSelected={allSelected}
+  someSelected={someSelected}
+  onOpenScore={setActiveScore}
+  onDeleteAppraisal={(id, label) => setToDelete({ id, label })}
+  canDelete
+/>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 shadow-sm">
+            <span>Showing <strong className="text-slate-700">{from}–{to}</strong> of {filtered.length}</span>
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}
+                className="rounded-lg border border-slate-200 p-1.5 hover:bg-slate-50 disabled:opacity-40">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="px-2">Page {page} / {totalPages}</span>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                className="rounded-lg border border-slate-200 p-1.5 hover:bg-slate-50 disabled:opacity-40">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Sticky bulk bar (admins) */}
+      {selected.size > 0 && (
+        <AdminOnly silent>
+          <div className="sticky bottom-4 z-20">
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-lg">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-semibold text-slate-800">{selected.size}</span>
+                <span className="text-slate-500">selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setSelected(new Set())}
+                  className="p-2 text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>
+                <button onClick={() => setBulkOpen(true)}
+                  className="flex items-center gap-2 rounded-lg bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600">
+                  <Trash2 className="h-4 w-4" /> Delete {selected.size}
+                </button>
+              </div>
+            </div>
+          </div>
+        </AdminOnly>
+      )}
+
+
+      <ScoreDialog
+        score={activeScore}
+        onClose={() => setActiveScore(null)}
+        onSaved={onSaved}
+        canEdit  
       />
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-sm">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              {["Ref No.", "Proposal", "Type", "Total", "Status", "Created"].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-400">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">Loading…</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">No appraisals yet.</td></tr>
-            ) : filtered.map((r) => (
-              <tr
-                key={r.id}
-                onClick={() => router.push(`/portal/appraisal/ai-results/${r.id}`)}
-                className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
-              >
-                <td className="px-4 py-3 font-mono text-xs" style={{ color: BRAND }}>{r.reference_number ?? "—"}</td>
-                <td className="px-4 py-3 font-medium text-slate-800 truncate max-w-xs">{r.target_name}</td>
-                <td className="px-4 py-3">
-                  <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
-                    {r.target_type === "national_proposal" ? "National" : "Intervention"}
-                  </span>
-                </td>
-                <td className="px-4 py-3 tabular-nums font-bold text-slate-800">{r.total_score.toFixed(2)}</td>
-                <td className="px-4 py-3">
-                  {r.success
-                    ? <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Complete</span>
-                    : <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">Partial</span>}
-                </td>
-                <td className="px-4 py-3 text-xs text-slate-500">{new Date(r.created_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+   {rowToDelete && (
+  <DeleteDialog
+    open={!!rowToDelete}
+    onOpenChange={(v) => { if (!v) setRowToDelete(null); }}
+    confirmWord="DELETE"
+    title="Delete this appraisal?"
+    description={`This permanently removes the latest run for “${rowToDelete.name}” and all its criterion scores. This cannot be undone.`}
+    onConfirm={confirmDeleteRow}
+  />
+)}
+      
+
+
+     {bulkOpen && (
+  <DeleteDialog
+    open={bulkOpen}
+    onOpenChange={setBulkOpen}
+    confirmWord="DELETE"
+    title={`Delete ${selected.size} appraisal(s)?`}
+    description={`This permanently removes ${selected.size} appraisal run(s) and all their criterion scores. This cannot be undone.`}
+    onConfirm={confirmBulk}
+  />
+)}
+{toDelete && (
+  <DeleteDialog
+    open={!!toDelete}
+    onOpenChange={(v) => { if (!v) setToDelete(null); }}
+    confirmWord="DELETE"
+    title="Delete this appraisal run?"
+    description={`This permanently removes the run for “${toDelete.label}” and all its criterion scores. This cannot be undone.`}
+    onConfirm={confirmDelete}
+  />
+)}
     </div>
   );
 }

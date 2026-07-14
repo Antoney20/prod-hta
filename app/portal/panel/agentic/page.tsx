@@ -59,9 +59,9 @@ export default function AgenticOverviewPage() {
             <Sparkles className="h-5 w-5" style={{ color: BRAND }} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Agentic Appraisal</h1>
+            <h1 className="text-xl font-bold text-slate-800">Agentic Workflow </h1>
             <p className="mt-0.5 text-sm text-slate-500">
-              An evidence-driven appraisal pipeline — from agent scoring through to the panel's final recommendation.
+              An evidence-driven appraisal process for the panel
             </p>
           </div>
         </div>

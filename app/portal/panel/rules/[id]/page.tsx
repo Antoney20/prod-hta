@@ -6,16 +6,19 @@ import { toast } from "react-toastify";
 import {
   ArrowLeft, Scale, BookOpen, Paperclip, Trash2, LinkIcon, FileText, ExternalLink,
   ListChecks, Layers, Target, Pencil,
+  Table2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { htmlToText } from "@/components/shared/text";
 import { AdminOnly } from "@/app/context/role";
 import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 
-import { CriteriaRule, GuideDocument, RuleBand } from "@/types/new/criteria-rules";
-import { getRule, deleteDocument, deleteRule } from "@/app/api/new/panel/rules";
+import { CriteriaRule, GuideDocument, ReferenceScale, RuleBand } from "@/types/new/criteria-rules";
+import { getRule, deleteDocument, deleteRule, deleteScale } from "@/app/api/new/panel/rules";
 import DocumentDialog from "./form";
 import EditRuleDialog from "./edit";
+import { toPreviewGrid } from "../handler";
+import ScaleDialog from "./s_form";
 
 const opText = (op?: string) =>
   ({ "<=": "≤", "<": "<", ">=": "≥", ">": ">", "==": "=", "!=": "≠", between: "range", in: "one of" }[op ?? ""] ?? op ?? "");
@@ -39,6 +42,8 @@ export default function RuleDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [toDelete, setToDelete] = useState<GuideDocument | null>(null);
   const [confirmRule, setConfirmRule] = useState(false);
+  const [scaleOpen, setScaleOpen] = useState(false);
+  const [scaleToDelete, setScaleToDelete] = useState<ReferenceScale | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -69,6 +74,15 @@ export default function RuleDetailPage() {
     }
   };
 
+  const handleDeleteScale = async () => {
+    if (!scaleToDelete) return;
+    const s = scaleToDelete;
+    setScaleToDelete(null);
+    const res = await deleteScale(s.id);
+    if (res.ok) { toast.success("Reference removed"); load(); }
+    else toast.error(res.error ?? "Delete failed");
+  };
+
   // group bands by their field when the rule reads more than one field
   const bandGroups = useMemo(() => {
     if (!rule) return [];
@@ -82,7 +96,7 @@ export default function RuleDetailPage() {
       const k = b.field ?? "—";
       map.set(k, [...(map.get(k) ?? []), b]);
     }
-    // preserve target_fields order
+
     return rule.target_fields.map((f) => ({
       field: f,
       bands: (map.get(f) ?? []).sort((a, b) => (b.score ?? 0) - (a.score ?? 0)),
@@ -238,6 +252,81 @@ export default function RuleDetailPage() {
         ))}
       </div>
 
+      {/* reference scales */}
+      <div className="border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Table2 className="h-4 w-4 text-slate-400" />
+            <h2 className="text-sm font-semibold text-slate-700">Additional reference guides useful for this criteria</h2>
+          </div>
+          <AdminOnly silent>
+            <Button size="sm" variant="outline" className="h-8" onClick={() => setScaleOpen(true)}>
+              <Paperclip className="mr-1.5 h-4 w-4" /> Add reference +
+            </Button>
+          </AdminOnly>
+        </div>
+
+        {(rule.scales?.length ?? 0) === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-slate-400">
+            No reference guide information. Upload a guide metric or context for this
+            criterion's evidence. give a description of what the guide is about
+          </p>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {rule.scales.map((s) => {
+              const grid = toPreviewGrid(s.data);
+              return (
+                <div key={s.id} className="px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-700">{s.label}</p>
+                      <p className="text-xs text-slate-400">
+                        {[s.source, s.version].filter(Boolean).join(" · ")}
+                        {grid ? ` · ${grid.rows.length} term${grid.rows.length !== 1 ? "s" : ""}` : ""}
+                      </p>
+                      {s.description && <p className="mt-1 text-xs text-slate-500">{s.description}</p>}
+                    </div>
+                    <AdminOnly silent>
+                      <button onClick={() => setScaleToDelete(s)} className="text-red-400 hover:text-red-600">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </AdminOnly>
+                  </div>
+
+                  {grid && (
+                    <div className="mt-2 max-h-64 overflow-auto border border-slate-100">
+                      <table className="w-full text-xs">
+                        <thead className="sticky top-0 bg-slate-50">
+                          <tr>
+                            <th className="px-2 py-1.5 text-left font-semibold text-slate-500 whitespace-nowrap">Term</th>
+                            {grid.columns.map((c) => (
+                              <th key={c} className="px-2 py-1.5 text-left font-semibold text-slate-500 whitespace-nowrap">{c}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {grid.rows.map((r, i) => (
+                            <tr key={i} className="align-top">
+                              <td className="px-2 py-1.5">
+                                <p className="font-medium text-slate-700">{r.term}</p>
+                                {r.definition && <p className="mt-0.5 text-[11px] text-slate-400">{r.definition}</p>}
+                              </td>
+                              {r.cells.map((cell, ci) => (
+                                <td key={ci} className="px-2 py-1.5 text-slate-600 min-w-40">{cell || "—"}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       {/* guide documents */}
       <div className="border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
@@ -247,15 +336,14 @@ export default function RuleDetailPage() {
           </div>
           <AdminOnly silent>
             <Button size="sm" variant="outline" className="h-8" onClick={() => setDialogOpen(true)}>
-              <Paperclip className="mr-1.5 h-4 w-4" /> Attach guide
+              <Paperclip className="mr-1.5 h-4 w-4" /> Attach documents +
             </Button>
           </AdminOnly>
         </div>
 
         {rule.documents.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-slate-400">
-            No guides attached. These are reference materials — published literature or guidelines —
-            that anchor how this criterion’s evidence is judged.
+            No guides attached. These are reference materials that are important for this criteria
           </p>
         ) : (
           <div className="divide-y divide-slate-100">
@@ -319,6 +407,21 @@ export default function RuleDetailPage() {
         }
         confirmWord="delete rule"
         onConfirm={handleDeleteRule}
+      />
+
+      <ScaleDialog
+        open={scaleOpen}
+        onOpenChange={setScaleOpen}
+        rule={rule}
+        onSaved={() => { setScaleOpen(false); load(); }}
+      />
+
+      <DeleteDialog
+        open={!!scaleToDelete}
+        onOpenChange={(v) => !v && setScaleToDelete(null)}
+        title="Remove reference?"
+        description={<><strong>{scaleToDelete?.label}</strong> will be permanently removed from this rule.</>}
+        onConfirm={handleDeleteScale}
       />
     </div>
   );

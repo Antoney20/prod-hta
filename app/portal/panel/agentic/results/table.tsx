@@ -1,10 +1,13 @@
 "use client";
-import { Eye, Trash2, CheckCircle2, Pencil, ChevronRight, ChevronDown, Workflow } from "lucide-react";
+import {
+  Eye, Trash2, CheckCircle2, Pencil, ChevronRight, ChevronDown, Workflow, MessageSquare, Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgenticResultRow, AppraisalScoreResult } from "@/types/new/agentic-results";
-import {  scoreMapOf, latestOf , CritCol } from "../_shared/cols";
-import { useState } from "react";
+import { scoreMapOf, latestOf, CritCol } from "../_shared/cols";
+import { Fragment, useState } from "react";
 import Link from "next/link";
+import { AdminOnly } from "@/app/context/role";
 
 const BRAND = "#27aae1";
 
@@ -18,6 +21,8 @@ interface Props {
   someSelected: boolean;
   onOpenScore: (s: AppraisalScoreResult) => void;
   onDeleteAppraisal: (appraisalId: string, label: string) => void;
+  onSelectRun: (appraisalId: string, selected: boolean) => void;
+  onComment: (appraisalId: string, label: string, current: string) => void;
   canDelete: boolean;
 }
 
@@ -29,6 +34,28 @@ function CheckBox({ state, onClick }: { state: "on" | "off" | "mixed"; onClick: 
       style={state !== "off" ? { background: BRAND } : undefined}>
       {state === "on" && <CheckCircle2 className="h-3 w-3 text-white" />}
       {state === "mixed" && <span className="h-1.5 w-1.5 rounded-sm bg-white" />}
+    </button>
+  );
+}
+
+function YesNo({ yes, note }: { yes: boolean; note?: string }) {
+  return yes ? (
+    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
+      Yes{note ? ` · ${note}` : ""}
+    </span>
+  ) : (
+    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-400">No</span>
+  );
+}
+
+function SelectBtn({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick}
+      className={cn("inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold",
+        on ? "border-transparent text-white" : "border-slate-200 text-slate-500 hover:bg-slate-50")}
+      style={on ? { background: BRAND } : undefined}
+      title={on ? "Selected for weighting — click to deselect" : "Select this run for weighting"}>
+      {on ? <><Check className="h-3 w-3" /> Selected</> : "Select"}
     </button>
   );
 }
@@ -63,7 +90,7 @@ function Cell({ s, onOpen }: { s?: AppraisalScoreResult; onOpen: (s: AppraisalSc
 
 export default function ResultsTable({
   rows, columns, selected, onToggle, onToggleAll, allSelected, someSelected,
-  onOpenScore, onDeleteAppraisal, canDelete,
+  onOpenScore, onDeleteAppraisal, onSelectRun, onComment, canDelete,
 }: Props) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const toggleExpand = (targetId: string) =>
@@ -82,6 +109,7 @@ export default function ResultsTable({
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Package</th>
               <th className="px-4 py-3 font-semibold">Phase</th>
+              <th className="px-4 py-3 font-semibold">Selected</th>
               {columns.map((c) => (
                 <th key={c.key} className="px-3 py-3 text-center font-semibold" title={c.name}>{c.label}</th>
               ))}
@@ -96,18 +124,24 @@ export default function ResultsTable({
               const multi = r.appraisal_count > 1;
               const isOpen = expanded.has(r.target_id);
 
+              // which run (if any) is selected for weighting — one per target
+              const selIdx = r.appraisals.findIndex((a) => a.selected);
+              const selectedRun = selIdx >= 0 ? r.appraisals[selIdx] : null;
+              const selNum = selIdx >= 0 ? r.appraisals.length - selIdx : null;
+              const latestSelected = !!latest?.selected;
+              const selNote = selectedRun && !latestSelected ? `#${selNum}` : undefined;
+
               return (
-                <>
-                  
-                  <tr key={r.target_id} className={cn("hover:bg-slate-50/60", on && "bg-sky-50/40")}>
+                <Fragment key={r.target_id}>
+                  <tr className={cn("hover:bg-slate-50/60", on && "bg-sky-50/40")}>
                     <td className="sticky left-0 z-10 bg-inherit px-4 py-3">
                       <CheckBox state={on ? "on" : "off"} onClick={() => onToggle(r.latest_appraisal_id)} />
                     </td>
-                    <td className="sticky  rounded px-2 py-1 font-mono text-xs text-[#27aae1] hover:underline min-w-60">
-                    <Link href = {`/portal/panel/evidence/coverage/${r.target_id}`}> 
-                      <span className="rounded bg-sky-50 px-2 py-0.5 font-mono text-xs" style={{ color: BRAND }}>
-                        {r.reference_number ?? "—"}
-                      </span>
+                    <td className="sticky min-w-60 rounded px-2 py-1 font-mono text-xs text-[#27aae1] hover:underline">
+                      <Link href={`/portal/panel/evidence/coverage/${r.target_id}`}>
+                        <span className="rounded bg-sky-50 px-2 py-0.5 font-mono text-xs" style={{ color: BRAND }}>
+                          {r.reference_number ?? "—"}
+                        </span>
                       </Link>
                     </td>
                     <td className="px-4 py-3">
@@ -116,7 +150,7 @@ export default function ResultsTable({
                         {multi && (
                           <button onClick={() => toggleExpand(r.target_id)}
                             className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600 hover:bg-amber-100"
-                            title={`${r.appraisal_count} runs — expand to review and prune`}>
+                            title={`${r.appraisal_count} runs — expand to pick which one feeds weighting`}>
                             <Workflow className="h-3 w-3" />
                             {r.appraisal_count}
                             {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
@@ -126,19 +160,41 @@ export default function ResultsTable({
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-600">{r.package ?? "—"}</td>
                     <td className="px-4 py-3 text-sm text-slate-600">{r.phase ?? "—"}</td>
+                    <td className="px-4 py-3"><YesNo yes={!!selectedRun} note={selNote} /></td>
                     {columns.map((c) => <Cell key={c.key} s={m.get(c.key)} onOpen={onOpenScore} />)}
-                    <td className="px-4 py-3 text-right">
-                      {canDelete && latest && (
-                        <button onClick={() => onDeleteAppraisal(latest.id, r.name)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
-                          aria-label="Delete latest run">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      )}
+
+<td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <AdminOnly silent>
+                          {latest && (
+                            <SelectBtn on={latestSelected}
+                              onClick={() => onSelectRun(latest.id, !latestSelected)} />
+                          )}
+                        </AdminOnly>
+                        {latest && (
+                          <button onClick={() => onComment(latest.id, r.name, latest.final_comments ?? "")}
+                            className={cn("rounded-lg p-1.5 hover:bg-slate-100",
+                              latest.final_comments ? "text-[#27aae1]" : "text-slate-400 hover:text-slate-600")}
+                            aria-label="Add or edit comment"
+                            title={latest.final_comments ? "Edit comment" : "Add comment"}>
+                            <MessageSquare className="h-4 w-4" />
+                          </button>
+                        )}
+                        <AdminOnly silent>
+                          {canDelete && latest && (
+                            <button onClick={() => onDeleteAppraisal(latest.id, r.name)}
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                              aria-label="Delete latest run">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          )}
+                        </AdminOnly>
+                      </div>
                     </td>
+
                   </tr>
 
-                  {/* Branch rows — repeat target identity (muted), tinted blue, grouped, numbered #1..#N */}
+                  {/* Branch rows — pick any specific run to feed weighting, not just the latest */}
                   {multi && isOpen && r.appraisals.map((ap, idx) => {
                     const am = mapFor(ap.scores);
                     const num = r.appraisals.length - idx;   // newest = highest #
@@ -175,20 +231,37 @@ export default function ResultsTable({
                         </td>
                         <td className="px-4 py-2.5 text-sm text-slate-400">{r.package ?? "—"}</td>
                         <td className="px-4 py-2.5 text-sm text-slate-400">{r.phase ?? "—"}</td>
+                        <td className="px-4 py-2.5"><YesNo yes={!!ap.selected} /></td>
                         {columns.map((c) => <Cell key={c.key} s={am.get(c.key)} onOpen={onOpenScore} />)}
-                        <td className="px-4 py-2.5 text-right">
-                          {canDelete && (
-                            <button onClick={() => onDeleteAppraisal(ap.id, `${r.name} — #${num}`)}
-                              className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
-                              aria-label={`Delete run #${num}`}>
-                              <Trash2 className="h-4 w-4" />
+
+
+<td className="px-4 py-2.5">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <AdminOnly silent>
+                              <SelectBtn on={!!ap.selected} onClick={() => onSelectRun(ap.id, !ap.selected)} />
+                            </AdminOnly>
+                            <button onClick={() => onComment(ap.id, `${r.name} — #${num}`, ap.final_comments ?? "")}
+                              className={cn("rounded-lg p-1.5 hover:bg-white",
+                                ap.final_comments ? "text-[#27aae1]" : "text-slate-400 hover:text-slate-600")}
+                              aria-label="Add or edit comment"
+                              title={ap.final_comments ? "Edit comment" : "Add comment"}>
+                              <MessageSquare className="h-4 w-4" />
                             </button>
-                          )}
+                            <AdminOnly silent>
+                              {canDelete && (
+                                <button onClick={() => onDeleteAppraisal(ap.id, `${r.name} — #${num}`)}
+                                  className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                                  aria-label={`Delete run #${num}`}>
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )}
+                            </AdminOnly>
+                          </div>
                         </td>
                       </tr>
                     );
                   })}
-                </>
+                </Fragment>
               );
             })}
           </tbody>

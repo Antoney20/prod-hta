@@ -8,7 +8,7 @@ export async function exportResults(rows: AgenticResultRow[], columns: CritCol[]
 
   const header = [
     "Reference", "Name", "Package", "Phase", "Type",
-    "Run #", "Generated", "Latest", "Status",
+    "Run #", "Generated", "Latest", "Status",  "Selected", "Final comments",
     ...columns.map((c) => c.name),                      
     ...columns.map((c) => `${c.name} — reasoning`),      
     ...columns.map((c) => `${c.name} — notes`),          
@@ -35,6 +35,8 @@ export async function exportResults(rows: AgenticResultRow[], columns: CritCol[]
         new Date(ap.created_at).toLocaleString(),
         isLatest ? "Latest" : "",
         ap.success ? "OK" : "Issue",
+        ap.selected ? "Yes" : "No",
+        ap.final_comments ?? "",
       ];
 
       for (const c of columns) {
@@ -58,20 +60,21 @@ export async function exportResults(rows: AgenticResultRow[], columns: CritCol[]
     });
   }
 
-  const scoreStart = 10;                                  // 9 meta cols + 1
+  const scoreStart = 12;                                 
   const reasonStart = scoreStart + columns.length;
   const notesStart = reasonStart + columns.length;
 
   ws.columns.forEach((c, i) => {
     const col = i + 1;
     if (col === 2) c.width = 34;                          // name
-    else if (col === 7) c.width = 20;                     // generated
+    else if (col === 7) c.width = 20;  
+    else if (col === 11) c.width = 40;                    // generated
     else if (col >= reasonStart) c.width = 48;            // reasoning + notes — wide
     else if (col >= scoreStart) c.width = 12;             // score cols — narrow
     else c.width = 16;                                    // meta
   });
 
-  ws.views = [{ state: "frozen", xSplit: 2, ySplit: 1 }];  // keep ref + name in view
+  ws.views = [{ state: "frozen", xSplit: 2, ySplit: 1 }];  
 
   const buf = await wb.xlsx.writeBuffer();
   const url = URL.createObjectURL(new Blob([buf], {

@@ -46,6 +46,7 @@ export interface CriteriaRule {
   bands: RuleBand[];
   active: boolean;
   documents: GuideDocument[];
+  scales: ReferenceScale[]; 
   created_at: string;
   updated_at: string;
 }
@@ -66,3 +67,25 @@ export interface BulkRuleResult {
 }
 
 export type Write<T> = { ok: boolean; data?: T; error?: string };
+
+export interface ReferenceScale {
+  id: string;
+  rule: string;
+  label: string;
+  source: string;
+  version: string;
+  description: string;
+  data: any;          // free-form: CTCAE grid, GRADE rubric, etc.
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ScaleInput {
+  label: string;
+  source?: string;
+  version?: string;
+  description?: string;
+  data: any;
+  active?: boolean;
+}

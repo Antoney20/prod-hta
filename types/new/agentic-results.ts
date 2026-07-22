@@ -23,6 +23,8 @@ export interface AppraisalResult {
   id: string;
   success: boolean;
   rank: number | null;
+    selected: boolean;              
+  final_comments: string | null;
   created_at: string;
   created_by: string | null;
   scores: AppraisalScoreResult[];
@@ -67,4 +69,15 @@ export interface WriteResult<T> {
   ok: boolean;
   data?: T;
   error?: string;
+}
+
+export interface SelectResult {
+  id: string;
+  selected: boolean;
+  final_comments: string | null;
+}
+
+export interface BulkSelectResult {
+  count: number;
+  ids: string[];
 }

@@ -107,6 +107,9 @@ export default function ProgramProposalsPage() {
     setSubmitting(false);
   };
 
+  const handleProgramChanged = (updated: NationalProgram) =>
+  setPrograms((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+
   const handleDelete = async () => {
     if (!toDelete) return;
     const { ok, error } = await deleteProposal(toDelete.id);
@@ -262,13 +265,14 @@ export default function ProgramProposalsPage() {
         isSubmitting={submitting}
       />
 
-  <BulkUpload
-        open={bulkOpen}
-        onClose={() => setBulkOpen(false)}
-        program={program}
-        proposals={proposals}
-        onComplete={loadProposals}
-      />
+<BulkUpload
+  open={bulkOpen}
+  onClose={() => setBulkOpen(false)}
+  program={program}
+  proposals={proposals}
+  onComplete={loadProposals}
+  onProgramChanged={handleProgramChanged}
+/>
 
       <DeleteDialog
         open={!!toDelete}

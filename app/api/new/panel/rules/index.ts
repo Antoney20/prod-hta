@@ -1,6 +1,8 @@
 import api from "@/app/api/auth";
 import {
   CriteriaRule, RuleInput, GuideDocument, GuideInput, BulkRuleResult, Write,
+  ScaleInput,
+  ReferenceScale,
 } from "@/types/new/criteria-rules";
 
 const errMsg = (e: any): string =>
@@ -91,6 +93,33 @@ export const addDocument = async (ruleId: string, payload: GuideInput): Promise<
 export const deleteDocument = async (docId: string): Promise<Write<null>> => {
   try {
     await api.delete(`/v3/criteria-rules/documents/${docId}/`);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: errMsg(e) };
+  }
+};
+
+export const addScale = async (ruleId: string, payload: ScaleInput): Promise<Write<ReferenceScale>> => {
+  try {
+    const res = await api.post<ReferenceScale>(`/v3/criteria-rules/${ruleId}/scales/`, payload);
+    return { ok: true, data: res.data };
+  } catch (e) {
+    return { ok: false, error: errMsg(e) };
+  }
+};
+
+export const updateScale = async (scaleId: string, payload: Partial<ScaleInput>): Promise<Write<ReferenceScale>> => {
+  try {
+    const res = await api.patch<ReferenceScale>(`/v3/criteria-rules/scales/${scaleId}/`, payload);
+    return { ok: true, data: res.data };
+  } catch (e) {
+    return { ok: false, error: errMsg(e) };
+  }
+};
+
+export const deleteScale = async (scaleId: string): Promise<Write<null>> => {
+  try {
+    await api.delete(`/v3/criteria-rules/scales/${scaleId}/`);
     return { ok: true };
   } catch (e) {
     return { ok: false, error: errMsg(e) };

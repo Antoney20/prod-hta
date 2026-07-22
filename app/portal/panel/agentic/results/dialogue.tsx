@@ -7,6 +7,8 @@ import { editScore } from "@/app/api/new/panel/results";
 
 
 const BRAND = "#27aae1";
+const SCORE_MIN = 1;
+const SCORE_MAX = 5;
 
 interface Props {
   score: AppraisalScoreResult | null;   
@@ -30,10 +32,20 @@ export default function ScoreDialog({ score, onClose, onSaved, canEdit }: Props)
 
   if (!score) return null;
 
-  const save = async () => {
+  const trimmed = finalScore.trim();
+  const parsed = trimmed === "" ? null : Number(trimmed);
+  const scoreInvalid =
+    trimmed !== "" &&
+    (Number.isNaN(parsed) || (parsed as number) < SCORE_MIN || (parsed as number) > SCORE_MAX);
+
+    const save = async () => {
+    if (scoreInvalid) {
+      toast.error(`Final score must be between ${SCORE_MIN} and ${SCORE_MAX}.`);
+      return;
+    }
     setSaving(true);
     const res = await editScore(score.id, {
-      final_score: finalScore.trim() === "" ? null : Number(finalScore),
+      final_score: trimmed === "" ? null : Number(trimmed),
       verified,
       notes: notes.trim() === "" ? null : notes,
     });
@@ -65,7 +77,7 @@ export default function ScoreDialog({ score, onClose, onSaved, canEdit }: Props)
           {/* AI score + reasoning (frozen) */}
           <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-3">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500">
-              <Sparkles className="h-3.5 w-3.5" style={{ color: BRAND }} /> AI appraisal
+              <Sparkles className="h-3.5 w-3.5" style={{ color: BRAND }} /> Agentic appraisal
             </div>
             <div className="mb-2 flex items-center gap-2 text-sm">
               <span className="font-semibold text-slate-700">Score</span>
@@ -83,14 +95,22 @@ export default function ScoreDialog({ score, onClose, onSaved, canEdit }: Props)
 
           {canEdit ? (
             <>
-              {/* Human override */}
+              {/* Human - decision -final */}
               <div>
                 <label className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                  <Pencil className="h-3.5 w-3.5" /> Final score <span className="font-normal text-slate-400">(overrides AI — leave blank to keep AI score)</span>
+                  <Pencil className="h-3.5 w-3.5" /> Final score <span className="font-normal text-slate-400">(Final agreed/human decision — leave blank to keep agentic score)</span>
                 </label>
-                <input value={finalScore} onChange={(e) => setFinalScore(e.target.value)}
+                   <input value={finalScore} onChange={(e) => setFinalScore(e.target.value)}
                   inputMode="decimal" placeholder={score.score != null ? String(score.score) : "—"}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-400" />
+                  aria-invalid={scoreInvalid}
+                  className={`w-full rounded-lg border px-3 py-2 text-sm outline-none ${
+                    scoreInvalid ? "border-red-400 focus:border-red-400" : "border-slate-300 focus:border-slate-400"
+                  }`} />
+                {scoreInvalid && (
+                  <p className="mt-1 text-xs text-red-500">
+                    Enter a number from {SCORE_MIN} to {SCORE_MAX}.
+                  </p>
+                )}
               </div>
 
               {/* Notes */}
@@ -99,11 +119,10 @@ export default function ScoreDialog({ score, onClose, onSaved, canEdit }: Props)
                   <StickyNote className="h-3.5 w-3.5" /> Panel note
                 </label>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3}
-                  placeholder="Reasoning for the override or a review comment…"
+                  placeholder="Leave a comment…"
                   className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-400" />
               </div>
 
-              {/* Verify */}
               <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
                 <span className={`flex h-4 w-4 items-center justify-center rounded border ${verified ? "border-transparent" : "border-slate-300 bg-white"}`}
                   style={verified ? { background: BRAND } : undefined}
@@ -131,7 +150,7 @@ export default function ScoreDialog({ score, onClose, onSaved, canEdit }: Props)
               className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50">
               Cancel
             </button>
-            <button onClick={save} disabled={saving}
+            <button onClick={save} disabled={saving || scoreInvalid}
               className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
               style={{ background: BRAND }}>
               {saving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving…</> : "Save"}

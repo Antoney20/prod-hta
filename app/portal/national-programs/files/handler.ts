@@ -9,12 +9,12 @@ export interface ParsedSheet {
 }
 
 export interface MapTarget {
-  key: string;           
+  key: string;
   label: string;
   required: boolean;
   type: FieldType | "date" | "text";
   options?: string[];
-  special?: boolean;      // fixed columns, not part of `data`
+  special?: boolean;
 }
 
 export interface RowResult {
@@ -23,10 +23,15 @@ export interface RowResult {
   title: string;
   justification?: string;
   submitted_date?: string;
-  data: Record<string, any>;          // already merged with existing on update rows
-  match: ProgramProposal | null;      // existing proposal matched by reference
-  mode: RowMode;                       // create | update | skip
+  data: Record<string, any>;
+  match: ProgramProposal | null;
+  mode: RowMode;
   errors: { target: string; message: string }[];
+}
+
+export interface AutoMapResult {
+  mapping: Record<string, string>;
+  newColumns: string[];
 }
 
 const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -88,7 +93,6 @@ function streamFromBuffer(buf: ArrayBuffer): any {
   return new Blob([buf]).stream();
 }
 
-
 export function buildTargets(fields: ProgramField[] = []): MapTarget[] {
   return [
     { key: "reference_number", label: "Reference No.", required: false, type: "text", special: true },
@@ -112,8 +116,8 @@ const REF_ALIASES = [
   "proposalref", "proposalreference", "programref", "nationalprogramref",
 ];
 
-export function autoMap(headers: string[], targets: MapTarget[]): Record<string, string> {
-  const map: Record<string, string> = {};
+export function autoMap(headers: string[], targets: MapTarget[]): AutoMapResult {
+  const mapping: Record<string, string> = {};
   const used = new Set<string>();
   for (const t of targets) {
     const hit = headers.find((h) => {
@@ -123,13 +127,39 @@ export function autoMap(headers: string[], targets: MapTarget[]): Record<string,
       if (t.key === "reference_number" && REF_ALIASES.includes(nh)) return true;
       return false;
     });
-    if (hit) { map[t.key] = hit; used.add(hit); }
+    if (hit) { mapping[t.key] = hit; used.add(hit); }
   }
-  return map;
+  const newColumns = headers.filter((h) => !used.has(h));
+  return { mapping, newColumns };
 }
 
 export function unmappedRequired(targets: MapTarget[], mapping: Record<string, string>): MapTarget[] {
   return targets.filter((t) => t.required && !mapping[t.key]);
+}
+
+/** slugify a raw column header into a field key */
+export function slugKey(label: string): string {
+  return (
+    String(label)
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "field"
+  );
+}
+
+/** turn picked spreadsheet columns into new plain-text ProgramFields, skipping existing keys */
+export function fieldsFromColumns(columns: string[], existing: ProgramField[]): ProgramField[] {
+  const existingKeys = new Set(existing.map((f) => f.key));
+  const seen = new Set<string>();
+  const out: ProgramField[] = [];
+  for (const col of columns) {
+    const key = slugKey(col);
+    if (!key || existingKeys.has(key) || seen.has(key)) continue;
+    seen.add(key);
+    out.push({ key, label: col, type: "text" as FieldType, required: false });
+  }
+  return out;
 }
 
 /* ---------------- existing-proposal index ---------------- */
@@ -200,24 +230,21 @@ export function buildRows(
   return parsed.rows.map((row, i) => {
     const errors: RowResult["errors"] = [];
 
-    // resolve reference + existing match
     const reference = refHeader ? String(row[refHeader] ?? "").trim() : "";
     const match = reference ? refIndex.get(normRef(reference)) ?? null : null;
     const mode: RowMode = !match ? "create" : importMode === "update" ? "update" : "skip";
 
-    // coerce every mapped target
     const sheetData: Record<string, any> = {};
     let title = "";
     let justification: string | undefined;
     let submitted_date: string | undefined;
 
     for (const t of targets) {
-      if (t.key === "reference_number") continue; // handled above, not a data field
+      if (t.key === "reference_number") continue;
       const header = mapping[t.key];
       const raw = header ? row[header] : "";
       const { value, error } = coerce(raw, t.type);
 
-      // skip rows aren't imported — don't burden them with validation
       if (mode !== "skip") {
         if (t.required && isEmpty(value) && !(mode === "update" && t.key === "title")) {
           errors.push({ target: t.key, message: `${t.label} is required` });
@@ -236,7 +263,6 @@ export function buildRows(
       else if (!isEmpty(value)) sheetData[t.key] = value;
     }
 
-    // on update, fall back to existing values and MERGE data (sheet overrides existing keys)
     let finalData = sheetData;
     if (mode === "update" && match) {
       finalData = { ...(match.data ?? {}), ...sheetData };
@@ -245,17 +271,7 @@ export function buildRows(
       if (submitted_date === undefined) submitted_date = (match.submitted_date as string) ?? undefined;
     }
 
-    return {
-      index: i + 1,
-      reference,
-      title,
-      justification,
-      submitted_date,
-      data: finalData,
-      match,
-      mode,
-      errors,
-    };
+    return { index: i + 1, reference, title, justification, submitted_date, data: finalData, match, mode, errors };
   });
 }
 

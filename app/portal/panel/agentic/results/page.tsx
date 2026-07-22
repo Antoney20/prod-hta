@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
-  Table2, Loader2, Search, RefreshCw, Download, Trash2, ChevronLeft, ChevronRight, X,
+  Table2, Loader2, Search, RefreshCw, Download, Trash2, ChevronLeft, ChevronRight, X, CheckCircle2,
 } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -9,7 +9,11 @@ import { cn } from "@/lib/utils";
 
 import { AdminOnly } from "@/app/context/role";
 import { AgenticResultRow, AppraisalScoreResult } from "@/types/new/agentic-results";
-import { bulkDelete, deleteAppraisal, listAgenticResults } from "@/app/api/new/panel/results";
+import {
+  bulkDelete, deleteAppraisal, listAgenticResults, selectAppraisal, bulkSelect,
+  commentAppraisal,
+  clearComment,
+} from "@/app/api/new/panel/results";
 import { deriveColumns } from "../_shared/cols";
 import { exportResults } from "../_shared/export";
 import ResultsTable from "./table";
@@ -19,6 +23,53 @@ import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 const BRAND = "#27aae1";
 const PER_PAGE = [20, 30, 50, 100] as const;
 const ALL = "__all__";
+
+function CommentDialog({
+  open, label, initial, onClose, onSave, onClear,
+}: {
+  open: boolean; label: string; initial: string;
+  onClose: () => void; onSave: (text: string) => void; onClear: () => void;
+}) {
+  const [text, setText] = useState(initial);
+  useEffect(() => { setText(initial); }, [initial, open]);
+  if (!open) return null;
+  const trimmed = text.trim();
+  const hasExisting = initial.trim().length > 0;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm"
+      onClick={onClose}>
+      <div className="w-[120vw] rounded-xl border border-slate-200 bg-white p-5 shadow-xl sm:max-w-lg"
+        onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-sm font-bold text-slate-800">Comment</h3>
+        <p className="mb-3 mt-0.5 truncate text-xs text-slate-500">{label}</p>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={7}
+          placeholder="Overall notes, or comments from the panel about this intervention..."
+          className="w-full rounded-lg border border-slate-300 p-3 text-sm outline-none focus:border-slate-400" />
+        <div className="mt-4 flex items-center justify-between gap-2">
+          {hasExisting ? (
+            <AdminOnly silent>
+              <button onClick={onClear}
+                className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50">
+                Clear comment
+              </button>
+            </AdminOnly>
+          ) : <span />}
+          <div className="flex gap-2">
+            <button onClick={onClose}
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+              Cancel
+            </button>
+            <button onClick={() => onSave(trimmed)} disabled={!trimmed}
+              className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+              style={{ background: BRAND }}>
+              Save comment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AppraisalResultsPage() {
   const [rows, setRows] = useState<AgenticResultRow[]>([]);
@@ -36,6 +87,7 @@ export default function AppraisalResultsPage() {
   const [rowToDelete, setRowToDelete] = useState<AgenticResultRow | null>(null);
   const [toDelete, setToDelete] = useState<{ id: string; label: string } | null>(null);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [commentTarget, setCommentTarget] = useState<{ id: string; label: string; current: string } | null>(null);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -82,13 +134,49 @@ export default function AppraisalResultsPage() {
       return n;
     });
 
-  // patch a single score in place after edit
   const onSaved = (updated: AppraisalScoreResult) =>
     setRows((rs) => rs.map((r) => {
       const ap = r.appraisals[0];
       if (!ap || !ap.scores.some((s) => s.id === updated.id)) return r;
       return { ...r, appraisals: [{ ...ap, scores: ap.scores.map((s) => s.id === updated.id ? updated : s) }, ...r.appraisals.slice(1)] };
     }));
+
+  // Select a specific run (latest or a branch) — one per target, backend clears siblings.
+  const onSelectRun = async (appraisalId: string, selectedFlag: boolean) => {
+    const res = await selectAppraisal(appraisalId, { selected: selectedFlag });
+    if (!res.ok) { toast.error(res.error ?? "Selection failed."); return; }
+    toast.success(selectedFlag ? "Selected for weighting." : "Deselected.");
+    load(); // reload: unsetting a sibling can change another row
+  };
+
+  const confirmBulkSelect = async () => {
+    const ids = [...selected];
+    const res = await bulkSelect({ appraisal_ids: ids });
+    if (!res.ok) { toast.error(res.error ?? "Bulk select failed."); return; }
+    toast.success(`Marked ${res.data?.count ?? ids.length} as selected.`);
+    setSelected(new Set());
+    load();
+  };
+
+  const openComment = (id: string, label: string, current: string) =>
+    setCommentTarget({ id, label, current });
+const saveComment = async (text: string) => {
+    if (!commentTarget) return;
+    const res = await commentAppraisal(commentTarget.id, text);
+    if (!res.ok) { toast.error(res.error ?? "Failed to save comment."); return; }
+    toast.success("Comment saved.");
+    setCommentTarget(null);
+    load();
+  };
+
+  const clearCommentFor = async () => {
+    if (!commentTarget) return;
+    const res = await clearComment(commentTarget.id);
+    if (!res.ok) { toast.error(res.error ?? "Failed to clear comment."); return; }
+    toast.success("Comment cleared.");
+    setCommentTarget(null);
+    load();
+  };
 
   const confirmDeleteRow = async () => {
     if (!rowToDelete) return;
@@ -100,13 +188,13 @@ export default function AppraisalResultsPage() {
   };
 
   const confirmDelete = async () => {
-  if (!toDelete) return;
-  const res = await deleteAppraisal(toDelete.id);
-  if (!res.ok) { toast.error(res.error ?? "Delete failed."); return; }
-  toast.success("Appraisal deleted.");
-  setToDelete(null);
-  load();
-};
+    if (!toDelete) return;
+    const res = await deleteAppraisal(toDelete.id);
+    if (!res.ok) { toast.error(res.error ?? "Delete failed."); return; }
+    toast.success("Appraisal deleted.");
+    setToDelete(null);
+    load();
+  };
 
   const confirmBulk = async () => {
     const ids = [...selected];
@@ -134,7 +222,7 @@ export default function AppraisalResultsPage() {
           <div>
             <h1 className="text-xl font-bold text-slate-800">Appraisal Results</h1>
             <p className="mt-0.5 text-sm text-slate-500">
-              Scored results per proposal across all criteria. Click a cell's eye to view reasoning or edit the score.
+              Scored results per proposal across all criteria. Select one run per proposal to feed weighting.
             </p>
           </div>
         </div>
@@ -226,18 +314,20 @@ export default function AppraisalResultsPage() {
         </div>
       ) : (
         <>
-        <ResultsTable
-  rows={pageRows}
-  columns={columns}
-  selected={selected}
-  onToggle={toggle}
-  onToggleAll={toggleAll}
-  allSelected={allSelected}
-  someSelected={someSelected}
-  onOpenScore={setActiveScore}
-  onDeleteAppraisal={(id, label) => setToDelete({ id, label })}
-  canDelete
-/>
+          <ResultsTable
+            rows={pageRows}
+            columns={columns}
+            selected={selected}
+            onToggle={toggle}
+            onToggleAll={toggleAll}
+            allSelected={allSelected}
+            someSelected={someSelected}
+            onOpenScore={setActiveScore}
+            onDeleteAppraisal={(id, label) => setToDelete({ id, label })}
+            onSelectRun={onSelectRun}
+            onComment={openComment}
+            canDelete
+          />
 
           {/* Pagination */}
           <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500 shadow-sm">
@@ -269,6 +359,11 @@ export default function AppraisalResultsPage() {
               <div className="flex items-center gap-2">
                 <button onClick={() => setSelected(new Set())}
                   className="p-2 text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>
+                <button onClick={confirmBulkSelect}
+                  className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white"
+                  style={{ background: BRAND }}>
+                  <CheckCircle2 className="h-4 w-4" /> Mark {selected.size} selected
+                </button>
                 <button onClick={() => setBulkOpen(true)}
                   className="flex items-center gap-2 rounded-lg bg-red-500 px-5 py-2 text-sm font-semibold text-white hover:bg-red-600">
                   <Trash2 className="h-4 w-4" /> Delete {selected.size}
@@ -279,47 +374,54 @@ export default function AppraisalResultsPage() {
         </AdminOnly>
       )}
 
-
       <ScoreDialog
         score={activeScore}
         onClose={() => setActiveScore(null)}
         onSaved={onSaved}
-        canEdit  
+        canEdit
       />
 
-   {rowToDelete && (
-  <DeleteDialog
-    open={!!rowToDelete}
-    onOpenChange={(v) => { if (!v) setRowToDelete(null); }}
-    confirmWord="DELETE"
-    title="Delete this appraisal?"
-    description={`This permanently removes the latest run for “${rowToDelete.name}” and all its criterion scores. This cannot be undone.`}
-    onConfirm={confirmDeleteRow}
-  />
-)}
-      
+      <CommentDialog
+        open={!!commentTarget}
+        label={commentTarget?.label ?? ""}
+        initial={commentTarget?.current ?? ""}
+        onClose={() => setCommentTarget(null)}
+        onSave={saveComment}
+        onClear={clearCommentFor}
+      />
 
+      {rowToDelete && (
+        <DeleteDialog
+          open={!!rowToDelete}
+          onOpenChange={(v) => { if (!v) setRowToDelete(null); }}
+          confirmWord="DELETE"
+          title="Delete this appraisal?"
+          description={`This permanently removes the latest run for “${rowToDelete.name}” and all its criterion scores. This cannot be undone.`}
+          onConfirm={confirmDeleteRow}
+        />
+      )}
 
-     {bulkOpen && (
-  <DeleteDialog
-    open={bulkOpen}
-    onOpenChange={setBulkOpen}
-    confirmWord="DELETE"
-    title={`Delete ${selected.size} appraisal(s)?`}
-    description={`This permanently removes ${selected.size} appraisal run(s) and all their criterion scores. This cannot be undone.`}
-    onConfirm={confirmBulk}
-  />
-)}
-{toDelete && (
-  <DeleteDialog
-    open={!!toDelete}
-    onOpenChange={(v) => { if (!v) setToDelete(null); }}
-    confirmWord="DELETE"
-    title="Delete this appraisal run?"
-    description={`This permanently removes the run for “${toDelete.label}” and all its criterion scores. This cannot be undone.`}
-    onConfirm={confirmDelete}
-  />
-)}
+      {bulkOpen && (
+        <DeleteDialog
+          open={bulkOpen}
+          onOpenChange={setBulkOpen}
+          confirmWord="DELETE"
+          title={`Delete ${selected.size} appraisal(s)?`}
+          description={`This permanently removes ${selected.size} appraisal run(s) and all their criterion scores. This cannot be undone.`}
+          onConfirm={confirmBulk}
+        />
+      )}
+
+      {toDelete && (
+        <DeleteDialog
+          open={!!toDelete}
+          onOpenChange={(v) => { if (!v) setToDelete(null); }}
+          confirmWord="DELETE"
+          title="Delete this appraisal run?"
+          description={`This permanently removes the run for “${toDelete.label}” and all its criterion scores. This cannot be undone.`}
+          onConfirm={confirmDelete}
+        />
+      )}
     </div>
   );
 }

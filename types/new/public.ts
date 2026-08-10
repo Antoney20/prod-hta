@@ -6,7 +6,9 @@ export interface PublicProposal {
   beneficiary: string | null;
   justification: string | null;
   expected_impact: string | null;
-  date: string; 
+  date: string;
+  package?: string | null;
+  system_categories?: string[];
 }
 
 export interface PublicProposalResponse {
@@ -15,7 +17,6 @@ export interface PublicProposalResponse {
   generated_at: string;
   results: PublicProposal[];
 }
-
 // export interface ApiListResponse<T> {
 //   status: "success";
 //   count: number;

@@ -187,13 +187,13 @@ function StatusRow({
         </Link>
       </td>
 
-      <td className="py-4 px-4 min-w-[350px]" style={{ maxWidth: 500 }}>
-        {row.system_categories.length === 0 ? (
-          <span className="text-xs text-gray-400 italic">—</span>
+      <td className="py-4 px-4 whitespace-nowrap">
+        {row.package ? (
+          <span className="inline-block bg-blue-50 text-[#1d70b8] text-xs font-semibold px-2 py-0.5 border border-blue-200">
+            {row.package}
+          </span>
         ) : (
-          <p className="text-sm text-gray-700 leading-snug line-clamp-2">
-            {row.system_categories.join(", ")}
-          </p>
+          <span className="text-xs text-gray-400 italic">—</span>
         )}
       </td>
 
@@ -252,6 +252,7 @@ type SortOrder = "az" | "za" | "date-desc" | "date-asc";
 interface FilterState {
   search: string;
   sort: SortOrder;
+  packages: string[];
   categories: string[];
   decisions: string[];
 }
@@ -259,6 +260,7 @@ interface FilterState {
 const defaultFilters: FilterState = {
   search: "",
   sort: "date-desc",
+  packages: [],
   categories: [],
   decisions: [],
 };
@@ -305,15 +307,17 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 interface SidebarFiltersProps {
   filters: FilterState;
   onChange: (f: FilterState) => void;
+  packageCounts: Record<string, number>;
   categoryCounts: Record<string, number>;
   decisionOptions: { label: string; value: string }[];
-  pageSize: number;                          
+  pageSize: number;
   onPageSizeChange: (n: number) => void;
 }
 
 function SidebarFilters({
   filters,
   onChange,
+  packageCounts,
   categoryCounts,
   decisionOptions,
   pageSize,
@@ -327,6 +331,13 @@ function SidebarFilters({
   }, [filters.search]);
 
   const applySearch = () => onChange({ ...filters, search: localSearch });
+
+  const togglePackage = (name: string) => {
+    const next = filters.packages.includes(name)
+      ? filters.packages.filter((p) => p !== name)
+      : [...filters.packages, name];
+    onChange({ ...filters, packages: next });
+  };
 
   const toggleCategory = (name: string) => {
     const next = filters.categories.includes(name)
@@ -344,6 +355,7 @@ function SidebarFilters({
 
   const activeCount =
     (filters.search ? 1 : 0) +
+    filters.packages.length +
     filters.categories.length +
     filters.decisions.length +
     (filters.sort !== "date-desc" ? 1 : 0);
@@ -353,6 +365,10 @@ function SidebarFilters({
     setCatPage(1);
     onChange(defaultFilters);
   };
+
+  const allPackages = Object.entries(packageCounts).sort(([a], [b]) =>
+    a.localeCompare(b)
+  );
 
   const allCategories = Object.entries(categoryCounts).sort(([a], [b]) =>
     a.localeCompare(b)
@@ -399,8 +415,37 @@ function SidebarFilters({
           </div>
         </FilterSection>
 
+        {allPackages.length > 0 && (
+          <FilterSection title="Package">
+            <div className="max-h-64 overflow-y-auto">
+              {allPackages.map(([name, count]) => {
+                const checked = filters.packages.includes(name);
+                return (
+                  <label
+                    key={name}
+                    className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-200 last:border-0 cursor-pointer hover:bg-[#f3f2f1] transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => togglePackage(name)}
+                      className="w-4 h-4 accent-[#1d70b8] flex-shrink-0"
+                    />
+                    <span className="text-sm text-gray-800 flex-1 leading-snug">
+                      {name}
+                    </span>
+                    <span className="text-xs text-gray-500 tabular-nums">
+                      ({count})
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </FilterSection>
+        )}
+
         {allCategories.length > 0 && (
-          <FilterSection title="System category">
+          <FilterSection title="System category" defaultOpen={false}>
             <div>
               {catSlice.map(([name, count]) => {
                 const checked = filters.categories.includes(name);
@@ -479,42 +524,43 @@ function SidebarFilters({
         )}
 
         <FilterSection title="Sort &amp; display">
-          <div className="px-4 py-3">
-            <label className="block text-sm font-bold text-gray-900 mb-1">
-              Sort by
-            </label>
-            <select
-              value={filters.sort}
-              onChange={(e) =>
-                onChange({ ...filters, sort: e.target.value as SortOrder })
-              }
-              className="w-full border-2 border-gray-900 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
-            >
-              <option value="date-desc">Decision date (newest first)</option>
-              <option value="date-asc">Decision date (oldest first)</option>
-              <option value="az">Name (A–Z)</option>
-              <option value="za">Name (Z–A)</option>
-            </select>
+          <div className="px-4 py-3 space-y-3">
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">
+                Sort by
+              </label>
+              <select
+                value={filters.sort}
+                onChange={(e) =>
+                  onChange({ ...filters, sort: e.target.value as SortOrder })
+                }
+                className="w-full border-2 border-gray-900 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+              >
+                <option value="date-desc">Decision date (newest first)</option>
+                <option value="date-asc">Decision date (oldest first)</option>
+                <option value="az">Name (A–Z)</option>
+                <option value="za">Name (Z–A)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-1">
+                Results per page
+              </label>
+              <select
+                value={pageSize}
+                onChange={(e) => onPageSizeChange(Number(e.target.value))}
+                className="w-full border-2 border-gray-900 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
+              >
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n} per page
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </FilterSection>
-
-            <div>                                             {/* ← add */}
-      <label className="block text-sm font-bold text-gray-900 mb-1">
-        Results per page
-      </label>
-      <select
-        value={pageSize}
-        onChange={(e) => onPageSizeChange(Number(e.target.value))}
-        className="w-full border-2 border-gray-900 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#1d70b8]"
-      >
-        {PAGE_SIZE_OPTIONS.map((n) => (
-          <option key={n} value={n}>
-            {n} per page
-          </option>
-        ))}
-      </select>
-    </div>
-    
       </div>
 
       <div className="mt-5">
@@ -543,8 +589,6 @@ function SidebarFilters({
   );
 }
 
-// const PAGE_SIZE = 25;
-
 /**
  * Helper — returns the "canonical" filter key for a row, matching the keys
  * used when building decisionOptions.
@@ -569,20 +613,12 @@ export default function PublicStatusPage({
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [pageSize, setPageSize] = useState(25);
 
-
-  const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-
-// inside the component, add:
-const [pageSize, setPageSize] = useState(25);
-
-
-
-// reset page when page size changes:
-const handlePageSizeChange = (n: number) => {
-  setPageSize(n);
-  setPage(1);
-};
+  const handlePageSizeChange = (n: number) => {
+    setPageSize(n);
+    setPage(1);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -607,6 +643,16 @@ const handlePageSizeChange = (n: number) => {
   const handleToggle = useCallback((key: string) => {
     setExpandedId((prev) => (prev === key ? null : key));
   }, []);
+
+  const packageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const r of records) {
+      if (r.package) {
+        counts[r.package] = (counts[r.package] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [records]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -659,8 +705,13 @@ const handlePageSizeChange = (n: number) => {
         (r) =>
           r.intervention_name.toLowerCase().includes(q) ||
           r.reference_number.toLowerCase().includes(q) ||
+          r.package?.toLowerCase().includes(q) ||
           r.system_categories.some((sc) => sc.toLowerCase().includes(q))
       );
+    }
+
+    if (filters.packages.length > 0) {
+      data = data.filter((r) => filters.packages.includes(r.package ?? ""));
     }
 
     if (filters.categories.length > 0) {
@@ -701,7 +752,7 @@ const handlePageSizeChange = (n: number) => {
   }, [records, filters]);
 
 
-const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   // Stats use resolveStatus so they reflect the same logic
   const withDecision = records.filter(
@@ -714,10 +765,11 @@ const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
   const filterProps: SidebarFiltersProps = {
     filters,
     onChange: setFilters,
+    packageCounts,
     categoryCounts,
     decisionOptions,
-      pageSize,                      
-  onPageSizeChange: handlePageSizeChange,
+    pageSize,
+    onPageSizeChange: handlePageSizeChange,
   };
 
   const content = (
@@ -841,8 +893,8 @@ const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
                       <th className="text-left py-3 px-4 text-sm font-bold text-gray-900 w-[200px]">
                         Intervention
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-bold text-gray-900 w-[220px]">
-                        System Category
+                      <th className="text-left py-3 px-4 text-sm font-bold text-gray-900 whitespace-nowrap">
+                        Package
                       </th>
                       <th className="text-left py-3 px-4 text-sm font-bold text-gray-900 whitespace-nowrap">
                         Decision
@@ -870,15 +922,15 @@ const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
               </div>
 
               <Pagination
-  currentPage={page}
-  totalItems={filtered.length}
-  pageSize={pageSize}           
-  onPageChange={(p) => {
-    setPage(p);
-    setExpandedId(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }}
-  />
+                currentPage={page}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageChange={(p) => {
+                  setPage(p);
+                  setExpandedId(null);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+              />
             </>
           )}
         </div>

@@ -65,8 +65,8 @@ function Hero({
 
   return (
     <section className="border-b border-gray-200 bg-white">
-      <div className={`${CONTAINER} py-10 sm:py-14`}>
-        <div className="max-w-3xl mt-8">
+      <div className={`${CONTAINER} py-16 sm:py-14`}>
+        <div className="max-w-5xl   mt-8">
           {/* {config.badge && (
             <div className="mb-3 flex items-center gap-3">
               <span className="h-px w-8" style={{ backgroundColor: ACCENT }} />
@@ -167,6 +167,26 @@ function InterventionsPageInner({
     return counts;
   }, [proposals]);
 
+  const packageCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of proposals) {
+      if (p.package) {
+        counts[p.package] = (counts[p.package] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [proposals]);
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const p of proposals) {
+      for (const c of p.system_categories ?? []) {
+        counts[c] = (counts[c] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [proposals]);
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -219,6 +239,8 @@ function InterventionsPageInner({
                     <InterventionFilters
                       filters={filters}
                       typeCounts={typeCounts}
+                      packageCounts={packageCounts}
+                      categoryCounts={categoryCounts}
                       onChange={handleFilterChange}
                     />
                   </div>
@@ -232,6 +254,8 @@ function InterventionsPageInner({
                 <InterventionFilters
                   filters={filters}
                   typeCounts={typeCounts}
+                  packageCounts={packageCounts}
+                  categoryCounts={categoryCounts}
                   onChange={handleFilterChange}
                 />
               </aside>

@@ -7,6 +7,8 @@ export interface FilterState {
   fromDate: string;
   toDate: string;
   interventionTypes: string[];
+  packages: string[];
+  systemCategories: string[];
   sortOrder: "a-z" | "z-a" | "date-asc" | "date-desc";
   groupByYear: boolean;
   pageSize: number;
@@ -17,6 +19,8 @@ export const defaultFilters: FilterState = {
   fromDate: "",
   toDate: "",
   interventionTypes: [],
+  packages: [],
+  systemCategories: [],
   sortOrder: "date-desc",
   groupByYear: false,
   pageSize: 10,
@@ -25,12 +29,16 @@ export const defaultFilters: FilterState = {
 interface InterventionFiltersProps {
   filters: FilterState;
   typeCounts: Record<string, number>;
+  packageCounts: Record<string, number>;
+  categoryCounts: Record<string, number>;
   onChange: (filters: FilterState) => void;
 }
 
 export function InterventionFilters({
   filters,
   typeCounts,
+  packageCounts,
+  categoryCounts,
   onChange,
 }: InterventionFiltersProps) {
   const handleSearchChange = useCallback(
@@ -46,6 +54,26 @@ export function InterventionFilters({
         ? filters.interventionTypes.filter((t) => t !== type)
         : [...filters.interventionTypes, type];
       onChange({ ...filters, interventionTypes: next });
+    },
+    [filters, onChange]
+  );
+
+  const handlePackageToggle = useCallback(
+    (pkg: string) => {
+      const next = filters.packages.includes(pkg)
+        ? filters.packages.filter((p) => p !== pkg)
+        : [...filters.packages, pkg];
+      onChange({ ...filters, packages: next });
+    },
+    [filters, onChange]
+  );
+
+  const handleCategoryToggle = useCallback(
+    (cat: string) => {
+      const next = filters.systemCategories.includes(cat)
+        ? filters.systemCategories.filter((c) => c !== cat)
+        : [...filters.systemCategories, cat];
+      onChange({ ...filters, systemCategories: next });
     },
     [filters, onChange]
   );
@@ -93,6 +121,9 @@ export function InterventionFilters({
     if (filters.toDate) count++;
     if (filters.interventionTypes.length > 0)
       count += filters.interventionTypes.length;
+    if (filters.packages.length > 0) count += filters.packages.length;
+    if (filters.systemCategories.length > 0)
+      count += filters.systemCategories.length;
     if (filters.sortOrder !== defaultFilters.sortOrder) count++;
     if (filters.groupByYear !== defaultFilters.groupByYear) count++;
     return count;
@@ -128,6 +159,42 @@ export function InterventionFilters({
           />
         </div>
       </div>
+
+      {/* Packages — primary filter */}
+      {Object.keys(packageCounts).length > 0 && (
+        <div className="border border-gray-300 bg-white">
+          <div className="bg-[#f3f2f1] border-b border-gray-300 px-4 py-3 flex items-center justify-between">
+            <label className="font-bold text-gray-900 text-sm">Package</label>
+            {filters.packages.length > 0 && (
+              <span className="bg-[#1d70b8] text-white text-xs font-bold px-2 py-0.5">
+                {filters.packages.length}
+              </span>
+            )}
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {Object.entries(packageCounts)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([pkg, count]) => {
+                const checked = filters.packages.includes(pkg);
+                return (
+                  <label
+                    key={pkg}
+                    className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-200 last:border-0 cursor-pointer hover:bg-[#f3f2f1]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handlePackageToggle(pkg)}
+                      className="w-4 h-4 accent-[#1d70b8]"
+                    />
+                    <span className="text-sm text-gray-800 flex-1">{pkg}</span>
+                    <span className="text-xs text-gray-500">({count})</span>
+                  </label>
+                );
+              })}
+          </div>
+        </div>
+      )}
 
       {/* Date Range */}
       <div className="border border-gray-300 bg-white">
@@ -185,6 +252,49 @@ export function InterventionFilters({
             })}
           </div>
         </div>
+      )}
+
+      {/* System categorization — collapsed by default */}
+      {Object.keys(categoryCounts).length > 0 && (
+        <details className="border border-gray-300 bg-white group">
+          <summary className="bg-[#f3f2f1] border-b border-gray-300 px-4 py-3 cursor-pointer list-none flex items-center justify-between select-none">
+            <span className="font-bold text-gray-900 text-sm">
+              System categorization
+              {filters.systemCategories.length > 0 && (
+                <span className="ml-2 bg-[#1d70b8] text-white text-xs font-bold px-2 py-0.5">
+                  {filters.systemCategories.length}
+                </span>
+              )}
+            </span>
+            <span className="text-gray-500 text-xs transition-transform group-open:rotate-180">
+              ▼
+            </span>
+          </summary>
+          <div className="max-h-64 overflow-y-auto">
+            {Object.entries(categoryCounts)
+              .sort(([a], [b]) => a.localeCompare(b))
+              .map(([cat, count]) => {
+                const checked = filters.systemCategories.includes(cat);
+                return (
+                  <label
+                    key={cat}
+                    className="flex items-center gap-3 px-4 py-2.5 border-b border-gray-200 last:border-0 cursor-pointer hover:bg-[#f3f2f1]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => handleCategoryToggle(cat)}
+                      className="w-4 h-4 accent-[#1d70b8]"
+                    />
+                    <span className="text-sm text-gray-800 flex-1 leading-snug">
+                      {cat}
+                    </span>
+                    <span className="text-xs text-gray-500">({count})</span>
+                  </label>
+                );
+              })}
+          </div>
+        </details>
       )}
 
       {/* Sort & Display */}

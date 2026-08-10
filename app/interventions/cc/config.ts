@@ -13,7 +13,6 @@ export const GUIDANCE_TABS: Tab[] = [
   },
 ];
 
-// Per-tab hero configuration — add new tabs here
 export const TAB_HERO_CONFIG: Record<
   TabId,
   {

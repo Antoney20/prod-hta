@@ -1,3 +1,4 @@
+import { NationalProgram, ProgramProposal } from "@/types/new/program";
 import { PublicProposal, PublicProposalResponse } from "@/types/new/public";
 import { TopicPriority, TopicPriorityResponse } from "@/types/new/topic-prioritization";
 
@@ -8,7 +9,7 @@ export const API_URL = `${process.env.API_URL || API_BASE_URL}`;
 // export const API_URL = "/api";
 
 export async function getPublicProposals(): Promise<PublicProposal[]> {
-const res = await fetch(`${API_URL}/v3/proposals/`);
+  const res = await fetch(`${API_URL}/v3/proposals/`);
 
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;
@@ -30,6 +31,7 @@ const res = await fetch(`${API_URL}/v3/proposals/`);
 
   return data.results ?? [];
 }
+
 
 
 export async function getPublicTopicPriorities(): Promise<TopicPriority[]> {
@@ -55,3 +57,69 @@ export async function getPublicTopicPriorities(): Promise<TopicPriority[]> {
   return data.results ?? [];
 }
 
+
+
+interface PublicProgramProposalResponse {
+  status: string;
+  count: number;
+  generated_at: string;
+  results: ProgramProposal[];
+}
+
+interface PublicProgramResponse {
+  status: string;
+  count: number;
+  generated_at: string;
+  results: NationalProgram[];
+}
+
+export async function getPublicProgramProposals(): Promise<ProgramProposal[]> {
+  const res = await fetch(`${API_URL}/v3/public-programs/proposals/`);
+
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.detail) message = body.detail;
+      else if (body?.message) message = body.message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  let data: PublicProgramProposalResponse;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Failed to parse server response");
+  }
+
+  return data.results ?? [];
+}
+
+export async function getPublicPrograms(): Promise<NationalProgram[]> {
+  const res = await fetch(`${API_URL}/v3/public-programs/`);
+
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const body = await res.json();
+      if (body?.detail) message = body.detail;
+      else if (body?.message) message = body.message;
+    } catch {}
+    throw new Error(message);
+  }
+
+  let data: PublicProgramResponse;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Failed to parse server response");
+  }
+
+  return data.results ?? [];
+}
+
+export async function getPublicProgram(id: string): Promise<NationalProgram | null> {
+  const programs = await getPublicPrograms();
+  return programs.find((p) => String(p.id) === String(id)) ?? null;
+}

@@ -216,7 +216,7 @@ const panelNavItems: NavItem[] = [
     icon: <Settings className="h-5 w-5" />,
     children: [
       { type: "link", title: "Assessment Tool Info",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
-      { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
+      // { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
        { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },
@@ -345,7 +345,7 @@ const adminNavItems: NavItem[] = [
     icon: <Settings className="h-5 w-5" />,
     children: [
       { type: "link", title: "Assessment Tool Info",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
-      { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
+      // { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
        { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },

@@ -39,7 +39,7 @@ export default function TargetsTable({
       <table className="w-full text-sm">
         <thead className="border-b border-slate-200 bg-slate-50">
           <tr>
-            <th rowSpan={2} className={`${TH} min-w-60`}>Reference</th>
+            <th rowSpan={2} className={`${TH} min-w-80`}>Reference</th>
             <th rowSpan={2} className={`${TH} min-w-96 max-w-100`}>Name</th>
             <th rowSpan={2} className={`${TH} min-w-40`}>Package</th>
             <th rowSpan={2} className={`${TH} min-w-40`}>Phase</th>

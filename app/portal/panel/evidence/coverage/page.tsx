@@ -18,7 +18,8 @@ const TD = "px-3 py-3 align-top";
 const THC = "px-2 py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TDC = "px-2 py-3 text-center align-middle";
 
-type CellStatus = "complete" | "incomplete" | "empty" | "missing";
+// Cell display state derived straight from data presence, so green ticks == coverage count.
+type IconState = "has" | "empty" | "none";
 
 const critLabel = (raw: string) => { 
   const n = (raw ?? "").trim().toLowerCase(); 
@@ -32,6 +33,12 @@ const critLabel = (raw: string) => {
    if (n.includes("congruence") && n.includes("existing")) return "Congruence";
   return (raw ?? "").trim().split(/\s+/).slice(0, 3).join(" ");
 };
+
+const LEGEND: { state: IconState; label: string }[] = [
+  { state: "has", label: "Has evidence" },
+  { state: "empty", label: "Available, empty" },
+  { state: "none", label: "No evidence" },
+];
 
 const FILTERS: { key: OverallStatus | "all"; label: string }[] = [
   { key: "all", label: "All" },
@@ -145,10 +152,10 @@ export default function EvidenceCoveragePage() {
 
       {/* legend */}
       <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-        {(["complete", "incomplete", "empty", "missing"] as CellStatus[]).map((s) => (
-          <span key={s} className="inline-flex items-center gap-1.5">
-            <CritIcon status={s} />
-            {CELL_STYLE[s].label}
+        {LEGEND.map((l) => (
+          <span key={l.state} className="inline-flex items-center gap-1.5">
+            <CritIcon state={l.state} />
+            {l.label}
           </span>
         ))}
       </div>
@@ -156,9 +163,9 @@ export default function EvidenceCoveragePage() {
       {/* table */}
       <div className="overflow-x-auto border border-slate-200 bg-white shadow-sm">
         <table className="w-full text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50">
+          <thead className="border-b border-slate-200 bg-slate-50"> 
             <tr>
-              <th rowSpan={2} className={`${TH} min-w-60`}>Reference</th>
+              <th rowSpan={2} className={`${TH} min-w-80`}>Reference</th>
               <th rowSpan={2} className={`${TH} min-w-72`}>Name</th>
               <th rowSpan={2} className={`${TH} w-28`}>Package</th>
               <th rowSpan={2} className={`${TH} w-24`}>Phase</th>
@@ -219,17 +226,20 @@ export default function EvidenceCoveragePage() {
                         </span>
                       </div>
                     </td>
-                    {/* per-criterion columns */}
+                    {/* per-criterion columns: green when the criterion has any data value */}
                     {columns.map((col, i) => {
                       const cell = cellByName.get(col.key);
-                      const st = (cell?.status ?? "empty") as CellStatus;
+                      const iconState: IconState =
+                        cell && cell.filled > 0 ? "has"
+                        : cell && cell.total > 0 ? "empty"
+                        : "none";
                       return (
                         <td
                           key={col.key}
                           className={`${TDC} ${i === 0 ? "border-l border-slate-100" : ""}`}
-                          title={cell ? `${col.name}: ${CELL_STYLE[st].label} (${cell.filled}/${cell.total})` : `${col.name}: —`}
+                          title={cell ? `${col.name}: ${CELL_STYLE[cell.status].label} (${cell.filled}/${cell.total})` : `${col.name}: —`}
                         >
-                          <CritIcon status={st} />
+                          <CritIcon state={iconState} />
                         </td>
                       );
                     })}
@@ -266,12 +276,11 @@ export default function EvidenceCoveragePage() {
   );
 }
 
-function CritIcon({ status }: { status: CellStatus }) {
-  switch (status) {
-    case "complete":   return <Check className="inline h-4 w-4 text-emerald-500" strokeWidth={2.5} />;
-    case "missing":    return <X className="inline h-4 w-4 text-red-400" strokeWidth={2.5} />;
-    case "incomplete": return <span className="font-bold text-[#fe7105]">–</span>;
-    default:           return <span className="text-slate-300">–</span>;
+function CritIcon({ state }: { state: IconState }) {
+  switch (state) {
+    case "has":   return <Check className="inline h-4 w-4 text-emerald-500" strokeWidth={2.5} />;
+    case "empty": return <span className="font-bold text-[#fe7105]">–</span>;
+    case "none":  return <X className="inline h-4 w-4 text-red-400" strokeWidth={2.5} />;
   }
 }
 

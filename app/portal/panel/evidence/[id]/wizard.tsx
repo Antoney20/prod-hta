@@ -1,22 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Download, UploadCloud, Loader2, ArrowLeft, ArrowRight, CheckCircle2,
-  AlertTriangle, RefreshCw, PlusCircle, FileSpreadsheet, Sparkles, Check,
+  AlertTriangle,
+  ArrowLeft, ArrowRight,
+  Check,
+  CheckCircle2,
+  Download,
+  FileSpreadsheet,
+  Loader2,
+  PlusCircle,
+  RefreshCw,
+  Sparkles,
+  UploadCloud,
   X,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
-import { Criterion, CriterionHeader, CriterionEvidence,  } from "@/types/new/evidence-panel";
-import { ProgramProposal } from "@/types/new/program";
-import { updateCriterion, bulkUploadEvidence } from "@/app/api/new/panel/evidence";
-import {
-  parseSpreadsheet, autoMap, buildRows, buildTargetIndex, indexEvidenceByTarget,
-  downloadTemplate, toEvidenceInput, slugKey, ParsedSheet, EvidenceRowResult,
-} from "./handler";
+import { bulkUploadEvidence, updateCriterion } from "@/app/api/new/panel/evidence";
 import { EvidenceInterventionRef } from "@/types/new/assessment";
+import { Criterion, CriterionEvidence, CriterionHeader, } from "@/types/new/evidence-panel";
+import { ProgramProposal } from "@/types/new/program";
+import {
+  autoMap, buildRows, buildTargetIndex,
+  downloadTemplate,
+  EvidenceRowResult,
+  indexEvidenceByTarget,
+  ParsedSheet,
+  parseSpreadsheet,
+  slugKey,
+  toEvidenceInput,
+} from "./handler";
 
 type Step = "setup" | "upload" | "match" | "review";
 const STEPS: { key: Step; label: string }[] = [
@@ -25,6 +40,15 @@ const STEPS: { key: Step; label: string }[] = [
   { key: "match", label: "Match & labels" },
   { key: "review", label: "Review & import" },
 ];
+
+const MULTILINE_HINT =
+  /notes?|rationale|justification|background|explanation|description|comment|policies|agenda|\bsource\b|summary|remarks?/i;
+
+const isMultilineLabel = (label: string): boolean =>
+  MULTILINE_HINT.test(label);
+
+const labelType = (label: string): CriterionHeader["type"] =>
+  isMultilineLabel(label) ? "text" : "text";
 
 interface Props {
   criterion: Criterion;
@@ -95,7 +119,7 @@ export default function UploadWizard({
   const addLabels = async () => {
     const additions: CriterionHeader[] = [...pickedNew]
       .filter(Boolean)
-      .map((col) => ({ key: slugKey(col), label: col, type: "text" as const }))
+      .map((col) => ({ key: slugKey(col), label: col, type: labelType(col) }))
       .filter((h) => h.key && !headers.some((e) => e.key === h.key));
 
     if (!additions.length) { toast.info("Nothing new to add."); return; }
@@ -218,6 +242,14 @@ const removeLabel = async (key: string) => {
           <span key={h.key}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#27aae1]/10 px-2.5 py-1 text-xs font-medium text-[#27aae1]">
             {h.label}
+{isMultilineLabel(h.label) && (
+  <span
+    className="rounded bg-white/60 px-1 text-[10px] text-slate-500"
+    title="Multi-line / rich text"
+  >
+    multiline
+  </span>
+)}
             {inUse ? (
               <span className="rounded bg-white/60 px-1 text-[10px] text-slate-500" title="In use by evidence — can't remove">
                 in use
@@ -327,7 +359,7 @@ const removeLabel = async (key: string) => {
                   <p className="text-sm font-semibold text-slate-700">New columns found in your file</p>
                 </div>
                 <p className="mb-3 text-xs text-slate-500">
-                  These aren’t part of the criterion yet. Pick the ones to add as data labels — they’ll be saved to the criterion and included in every future template.
+                  These aren’t part of the criterion yet. Pick the ones to add as data labels — they’ll be saved to the criterion and included in every future template. Note-type columns are saved as multi-line (rich-text) fields.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {newCols.map((col) => {
@@ -339,6 +371,15 @@ const removeLabel = async (key: string) => {
                           on ? "border-[#27aae1] bg-[#27aae1] text-white" : "border-slate-300 bg-white text-slate-600 hover:border-[#27aae1]"
                         }`}>
                         {on ? <Check className="h-3 w-3" /> : <PlusCircle className="h-3 w-3" />} {col}
+                         {isMultilineLabel(col) && (
+  <span
+    className={`rounded px-1 text-[9px] ${
+      on ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500"
+    }`}
+  >
+    multiline
+  </span>
+)}
                       </button>
                     );
                   })}

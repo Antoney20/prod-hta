@@ -22,9 +22,10 @@ export interface EvidenceRowResult {
   reference: string;
   target: TargetRef | null;
   data: Record<string, unknown>;
-  match: CriterionEvidence | null;   // existing evidence for this criterion+target
+  match: CriterionEvidence | null;   // existing record this row reconciles onto
   mode: RowMode;
   errors: string[];
+  sourceRows: number[];              // 1-based file row(s) behind this result
 }
 
 const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -127,13 +128,26 @@ export function resolveTarget(reference: string, index: Map<string, TargetRef>):
   return null;
 }
 
-/* ── existing evidence for THIS criterion, by target ── */
-export function indexEvidenceByTarget(evidence: CriterionEvidence[]): Map<string, CriterionEvidence> {
-  const m = new Map<string, CriterionEvidence>();
+/* ── existing evidence for THIS criterion, ALL records per target ──
+ * A target can now hold several records (duplicates). We keep them all,
+ * oldest first, matching the server's reconciliation order so the k-th
+ * uploaded row previews against the same k-th record the server will update. */
+export function indexEvidenceByTarget(evidence: CriterionEvidence[]): Map<string, CriterionEvidence[]> {
+  const m = new Map<string, CriterionEvidence[]>();
   for (const e of evidence) {
     const tid = e.intervention ?? e.national_proposal;
-    if (tid) m.set(String(tid), e);
+    if (!tid) continue;
+    const k = String(tid);
+    const list = m.get(k);
+    if (list) list.push(e);
+    else m.set(k, [e]);
   }
+  for (const list of m.values())
+    list.sort(
+      (a, b) =>
+        String(a.created_at ?? "").localeCompare(String(b.created_at ?? "")) ||
+        String(a.id).localeCompare(String(b.id)),
+    );
   return m;
 }
 
@@ -179,18 +193,26 @@ export function coerce(raw: any, header: CriterionHeader): { value: any; error?:
   }
 }
 
-/* ── build rows: match target, upsert-mode, validate ── */
+/* ── build rows: one result per file row; duplicates reconcile by position ──
+ *
+ * Each spreadsheet row is its own piece of evidence. A reference may appear on
+ * several rows (different studies / outcomes for the same target). The k-th row
+ * for a target reconciles onto that target's k-th existing record: if one is
+ * there it UPDATES it, otherwise it CREATES a new record. Re-uploading the same
+ * file therefore updates in place and never multiplies duplicates. Blank lines
+ * (no reference and no mapped data, or a reference with no mapped data) are
+ * ignored rather than importing empty records.
+ */
 export function buildRows(
   parsed: ParsedSheet,
   refHeader: string,
   mapping: Record<string, string>,
   headers: CriterionHeader[],
   targetIndex: Map<string, TargetRef>,
-  evidenceIndex: Map<string, CriterionEvidence>,
+  evidenceIndex: Map<string, CriterionEvidence[]>,
 ): EvidenceRowResult[] {
-  const seen = new Set<string>();
-  return parsed.rows.map((row, i) => {
-    const errors: string[] = [];
+  const staged = parsed.rows.map((row, i) => {
+    const fieldErrors: string[] = [];
     const reference = refHeader ? String(row[refHeader] ?? "").trim() : "";
     const target = reference ? resolveTarget(reference, targetIndex) : null;
 
@@ -199,29 +221,47 @@ export function buildRows(
       const col = mapping[h.key];
       if (!col) continue;
       const { value, error } = coerce(row[col], h);
-      if (error) errors.push(`${h.label}: ${error}`);
+      if (error) fieldErrors.push(`${h.label}: ${error}`);
       if (!isEmpty(value)) data[h.key] = value;
     }
 
+    return { index: i + 1, reference, target, data, fieldErrors, hasData: Object.keys(data).length > 0 };
+  });
+
+  const seen = new Map<string, number>();   // running occurrence index per target
+  const out: EvidenceRowResult[] = [];
+  for (const s of staged) {
+    // truly blank line, or a reference with nothing to record → ignore
+    if (!s.hasData && (!s.reference || s.target)) continue;
+
+    const errors = [...s.fieldErrors];
     let mode: RowMode = "error";
-    if (!reference) errors.push("Missing reference number");
-    else if (!target) errors.push(`Ref "${reference}" not found in interventions or programs`);
-    else if (seen.has(target.id)) errors.push("Duplicate reference within this file");
-    else {
-      seen.add(target.id);
-      mode = evidenceIndex.has(target.id) ? "update" : "create";
+    let match: CriterionEvidence | null = null;
+    if (!s.reference) {
+      errors.push("Missing reference number");
+    } else if (!s.target) {
+      errors.push(`Ref "${s.reference}" not found in interventions or programs`);
+    } else {
+      const occ = seen.get(s.target.id) ?? 0;
+      seen.set(s.target.id, occ + 1);
+      const existing = evidenceIndex.get(s.target.id) ?? [];
+      match = existing[occ] ?? null;         // k-th row ↔ k-th existing record
+      mode = match ? "update" : "create";
     }
 
-    return {
-      index: i + 1,
-      reference,
-      target,
-      data,
-      match: target ? evidenceIndex.get(target.id) ?? null : null,
+    out.push({
+      index: s.index,
+      reference: s.reference,
+      target: s.target,
+      data: s.data,
+      match,
       mode,
       errors,
-    };
-  });
+      sourceRows: [s.index],
+    });
+  }
+
+  return out;
 }
 
 export function toEvidenceInput(criterionId: string, r: EvidenceRowResult): EvidenceInput {

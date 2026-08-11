@@ -166,6 +166,21 @@ export function bucketOutcome(text: unknown): GradeOutcome | null {
  * Flattening: CoverageDetail -> flat `group__field` namespace.
  * ------------------------------------------------------------------ */
 
+/** One header definition carried alongside a criterion's data. */
+export interface EvidenceHeader {
+  key: string;
+  label: string;
+  type?: string;
+  options?: string[];
+}
+
+/** A single evidence record for a criterion (used to surface duplicates). */
+export interface EvidenceInstance {
+  evidence_id?: string;
+  data?: Record<string, unknown> | null;
+  score?: number | null;
+}
+
 /** Minimal structural shape the flattener needs — decoupled from the API type. */
 export interface EvidenceSource {
   name?: string | null;
@@ -176,6 +191,11 @@ export interface EvidenceSource {
   criteria?: Array<{
     criterion_name?: string | null;
     data?: Record<string, unknown> | null;
+    // optional, forwarded straight from CoverageDetail.criteria — used only to
+    // render duplicate records; the declarative engine still reads `data`.
+    headers?: EvidenceHeader[] | null;
+    score?: number | null;
+    instances?: EvidenceInstance[] | null;
   }> | null;
 }
 
@@ -222,6 +242,65 @@ export function flattenEvidence(src: EvidenceSource): FlatEvidence {
   }
 
   return { flat, byGroup, groups };
+}
+
+/* ------------------------------------------------------------------ *
+ * Duplicate records — the raw per-record breakdown for any criterion that
+ * carries more than one evidence row. The declarative synthesis above shows
+ * the primary (fullest) record; this exposes every record for the panel.
+ * ------------------------------------------------------------------ */
+
+export interface DuplicateRecordRow {
+  label: string;
+  value: string;   // already cleanVal'd -> may be NA_LABEL
+  present: boolean;
+}
+export interface DuplicateRecord {
+  label: string;               // "A", "B", "C", …
+  score: number | null;
+  rows: DuplicateRecordRow[];
+}
+export interface DuplicateGroup {
+  criterionName: string;
+  records: DuplicateRecord[];
+}
+
+const RECORD_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+function instanceRows(
+  data: Record<string, unknown>,
+  headers: EvidenceHeader[],
+): DuplicateRecordRow[] {
+  if (headers.length) {
+    return headers.map((h) => {
+      const raw = data[h.key];
+      return { label: h.label, value: cleanVal(raw), present: isPresent(raw) };
+    });
+  }
+  // no schema declared → fall back to whatever keys the record carries
+  return Object.entries(data).map(([k, v]) => ({
+    label: k,
+    value: cleanVal(v),
+    present: isPresent(v),
+  }));
+}
+
+export function collectDuplicateRecords(src: EvidenceSource): DuplicateGroup[] {
+  const out: DuplicateGroup[] = [];
+  for (const c of src.criteria ?? []) {
+    const instances = c?.instances ?? [];
+    if (instances.length < 2) continue;   // only surface genuine duplicates
+    const headers = c?.headers ?? [];
+    out.push({
+      criterionName: (c?.criterion_name ?? "Criterion").trim(),
+      records: instances.map((inst, i) => ({
+        label: RECORD_LETTERS[i] ?? String(i + 1),
+        score: inst?.score ?? null,
+        rows: instanceRows(inst?.data ?? {}, headers),
+      })),
+    });
+  }
+  return out;
 }
 
 /**

@@ -53,11 +53,24 @@ export interface RelRef {
   batch_number: string | null;
 }
 
+/** One evidence record for a criterion. When a criterion has more than one,
+ *  the DetailCriterion carries them all in `instances`; the top-level
+ *  data/score/status reflect the fullest (primary) record. */
+export interface DetailInstance {
+  evidence_id: string;
+  data: Record<string, unknown>;
+  score: number | null;
+  status: CellStatus;
+  filled: number;
+  total: number;
+}
+
 /** Per-criterion breakdown on the target detail view (carries data + score). */
 export interface DetailCriterion extends CoverageCell {
   headers: { key: string; label: string; type?: string; options?: string[] }[];
   data: Record<string, unknown>;
   score: number | null;
+  instances: DetailInstance[];   // all records for this criterion; length > 1 ⇒ duplicates
 }
 
 /** Full payload from GET /v3/evidence-coverage/<kind>/<id>/ */

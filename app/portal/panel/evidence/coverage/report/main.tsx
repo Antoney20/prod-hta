@@ -4,7 +4,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, ClipboardList, Printer } from "lucide-react";
-import { EvidenceSource, NA_LABEL } from "./helpers";
+import { DuplicateGroup, EvidenceSource, NA_LABEL } from "./helpers";
 import { buildReport, GradeRow, RenderFormBlock, RenderSection } from "./resolve";
 
 const BRAND = "#27aae1";
@@ -69,6 +69,8 @@ export default function EvidenceReport({ source }: { source: EvidenceSource }) {
             <Criterion key={s.id} section={s} />
           ))}
         </div>
+
+        {model.duplicates.length > 0 && <DuplicateRecords groups={model.duplicates} />}
       </section>
 
       {/* section divider */}
@@ -204,6 +206,49 @@ function FieldTable({ rows }: { rows: RenderSection["tables"][number]["rows"] })
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/* ---- Duplicate evidence records (per criterion) ---- */
+
+function DuplicateRecords({ groups }: { groups: DuplicateGroup[] }) {
+  return (
+    <div className="mt-6 break-inside-avoid rounded-xl border border-amber-200 bg-amber-50/30">
+      <div className="border-b border-amber-100 px-4 py-3">
+        <h3 className="text-sm font-semibold text-slate-800">Multiple evidence records</h3>
+        <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+          The criteria below hold more than one evidence record. The synthesis above uses the fullest
+          record; every record is listed here so the panel can review each on its own.
+        </p>
+      </div>
+      <div className="space-y-6 p-4">
+        {groups.map((g) => (
+          <div key={g.criterionName}>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[#1d70b8]">
+              {g.criterionName} — {g.records.length} records
+            </p>
+            <div className="space-y-3">
+              {g.records.map((r) => (
+                <div key={r.label} className="break-inside-avoid">
+                  <div className="mb-1 flex items-center gap-2">
+                    <span
+                      className="flex h-5 min-w-5 items-center justify-center rounded px-1.5 text-[10px] font-bold text-white"
+                      style={{ background: BRAND }}
+                    >
+                      {r.label}
+                    </span>
+                    {r.score != null && (
+                      <span className="text-[11px] text-slate-500">Score: {r.score}</span>
+                    )}
+                  </div>
+                  <FieldTable rows={r.rows} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import {
-  Search, RefreshCw, ClipboardList, Download, ChevronLeft, ChevronRight,
+  Search, RefreshCw, ClipboardList, Download, FileDown, ChevronLeft, ChevronRight,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { EvidenceTarget } from "@/types/new/decision-template";
 
 import TargetsTable from "./table";
-import { exportGrid } from "./handler";
+import { exportGrid, downloadTemplate } from "./handler";
 import { generatePayload, regeneratePayload } from "@/app/api/new/panel/template";
 import { buildColumns } from "./cols";
 import { globalUserStore } from "@/app/context/guard";
@@ -85,6 +85,15 @@ export default function DecisionTemplatesPage() {
     }
   };
 
+  const template = async () => {
+    if (!columns.length) return toast.info("No criteria to build a template from yet.");
+    try {
+      await downloadTemplate(columns, showAll);
+    } catch (e: any) {
+      toast.error(e.message ?? "Template failed");
+    }
+  };
+
   return (
     <div className="space-y-6 ">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -96,6 +105,9 @@ export default function DecisionTemplatesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={template} disabled={loading || !columns.length}>
+            <FileDown className="mr-1.5 h-4 w-4" /> Template
+          </Button>
           <Button variant="outline" size="sm" onClick={download} disabled={loading || !filtered.length}>
             <Download className="mr-1.5 h-4 w-4" /> Export
           </Button>

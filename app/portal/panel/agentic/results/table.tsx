@@ -88,6 +88,10 @@ function Cell({ s, onOpen }: { s?: AppraisalScoreResult; onOpen: (s: AppraisalSc
   );
 }
 
+// shared classes for the two frozen left columns so header + body line up exactly
+const STICK_CHK = "sticky left-0 z-20";
+const STICK_REF = "sticky left-12 z-20 border-r border-slate-200";
+
 export default function ResultsTable({
   rows, columns, selected, onToggle, onToggleAll, allSelected, someSelected,
   onOpenScore, onDeleteAppraisal, onSelectRun, onComment, canDelete,
@@ -101,11 +105,11 @@ export default function ResultsTable({
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] uppercase tracking-wide text-slate-500">
-              <th className="sticky left-0 z-10 w-12 bg-slate-50/70 px-4 py-3">
+            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+              <th className={cn(STICK_CHK, "w-12 bg-slate-50 px-4 py-3")}>
                 <CheckBox state={allSelected ? "on" : someSelected ? "mixed" : "off"} onClick={onToggleAll} />
               </th>
-              <th className="sticky left-12 z-10 bg-slate-50/70 px-4 py-3 font-semibold">Ref no.</th>
+              <th className={cn(STICK_REF, "bg-slate-50 px-4 py-3 font-semibold")}>Ref no.</th>
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Package</th>
               <th className="px-4 py-3 font-semibold">Phase</th>
@@ -133,15 +137,15 @@ export default function ResultsTable({
 
               return (
                 <Fragment key={r.target_id}>
-                  <tr className={cn("hover:bg-slate-50/60", on && "bg-sky-50/40")}>
-                    <td className="sticky left-0 z-10 bg-inherit px-4 py-3">
+                  <tr className={cn("bg-white transition-colors hover:bg-slate-50", on && "bg-sky-50 hover:bg-sky-50")}>
+                    <td className={cn(STICK_CHK, "bg-inherit px-4 py-3")}>
                       <CheckBox state={on ? "on" : "off"} onClick={() => onToggle(r.latest_appraisal_id)} />
                     </td>
-                    <td className="sticky min-w-60 rounded px-2 py-1 font-mono text-xs text-[#27aae1] hover:underline">
-                      <Link href={`/portal/panel/evidence/coverage/${r.target_id}`}>
-                        <span className="rounded bg-sky-50 px-2 py-0.5 font-mono text-xs" style={{ color: BRAND }}>
-                          {r.reference_number ?? "—"}
-                        </span>
+                    <td className={cn(STICK_REF, "whitespace-nowrap bg-inherit px-4 py-3")}>
+                      <Link href={`/portal/panel/evidence/coverage/${r.target_id}`}
+                        className="inline-flex rounded-md border border-sky-100 bg-sky-50 px-2 py-1 font-mono text-xs font-medium transition-colors hover:border-[#27aae1]/50 hover:bg-sky-100"
+                        style={{ color: BRAND }}>
+                        {r.reference_number ?? "—"}
                       </Link>
                     </td>
                     <td className="px-4 py-3">
@@ -202,7 +206,7 @@ export default function ResultsTable({
                     const isFirst = idx === 0;
                     const isLast = idx === r.appraisals.length - 1;
                     return (
-                      <tr key={ap.id} className="bg-sky-50/50 hover:bg-sky-100/50"
+                      <tr key={ap.id} className="bg-sky-50 transition-colors hover:bg-sky-100"
                         style={{
                           boxShadow: [
                             isFirst ? `inset 0 2px 0 ${BRAND}30` : "",
@@ -210,9 +214,9 @@ export default function ResultsTable({
                             `inset 2px 0 0 ${BRAND}30`,
                           ].filter(Boolean).join(", "),
                         }}>
-                        <td className="sticky left-0 z-10 bg-sky-50/50 px-4 py-2.5" />
-                        <td className="sticky left-12 z-10 bg-sky-50/50 px-4 py-2.5">
-                          <span className="rounded bg-white/70 px-2 py-0.5 font-mono text-xs text-slate-400">
+                        <td className={cn(STICK_CHK, "bg-inherit px-4 py-2.5")} />
+                        <td className={cn(STICK_REF, "whitespace-nowrap bg-inherit px-4 py-2.5 text-sm")}>
+                          <span className="rounded-md border border-slate-200 bg-white/80 px-2 py-0.5 font-mono text-xs text-slate-400">
                             {r.reference_number ?? "—"}
                           </span>
                         </td>

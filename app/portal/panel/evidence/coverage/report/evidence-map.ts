@@ -1,19 +1,4 @@
-/**
- * report/evidence-map.ts
- * ------------------------------------------------------------------
- * THE EDITABLE MAPPER.
- *
- * Field keys and criterion coverage are aligned to the R "Evidence Merge
- * Engine" (the canonical column set behind final_template.xlsx). Point a row
- * at the wrong place? Change its "group.field" string — that's the only edit.
- *
- *   group  = slug of a live criterion name (or an alias, see GROUP_ALIASES)
- *   field  = slug of a data key (matches the R internal column names)
- *
- * The 12 synthesis criteria intentionally re-use source groups (Incidence +
- * Population Impact both read burden_of_disease, Feasibility reads
- * access_to_healthcare, etc.). That reorganisation lives here, not in the data.
- */
+
 
 import { DATABASE_OPTIONS } from "./helpers";
 

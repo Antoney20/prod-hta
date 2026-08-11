@@ -1,18 +1,8 @@
-/**
- * report/resolve.ts
- * ------------------------------------------------------------------
- * The engine. Consumes the editable map (evidence-map.ts) + a data source,
- * and produces a plain render model the React layer walks. No JSX here.
- *
- * The map says WHAT to show; helpers say HOW to combine values; this file
- * ties them together and holds the handful of procedural computations that
- * don't fit a declarative spec (effect summary, GRADE bucketing, ...).
- */
-
 import {
   NA_LABEL,
   bucketOutcome,
   cleanVal,
+  collectDuplicateRecords,
   combineCi,
   combineIcd,
   combineNote,
@@ -22,6 +12,7 @@ import {
   isAffirmative,
   isPresent,
   makeGetter,
+  type DuplicateGroup,
   type EvidenceSource,
   type Getter,
   type GradeOutcome,
@@ -256,6 +247,7 @@ export interface ReportModel {
     limitations: string;
     hasRow: boolean;
   };
+  duplicates: DuplicateGroup[];
 }
 
 export function buildReport(src: EvidenceSource): ReportModel {
@@ -284,5 +276,6 @@ export function buildReport(src: EvidenceSource): ReportModel {
     submission: SUBMISSION_BLOCKS.map((b) => resolveFormBlock(b, get)),
     grade: resolveGrade(get),
     keyEvidence: { design, outcome, effect, limitations, hasRow },
+    duplicates: collectDuplicateRecords(src),
   };
 }

@@ -76,7 +76,7 @@ export default function EvidencePanelPage() {
     <div className="p-2">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#27aae1]">Appraisal Criteria - (Upload evidence pr criterion)</h1>
+          <h1 className="text-2xl font-semibold text-[#27aae1]">Appraisal Criteria - (Upload evidence )</h1>
           <p className="text-sm text-gray-500">Open a criterion to upload and manage its evidence.</p>
         </div>
         <AdminOnly silent>

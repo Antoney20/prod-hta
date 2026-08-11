@@ -1,10 +1,10 @@
 import api from "@/app/api/auth";
 import {
+  BulkResult,
   Criterion,
   CriterionEvidence,
   CriterionInput,
   EvidenceInput,
-  BulkResult,
   Write,
 } from "@/types/new/evidence-panel";
 

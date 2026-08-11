@@ -88,6 +88,13 @@ export default function UploadWizard({
   const errors = rows.filter((r) => r.mode === "error");
   const importable = [...creates, ...updates];
 
+  // targets that appear on more than one importable row — saved as separate rows
+  const dupTargetIds = useMemo(() => {
+    const c = new Map<string, number>();
+    for (const r of importable) if (r.target) c.set(r.target.id, (c.get(r.target.id) ?? 0) + 1);
+    return new Set([...c].filter(([, n]) => n > 1).map(([id]) => id));
+  }, [importable]);
+
   const reset = () => {
     setFileName(""); setParsed(null); setRefHeader(""); setMapping({});
     setNewCols([]); setPickedNew(new Set()); setStep("setup");
@@ -435,7 +442,17 @@ const removeLabel = async (key: string) => {
                   <tbody className="divide-y divide-slate-100">
                     {importable.map((r) => (
                       <tr key={r.index}>
-                        <td className="px-2 py-1 font-mono text-slate-600">{r.reference}</td>
+                        <td className="px-2 py-1 font-mono text-slate-600">
+                          {r.reference}
+                          {r.target && dupTargetIds.has(r.target.id) && (
+                            <span
+                              className="ml-1 rounded bg-amber-100 px-1 font-sans text-[9px] text-amber-700"
+                              title="This reference appears more than once — each occurrence is saved as a separate evidence row"
+                            >
+                              dup
+                            </span>
+                          )}
+                        </td>
                         <td className="px-2 py-1 text-slate-700">{r.target?.name}</td>
                         <td className="px-2 py-1">
                           <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${r.target?.kind === "intervention" ? "bg-[#27aae1]/10 text-[#27aae1]" : "bg-amber-50 text-amber-700"}`}>

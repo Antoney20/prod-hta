@@ -9,7 +9,7 @@ import { htmlToText } from "@/components/shared/text";
 
 import { Criterion, CriterionEvidence } from "@/types/new/evidence-panel";
 import { ProgramProposal } from "@/types/new/program";
-import { getCriterion, getEvidence, bulkDeleteEvidence } from "@/app/api/new/panel/evidence";
+import { getCriteria, getCriterion, getEvidence, bulkDeleteEvidence } from "@/app/api/new/panel/evidence";
 import { EvidenceInterventionRef } from "@/types/new/assessment";
 import { getInterventions, getNationalPrograms } from "@/app/api/new/search";
 import UploadWizard from "./wizard";
@@ -26,6 +26,7 @@ export default function CriterionEvidencePage() {
   const router = useRouter();
 
   const [criterion, setCriterion] = useState<Criterion | null>(null);
+  const [allCriteria, setAllCriteria] = useState<Criterion[]>([]);
   const [evidence, setEvidence] = useState<CriterionEvidence[]>([]);
   const [interventions, setInterventions] = useState<EvidenceInterventionRef[]>([]);
   const [programs, setPrograms] = useState<ProgramProposal[]>([]);
@@ -40,17 +41,19 @@ export default function CriterionEvidencePage() {
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    const [c, iv, pr] = await Promise.all([getCriterion(id), getInterventions(), getNationalPrograms()]);
+    const [c, iv, pr, all] = await Promise.all([
+      getCriterion(id), getInterventions(), getNationalPrograms(), getCriteria(),
+    ]);
     setCriterion(c);
     setInterventions(iv);
     setPrograms(pr);
+    setAllCriteria(all ?? []);
     setLoading(false);
     await loadEvidence();
   }, [id, loadEvidence]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  // id -> readable label, across both sources
   const targetLabels = useMemo(() => {
     const m = new Map<string, TargetLabel>();
     for (const iv of interventions) {
@@ -76,11 +79,16 @@ export default function CriterionEvidencePage() {
     [targetLabels],
   );
 
-const onDelete = async (ids: string[]) => {
-  const res = await bulkDeleteEvidence(ids);
-  if (res.ok) { toast.success(`${res.data?.deleted ?? ids.length} deleted.`); loadEvidence(); }
-  else toast.error(res.error ?? "Delete failed");
-};
+  const onCriterionChanged = useCallback((c: Criterion) => {
+    setCriterion(c);
+    setAllCriteria((list) => list.map((x) => (String(x.id) === String(c.id) ? c : x)));
+  }, []);
+
+  const onDelete = async (ids: string[]) => {
+    const res = await bulkDeleteEvidence(ids);
+    if (res.ok) { toast.success(`${res.data?.deleted ?? ids.length} deleted.`); loadEvidence(); }
+    else toast.error(res.error ?? "Delete failed");
+  };
 
   if (loading) {
     return (
@@ -143,13 +151,15 @@ const onDelete = async (ids: string[]) => {
           Evidence for this criterion
         </h2>
         <EvidenceTable
-  criterion={criterion}
-  rows={evidence}
-  loading={evLoading}
-  onDelete={onDelete}
-  onEdited={loadEvidence}
-  resolveTarget={resolveTarget}
-/>
+          criterion={criterion}
+          rows={evidence}
+          allCriteria={allCriteria}
+          loading={evLoading}
+          onDelete={onDelete}
+          onEdited={loadEvidence}
+          onCriterionChanged={onCriterionChanged}
+          resolveTarget={resolveTarget}
+        />
       </div>
     </div>
   );

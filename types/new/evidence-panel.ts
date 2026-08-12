@@ -1,8 +1,10 @@
 export interface CriterionHeader {
   key: string;
   label: string;
-  type?: "text" | "number" | "choice";
+  type: "text" | "number" | "choice";
   options?: string[];
+  formula?: string;   //
+  round?: number;     // decimals for the computed value (default 4)
 }
 
 export interface Criterion {

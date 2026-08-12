@@ -10,39 +10,65 @@ import {
   Search, MoreHorizontal, Trash2, Pencil, Download, ChevronLeft, ChevronRight, Inbox,
 } from "lucide-react";
 import { htmlToText } from "@/components/shared/text";
-import { Criterion, CriterionEvidence } from "@/types/new/evidence-panel";
+import { Criterion, CriterionEvidence, CriterionHeader } from "@/types/new/evidence-panel";
 import { AdminOnly } from "@/app/context/role";
 import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 import { exportEvidence } from "./handler";
+import { isFormula } from "./formulas";
 import EvidenceEditDialog from "./dialogue";
+import FormulaDialog from "./formulas-dialogue";
+
 
 const SIZES = [20, 30, 50];
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TD = "px-3 py-3 align-top";
 
-const cell = (v: unknown) => {
+const fmtNumber = (v: unknown): string | null => {
+  if (typeof v === "number") return Number.isFinite(v) ? v.toLocaleString("en-US", { maximumFractionDigits: 20 }) : null;
+  if (typeof v === "string") {
+    const s = v.trim().replace(/,/g, "");
+    if (s === "" || !/^-?\d*\.?\d+$/.test(s)) return null;   // only clean numeric strings
+    const n = Number(s);
+    if (!Number.isFinite(n)) return null;
+    const dp = s.includes(".") ? s.split(".")[1].length : 0; // preserve the entered precision
+    return n.toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp });
+  }
+  return null;
+};
+
+const cell = (v: unknown, header?: CriterionHeader) => {
   if (v == null || v === "") return "—";
   if (Array.isArray(v)) return v.join(", ") || "—";
   if (typeof v === "boolean") return v ? "Yes" : "No";
+  // number-ish columns get thousands separators; text/notes stay as-is
+  if (header && (header.type === "number" || isFormula(header))) {
+    const f = fmtNumber(v);
+    if (f != null) return f;
+  }
   return htmlToText(String(v)) || "—";
 };
 
 interface Props {
   criterion: Criterion;
   rows: CriterionEvidence[];
+  allCriteria: Criterion[];
   loading?: boolean;
   onDelete: (ids: string[]) => void;
   onEdited?: () => void;
+  onCriterionChanged: (c: Criterion) => void;
   resolveTarget?: (row: CriterionEvidence) => { reference: string; name: string; kind: string } | null;
 }
 
-export default function EvidenceTable({ criterion, rows, loading, resolveTarget, onDelete, onEdited }: Props) {
+export default function EvidenceTable({
+  criterion, rows, allCriteria, loading, resolveTarget, onDelete, onEdited, onCriterionChanged,
+}: Props) {
   const [search, setSearch] = useState("");
   const [size, setSize] = useState(20);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [toDelete, setToDelete] = useState<CriterionEvidence[] | null>(null);
   const [toEdit, setToEdit] = useState<CriterionEvidence | null>(null);
+  const [toEditHeader, setToEditHeader] = useState<CriterionHeader | null>(null);
 
   const cols = criterion.headers ?? [];
 
@@ -130,8 +156,26 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
               <th className={`${TH} w-10 text-center`}>#</th>
               <th className={`${TH} min-w-40`}>Reference / Target</th>
               <th className={`${TH} w-24`}>Type</th>
-              {cols.map((c) => <th key={c.key} className={`${TH} min-w-40`}>{c.label}</th>)}
-         
+              {cols.map((c) => (
+                <th key={c.key} className={`${TH} min-w-40`}>
+                  <div className="flex items-center gap-1.5">
+                    <span>{c.label}</span>
+                    {isFormula(c) && (
+                      <span title={`Computed: ${c.formula}`}
+                        className="rounded bg-[#27aae1]/10 px-1 font-mono text-[10px] normal-case text-[#27aae1]">
+                        ƒ{c.round != null ? ` ${c.round}dp` : ""}
+                      </span>
+                    )}
+                    <AdminOnly silent>
+                      <button type="button" onClick={() => setToEditHeader(c)}
+                        title="Edit formula / rounding"
+                        className="text-slate-300 hover:text-[#27aae1]">
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    </AdminOnly>
+                  </div>
+                </th>
+              ))}
               <th className={`${TH} w-16 text-right`} />
             </tr>
           </thead>
@@ -170,12 +214,11 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
                       {r.intervention ? "Intervention" : "Program"}
                     </span>
                   </td>
-                  {cols.map((c) => (
-                    <td key={c.key} className={`${TD} text-xs text-slate-600`}>
-                      <p className="line-clamp-2 max-w-60">{cell((r.data as any)?.[c.key])}</p>
+                 {cols.map((c) => (
+                    <td key={c.key} className={`${TD} text-xs ${isFormula(c) ? "font-mono text-slate-800" : "text-slate-600"}`}>
+                      <p className="line-clamp-2 max-w-60">{cell((r.data as any)?.[c.key], c)}</p>
                     </td>
                   ))}
-               
                   <td className={`${TD} text-right`}>
                     <AdminOnly silent>
                       <DropdownMenu>
@@ -221,9 +264,20 @@ export default function EvidenceTable({ criterion, rows, loading, resolveTarget,
         open={!!toEdit}
         onOpenChange={(v) => !v && setToEdit(null)}
         criterion={criterion}
+        allCriteria={allCriteria}
         row={toEdit}
         targetLabel={toEdit ? resolveTarget?.(toEdit)?.reference : undefined}
         onSaved={() => { setToEdit(null); onEdited?.(); }}
+      />
+
+      <FormulaDialog
+        open={!!toEditHeader}
+        onOpenChange={(v) => !v && setToEditHeader(null)}
+        criterion={criterion}
+        header={toEditHeader}
+        allCriteria={allCriteria}
+        onSaved={onCriterionChanged}
+        onRecomputed={onEdited}
       />
 
       <DeleteDialog

@@ -422,9 +422,6 @@
 //   };
 // }
 
-
-
-
 import {
   NA_LABEL,
   bucketOutcome,
@@ -854,14 +851,18 @@ export function buildReport(src: EvidenceSource): ReportModel {
  * Service tabs — split the report by the service each record names.
  *
  * Grouping key is the criterion's own `service` / `services` COLUMN only.
- * A criterion that declares such a header is "service-bearing": its records
- * are distributed to per-service tabs (one record per criterion per tab, no
- * duplicates). A criterion with NO service column is not tabbed by service —
- * it lives in the default "Overview" tab, where duplicates are allowed and
- * shown together. Every tab still renders all 12 criteria; non-service
- * criteria carry their fullest record into each service tab as shared context.
+ * A criterion that declares such a header is "service-bearing": records with
+ * a value go to that named-service tab (one record per criterion per tab).
  *
- * The default view is the Overview tab, which shows complete page data.
+ *  • Overview        — default view; the fullest record per criterion, always
+ *                      clean (no duplicate block).
+ *  • Named services  — one tab per distinct service value; one record per
+ *                      criterion, clean.
+ *  • No service      — the collector: every record NOT assigned to a named
+ *                      service for this intervention. That means blank-value
+ *                      records from service-bearing criteria AND all records
+ *                      from criteria that have no service column. Duplicates
+ *                      are kept here (this is the only place they show).
  * ------------------------------------------------------------------ */
 
 type CriterionOf = NonNullable<EvidenceSource["criteria"]>[number];
@@ -919,42 +920,36 @@ interface ServiceKey {
   label: string;
 }
 
-/** Distinct service values across all service-bearing criteria (first-seen
- *  order), plus whether any service-bearing record carries no service value. */
-function enumerateServices(src: EvidenceSource): { services: ServiceKey[]; hasBlank: boolean } {
+/** Distinct named service values across service-bearing criteria (first-seen
+ *  order), plus whether any record is unassigned to a named service — i.e.
+ *  either a blank service value, or any record under a non-service criterion. */
+function enumerateServices(src: EvidenceSource): { services: ServiceKey[]; hasNoService: boolean } {
   const seen = new Map<string, string>();
-  let hasBlank = false;
+  let hasNoService = false;
   for (const c of src.criteria ?? []) {
     const svcKey = serviceHeaderKey(c);
-    if (!svcKey) continue;
+    if (!svcKey) {
+      // no service column → all its records are unassigned collector material
+      if (instancesOf(c).length > 0) hasNoService = true;
+      continue;
+    }
     for (const inst of instancesOf(c)) {
       const v = serviceValueOf(inst?.data, svcKey);
       if (v == null) {
-        hasBlank = true;
+        hasNoService = true;
         continue;
       }
       const k = v.toLowerCase();
       if (!seen.has(k)) seen.set(k, v);
     }
   }
-  return { services: [...seen.entries()].map(([key, label]) => ({ key, label })), hasBlank };
+  return { services: [...seen.entries()].map(([key, label]) => ({ key, label })), hasNoService };
 }
 
-/** Service-bearing criterion display names (trimmed) — used to keep those
- *  criteria out of the Overview duplicate block (their multiples are tabs). */
-function serviceCriterionNames(src: EvidenceSource): Set<string> {
-  const out = new Set<string>();
-  for (const c of src.criteria ?? []) {
-    if (serviceHeaderKey(c)) out.add((c?.criterion_name ?? "").trim());
-  }
-  return out;
-}
-
-/** A source copy where each criterion holds only the record for `serviceKey`.
- *  Service-bearing criteria are filtered by their service value; non-service
- *  criteria keep their fullest record so every tab shows all 12 criteria. */
-function filterSourceByService(src: EvidenceSource, serviceKey: string): EvidenceSource {
-  const noService = serviceKey === NO_SERVICE_KEY;
+/** A source copy for a NAMED service: each criterion keeps only the single
+ *  record matching that service value; non-service criteria keep their fullest
+ *  record so every tab still shows all 12 criteria. Clean, one record each. */
+function filterSourceByNamedService(src: EvidenceSource, serviceKey: string): EvidenceSource {
   const criteria = (src.criteria ?? []).map((c) => {
     const svcKey = serviceHeaderKey(c);
     let chosen: EvidenceInstance | undefined;
@@ -963,11 +958,29 @@ function filterSourceByService(src: EvidenceSource, serviceKey: string): Evidenc
     } else {
       const matching = instancesOf(c).filter((inst) => {
         const v = serviceValueOf(inst?.data, svcKey);
-        return noService ? v == null : v != null && v.toLowerCase() === serviceKey;
+        return v != null && v.toLowerCase() === serviceKey;
       });
       chosen = pickFullest(matching);
     }
     return { ...c, data: chosen?.data ?? {}, instances: chosen ? [chosen] : [] };
+  });
+  return { ...src, criteria };
+}
+
+/** A source copy for the NO-SERVICE collector: each criterion keeps ALL records
+ *  not assigned to a named service — blank-value records (service-bearing) or
+ *  every record (non-service criteria). Duplicates are preserved. */
+function filterSourceNoService(src: EvidenceSource): EvidenceSource {
+  const criteria = (src.criteria ?? []).map((c) => {
+    const svcKey = serviceHeaderKey(c);
+    const kept = svcKey
+      ? instancesOf(c).filter((inst) => serviceValueOf(inst?.data, svcKey) == null)
+      : instancesOf(c);
+    return {
+      ...c,
+      data: pickFullest(kept)?.data ?? {},
+      instances: kept,
+    };
   });
   return { ...src, criteria };
 }
@@ -984,34 +997,30 @@ export interface ServiceReportBundle {
 }
 
 export function buildServiceReports(src: EvidenceSource): ServiceReportBundle {
-  const { services, hasBlank } = enumerateServices(src);
+  const { services, hasNoService } = enumerateServices(src);
 
-  // Default "Overview": the full report — fullest record per criterion — with
-  // the duplicate block kept ONLY for non-service criteria (service multiples
-  // live in their own tabs). This is the complete-data default view.
-  // const overview = buildReport(src);
-  // const svcNames = serviceCriterionNames(src);
-  // overview.duplicates = overview.duplicates.filter((d) => !svcNames.has(d.criterionName.trim()));
-
+  // Default "Overview": fullest record per criterion, always clean.
   const overview = buildReport(src);
   overview.duplicates = [];
 
   const tabs: ServiceReport[] = [{ key: OVERVIEW_KEY, label: OVERVIEW_LABEL, model: overview }];
 
   for (const { key, label } of services) {
-    tabs.push({ key, label, model: buildReport(filterSourceByService(src, key)) });
+    tabs.push({ key, label, model: buildReport(filterSourceByNamedService(src, key)) });
   }
-  if (hasBlank) {
+
+  if (hasNoService) {
+    // The collector keeps its duplicates (buildReport → collectDuplicateRecords).
     tabs.push({
       key: NO_SERVICE_KEY,
       label: NO_SERVICE_LABEL,
-      model: buildReport(filterSourceByService(src, NO_SERVICE_KEY)),
+      model: buildReport(filterSourceNoService(src)),
     });
   }
 
-  // No service column anywhere → single view, no tab bar (duplicates allowed).
-  const single = services.length === 0 && !hasBlank;
+  // No named services and nothing unassigned would be impossible if there's any
+  // data; single view only when there are no service tabs at all beyond Overview.
+  const single = services.length === 0 && !hasNoService;
 
   return { meta: overview.meta, services: tabs, single };
 }
-

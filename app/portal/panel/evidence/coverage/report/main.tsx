@@ -606,8 +606,6 @@ function ServiceTabs({
       <div className="flex flex-wrap gap-1.5">
         {services.map((s, i) => {
           const isActive = i === active;
-          const filled = s.model.synthesis.filter((x) => x.hasData).length;
-          const total = s.model.synthesis.length;
           return (
             <button
               key={s.key}
@@ -621,14 +619,6 @@ function ServiceTabs({
               style={isActive ? { background: BRAND } : undefined}
             >
               <span className="max-w-[16rem] truncate">{s.label}</span>
-              <span
-                className={[
-                  "rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none tabular-nums",
-                  isActive ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500",
-                ].join(" ")}
-              >
-                {filled}/{total}
-              </span>
             </button>
           );
         })}
@@ -790,16 +780,16 @@ function FieldTable({ rows }: { rows: RenderSection["tables"][number]["rows"] })
   );
 }
 
-/* ---- Duplicate evidence records (non-service criteria only) ---- */
+/* ---- Duplicate evidence records (No-service collector only) ---- */
 
 function DuplicateRecords({ groups }: { groups: DuplicateGroup[] }) {
   return (
     <div className="mt-6 break-inside-avoid rounded-xl border border-amber-200 bg-amber-50/30">
       <div className="border-b border-amber-100 px-4 py-3">
-        <h3 className="text-sm font-semibold text-slate-800">Multiple evidence records</h3>
+        <h3 className="text-sm font-semibold text-slate-800">Records without an assigned service</h3>
         <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-          These criteria have no service column, so their records are grouped together here. The
-          synthesis above uses the fullest record; every record is listed below for the panel.
+          These records were not assigned to a named service. The synthesis above uses the fullest
+          record; every record is listed below for the panel.
         </p>
       </div>
       <div className="space-y-6 p-4">

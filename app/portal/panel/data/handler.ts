@@ -1,5 +1,5 @@
 import { EvidenceTarget } from "@/types/new/decision-template";
-import { CritCol, cellValue, visibleFields } from "./cols";
+import { CritCol, cellValue, serviceOf, serviceRowsOf, visibleFields } from "./cols";
 
 type PreparedCol = { c: CritCol; fields: string[] };
 
@@ -8,11 +8,11 @@ const GRID = { style: "thin", color: { argb: "FFDDDDDD" } } as const;
 const RULE = { style: "medium", color: { argb: "FF8A8A8A" } } as const;
 const MUTED = "FF8A8A8A";
 
-/** Two-row header: the four fixed columns merge down across both rows, and each
+/** Two-row header: the five fixed columns merge down across both rows, and each
  *  criterion name merges across its field columns. Returns the total column count. */
 function writeHeader(ws: any, cols: PreparedCol[]): number {
-  const top: string[] = ["Reference", "Name", "Package", "Phase"];
-  const sub: string[] = ["", "", "", ""];
+  const top: string[] = ["Reference", "Name", "Package", "Service", "Phase"];
+  const sub: string[] = ["", "", "", "", ""];
   for (const { c, fields } of cols) {
     top.push(c.name, ...Array(Math.max(0, fields.length - 1)).fill(""));
     sub.push(...fields);
@@ -28,20 +28,20 @@ function writeHeader(ws: any, cols: PreparedCol[]): number {
   });
 
   // fixed columns span both header rows
-  for (let c = 1; c <= 4; c++) ws.mergeCells(1, c, 2, c);
+  for (let c = 1; c <= 5; c++) ws.mergeCells(1, c, 2, c);
   // each criterion spans its field columns
-  let col = 5;
+  let col = 6;
   for (const { fields } of cols) {
     const span = Math.max(1, fields.length);
     if (span > 1) ws.mergeCells(1, col, 1, col + span - 1);
     col += span;
   }
 
-  return 4 + cols.reduce((n, { fields }) => n + Math.max(1, fields.length), 0);
+  return 5 + cols.reduce((n, { fields }) => n + Math.max(1, fields.length), 0);
 }
 
 /** Light grid on every cell, a slightly heavier rule under the header, sensible
- *  widths, and frozen header + first four columns. */
+ *  widths, and frozen header + first five columns. */
 function frameSheet(ws: any, totalCols: number) {
   const last = ws.rowCount;
   for (let r = 1; r <= last; r++)
@@ -56,10 +56,11 @@ function frameSheet(ws: any, totalCols: number) {
   ws.getColumn(1).width = 20;
   ws.getColumn(2).width = 34;
   ws.getColumn(3).width = 18;
-  ws.getColumn(4).width = 16;
-  for (let c = 5; c <= totalCols; c++) ws.getColumn(c).width = 22;
+  ws.getColumn(4).width = 22;
+  ws.getColumn(5).width = 16;
+  for (let c = 6; c <= totalCols; c++) ws.getColumn(c).width = 22;
 
-  ws.views = [{ state: "frozen", xSplit: 4, ySplit: 2 }];
+  ws.views = [{ state: "frozen", xSplit: 5, ySplit: 2 }];
 }
 
 async function saveWorkbook(wb: any, filename: string) {
@@ -89,7 +90,7 @@ export async function exportGrid(
 
     // main row — merged / consolidated view
     const main: (string | number)[] = [
-      t.reference_number ?? "", t.name ?? "", t.package ?? "", t.phase ?? "",
+      t.reference_number ?? "", t.name ?? "", t.package ?? "", serviceOf(t), t.phase ?? "",
     ];
     for (const { c, fields } of cols) {
       const cell = byName.get(c.key);
@@ -99,21 +100,23 @@ export async function exportGrid(
     mr.font = { size: 10 };
     mr.alignment = { vertical: "top", wrapText: true };
 
-    // duplicated criteria — one record per row, below the main row
-    const maxRec = cols.reduce((n, { c }) => {
-      const len = byName.get(c.key)?.children?.length ?? 0;
-      return len > 1 ? Math.max(n, len) : n;
-    }, 0);
-    for (let k = 0; k < maxRec; k++) {
-      const sub: (string | number)[] = ["", t.reference_number ?? "", "", ""];
-      for (const { c, fields } of cols) {
-        const cell = byName.get(c.key);
-        const rec = (cell?.children?.length ?? 0) > 1 ? cell!.children![k] : undefined;
-        for (const f of fields) sub.push(rec ? cellValue(rec.evidence?.[f]) : "");
+    // per-service breakdown — one row per distinct service, below the main row.
+    // Each sub-row COPIES the parent's Reference + Name (and Package/Phase);
+    // only Service differs.
+    const serviceRows = serviceRowsOf(t);
+    if (serviceRows.length > 1) {
+      for (const sr of serviceRows) {
+        const row: (string | number)[] = [
+          t.reference_number ?? "", t.name ?? "", t.package ?? "", sr.service, t.phase ?? "",
+        ];
+        for (const { c, fields } of cols) {
+          const ev = sr.evidence.get(c.key);
+          for (const f of fields) row.push(ev ? cellValue(ev[f]) : "");
+        }
+        const rr = ws.addRow(row);
+        rr.font = { size: 10, italic: true, color: { argb: MUTED } };
+        rr.alignment = { vertical: "top", wrapText: true };
       }
-      const sr = ws.addRow(sub);
-      sr.font = { size: 10, italic: true, color: { argb: MUTED } };
-      sr.alignment = { vertical: "top", wrapText: true };
     }
   }
 

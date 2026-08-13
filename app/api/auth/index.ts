@@ -3,9 +3,9 @@ import { jwtDecode } from 'jwt-decode';
 import { useState, useEffect } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-// const API_URL = `${process.env.API_URL || API_BASE_URL}`;
+const API_URL = `${process.env.API_URL || API_BASE_URL}`;
 
-const API_URL = '/api';  
+// const API_URL = '/api';  
 
 export type UserRole = 'admin' | 'secretariat' | 'content_manager' | 'user' | 'swg' | 'panel'| 'assessment';
 

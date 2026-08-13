@@ -12,6 +12,7 @@ import {
   isAffirmative,
   isPresent,
   makeGetter,
+  slug,
   type DuplicateGroup,
   type EvidenceSource,
   type Getter,
@@ -224,6 +225,145 @@ export function resolveGrade(get: Getter): GradeRow[] {
 }
 
 /* ------------------------------------------------------------------ *
+ * Budget Impact (B.6) — multi-year, tabbed. Read directly off the
+ * budget criterion's evidence records rather than through the flat
+ * getter, because the year fields are too numerous/positional to spell
+ * out as flat form rows. One tabbed block is emitted per record, so a
+ * criterion carrying more than one uploaded record repeats the table.
+ * ------------------------------------------------------------------ */
+
+export interface BudgetYear {
+  year: number;
+  rows: RenderRow[];
+  hasData: boolean;
+}
+export interface BudgetRecord {
+  label: string; // "A"/"B"/… when >1 record, else ""
+  years: BudgetYear[];
+  costBasis: RenderRow[];
+  summary: RenderRow[];
+  offsets: RenderRow[];
+  judgment: RenderRow[];
+  hasData: boolean;
+}
+export interface BudgetImpactModel {
+  records: BudgetRecord[];
+  hasData: boolean;
+}
+
+// [label, field-key suffix] — combined with `year_{N}_` per year.
+const BUDGET_YEAR_FIELDS: Array<[string, string]> = [
+  ["Eligible Population", "eligible_population"],
+  ["Target Coverage (%)", "target_coverage"],
+  ["Number Treated", "number_treated"],
+  ["Total Cost (KES)", "total_cost_kes"],
+  ["Current Cost (KES)", "current_cost_kes"],
+  ["Incremental Budget (KES)", "incremental_budget_kes"],
+];
+
+const BUDGET_COST_BASIS: Array<[string, string]> = [
+  ["Service", "service"],
+  ["Estimated Target Population", "est_target_population"],
+  ["Observed Morbidity", "obs_morbidity"],
+  ["Coverage (%)", "coverage"],
+  ["TDABC Unit Cost (KES)", "tdabc_unit_cost_kes"],
+  ["TDABC Tariff (KES)", "tdabc_tariff_kes"],
+  ["Optimised Tariff (KES)", "optimised_tariff_kes"],
+  ["SHA Current Tariff (KES)", "sha_current_tariff_kes"],
+];
+
+const BUDGET_SUMMARY: Array<[string, string]> = [
+  ["Annual Growth Factor", "annual_growth_factor"],
+  ["5-Year Incremental Budget Impact (KES)", "5_year_incremental_budget_impact_kes"],
+  ["SHA Annual Budget (KES)", "sha_annual_budget_kes"],
+  ["As % of SHA Budget", "as_of_sha_budget"],
+];
+
+const BUDGET_OFFSETS: Array<[string, string]> = [
+  ["Budget Offsets Available (Disinvestment)?", "budget_offsets_available_disinvestment"],
+  ["Budget Offsets — Specify", "budget_offsets_specify"],
+  ["External Donor Funding Anticipated?", "external_donor_funding_anticipated"],
+  ["Donor Funding — Specify", "donor_funding_specify"],
+];
+
+const BUDGET_JUDGMENT: Array<[string, string]> = [
+  ["Affordability Judgment", "affordability_judgment"],
+  ["Notes", "notes"],
+];
+
+const RECORD_LETTERS_BI = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+/** Slug-normalised key lookup over a single record's data. */
+function normalizedLookup(data: Record<string, unknown>): (key: string) => unknown {
+  const map = new Map<string, unknown>();
+  for (const [k, v] of Object.entries(data ?? {})) map.set(slug(k), v);
+  return (key: string) => map.get(slug(key));
+}
+
+// function biRow(look: (k: string) => unknown, label: string, key: string): RenderRow {
+//   const raw = look(key);
+//   const v = isPresent(raw) ? String(raw).trim() : null;
+//   return { label, value: cleanVal(v), present: isPresent(v) };
+// }
+
+
+/** Format a numeric-looking value with thousands separators; pass through otherwise. */
+function withCommas(v: string): string {
+  // Only touch plain numbers (optional leading -, digits, optional decimals).
+  if (!/^-?\d+(\.\d+)?$/.test(v)) return v;
+  const [intPart, decPart] = v.split(".");
+  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decPart != null ? `${grouped}.${decPart}` : grouped;
+}
+
+function biRow(look: (k: string) => unknown, label: string, key: string): RenderRow {
+  const raw = look(key);
+  const v = isPresent(raw) ? String(raw).trim() : null;
+  return { label, value: v == null ? cleanVal(v) : withCommas(cleanVal(v)), present: isPresent(v) };
+} 
+function buildBudgetRecord(data: Record<string, unknown>): BudgetRecord {
+  const look = normalizedLookup(data);
+
+  const years: BudgetYear[] = [];
+  for (let y = 1; y <= 5; y++) {
+    const rows = BUDGET_YEAR_FIELDS.map(([label, suffix]) => biRow(look, label, `year_${y}_${suffix}`));
+    years.push({ year: y, rows, hasData: rows.some((r) => r.present) });
+  }
+
+  const costBasis = BUDGET_COST_BASIS.map(([l, k]) => biRow(look, l, k));
+  const summary = BUDGET_SUMMARY.map(([l, k]) => biRow(look, l, k));
+  const offsets = BUDGET_OFFSETS.map(([l, k]) => biRow(look, l, k));
+  const judgment = BUDGET_JUDGMENT.map(([l, k]) => biRow(look, l, k));
+
+  const hasData =
+    years.some((y) => y.hasData) ||
+    [costBasis, summary, offsets, judgment].some((g) => g.some((r) => r.present));
+
+  return { label: "", years, costBasis, summary, offsets, judgment, hasData };
+}
+
+export function resolveBudgetImpact(src: EvidenceSource): BudgetImpactModel {
+  const crit = (src.criteria ?? []).find((c) => slug(c?.criterion_name).includes("budget"));
+  if (!crit) return { records: [], hasData: false };
+
+  const instances = (crit.instances ?? []).filter((i) => i && i.data);
+  const sources: Record<string, unknown>[] =
+    instances.length > 0
+      ? instances.map((i) => (i.data ?? {}) as Record<string, unknown>)
+      : crit.data
+      ? [crit.data as Record<string, unknown>]
+      : [];
+
+  const records = sources.map(buildBudgetRecord).filter((r) => r.hasData);
+  const multi = records.length > 1;
+  records.forEach((r, i) => {
+    r.label = multi ? RECORD_LETTERS_BI[i] ?? String(i + 1) : "";
+  });
+
+  return { records, hasData: records.length > 0 };
+}
+
+/* ------------------------------------------------------------------ *
  * Top-level build.
  * ------------------------------------------------------------------ */
 
@@ -248,6 +388,7 @@ export interface ReportModel {
     hasRow: boolean;
   };
   duplicates: DuplicateGroup[];
+  budgetImpact: BudgetImpactModel;
 }
 
 export function buildReport(src: EvidenceSource): ReportModel {
@@ -277,5 +418,6 @@ export function buildReport(src: EvidenceSource): ReportModel {
     grade: resolveGrade(get),
     keyEvidence: { design, outcome, effect, limitations, hasRow },
     duplicates: collectDuplicateRecords(src),
+    budgetImpact: resolveBudgetImpact(src),
   };
 }

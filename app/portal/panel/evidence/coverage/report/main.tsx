@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, ClipboardList, Printer } from "lucide-react";
 import { DuplicateGroup, EvidenceSource, NA_LABEL } from "./helpers";
-import { buildReport, GradeRow, RenderFormBlock, RenderSection } from "./resolve";
+import { buildReport, BudgetRecord, GradeRow, RenderFormBlock, RenderSection } from "./resolve";
 
 const BRAND = "#27aae1";
 
@@ -92,7 +92,7 @@ export default function EvidenceReport({ source }: { source: EvidenceSource }) {
         <FormHeading title={FORM_B.title} instructions={FORM_B.instructions} />
         <div className="space-y-4">
           {byId("b5") && <FormBlockView block={byId("b5")!} />}
-          {byId("b6") && <FormBlockView block={byId("b6")!} />}
+          <BudgetImpact records={model.budgetImpact.records} />
         </div>
 
         {/* Form C */}
@@ -285,6 +285,107 @@ function GradeProfile({ rows }: { rows: GradeRow[] }) {
         ])}
         emphasizeFirst
       />
+    </Block>
+  );
+}
+
+/* ---- B.6 Budget Impact (multi-year, tabbed; repeats per record) ---- */
+
+function SubCaption({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#1d70b8]">
+      {children}
+    </p>
+  );
+}
+
+function BudgetImpact({ records }: { records: BudgetRecord[] }) {
+  if (!records.length) {
+    return (
+      <Block title="B.6 Budget Impact Analysis (5-Year)">
+        <Empty />
+      </Block>
+    );
+  }
+  return (
+    <>
+      {records.map((rec, i) => (
+        <BudgetRecordView key={rec.label || i} record={rec} multi={records.length > 1} />
+      ))}
+    </>
+  );
+}
+
+function BudgetRecordView({ record, multi }: { record: BudgetRecord; multi: boolean }) {
+  const firstWithData = record.years.find((y) => y.hasData)?.year ?? 1;
+  const [year, setYear] = useState(firstWithData);
+  const active = record.years.find((y) => y.year === year) ?? record.years[0];
+
+  const title = multi
+    ? `B.6 Budget Impact Analysis (5-Year) — Record ${record.label}`
+    : "B.6 Budget Impact Analysis (5-Year)";
+
+  const anyCostBasis = record.costBasis.some((r) => r.present);
+  const anySummary = record.summary.some((r) => r.present);
+  const anyOffsets = record.offsets.some((r) => r.present);
+  const anyJudgment = record.judgment.some((r) => r.present);
+
+  return (
+    <Block title={title}>
+      {anyCostBasis && (
+        <div className="mb-4">
+          <SubCaption>Cost Basis &amp; SHA Tariffs</SubCaption>
+          <FieldTable rows={record.costBasis} />
+        </div>
+      )}
+
+      <SubCaption>Year-by-Year Projection</SubCaption>
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        {record.years.map((y) => {
+          const isActive = y.year === year;
+          return (
+            <button
+              key={y.year}
+              onClick={() => setYear(y.year)}
+              className={[
+                "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition",
+                isActive
+                  ? "border-transparent text-white"
+                  : "border-slate-200 text-slate-500 hover:bg-slate-50",
+              ].join(" ")}
+              style={isActive ? { background: BRAND } : undefined}
+            >
+              Year {y.year}
+              {!y.hasData && (
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-white/60" : "bg-slate-300"}`}
+                  aria-hidden
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <FieldTable rows={active.rows} />
+
+      {anySummary && (
+        <div className="mt-4">
+          <SubCaption>Multi-Year Summary</SubCaption>
+          <FieldTable rows={record.summary} />
+        </div>
+      )}
+      {anyOffsets && (
+        <div className="mt-4">
+          <SubCaption>Budget Offsets &amp; Donor Funding</SubCaption>
+          <FieldTable rows={record.offsets} />
+        </div>
+      )}
+      {anyJudgment && (
+        <div className="mt-4">
+          <SubCaption>Affordability</SubCaption>
+          <FieldTable rows={record.judgment} />
+        </div>
+      )}
     </Block>
   );
 }

@@ -263,8 +263,8 @@ const BUDGET_YEAR_FIELDS: Array<[string, string]> = [
 
 const BUDGET_COST_BASIS: Array<[string, string]> = [
   ["Service", "service"],
-  ["Estimated Target Population", "est_target_population"],
-  ["Observed Morbidity", "obs_morbidity"],
+  ["Est. Target Population", "est_target_population"],
+  ["Obs. Morbidity", "obs_morbidity"],
   ["Coverage (%)", "coverage"],
   ["TDABC Unit Cost (KES)", "tdabc_unit_cost_kes"],
   ["TDABC Tariff (KES)", "tdabc_tariff_kes"],
@@ -276,14 +276,14 @@ const BUDGET_SUMMARY: Array<[string, string]> = [
   ["Annual Growth Factor", "annual_growth_factor"],
   ["5-Year Incremental Budget Impact (KES)", "5_year_incremental_budget_impact_kes"],
   ["SHA Annual Budget (KES)", "sha_annual_budget_kes"],
-  ["As % of SHA Budget", "as_of_sha_budget"],
+  ["As % Of SHA Budget", "as_of_sha_budget"],
 ];
 
 const BUDGET_OFFSETS: Array<[string, string]> = [
   ["Budget Offsets Available (Disinvestment)?", "budget_offsets_available_disinvestment"],
-  ["Budget Offsets — Specify", "budget_offsets_specify"],
+  ["Budget Offsets - Specify", "budget_offsets_specify"],
   ["External Donor Funding Anticipated?", "external_donor_funding_anticipated"],
-  ["Donor Funding — Specify", "donor_funding_specify"],
+  ["Donor Funding - Specify", "donor_funding_specify"],
 ];
 
 const BUDGET_JUDGMENT: Array<[string, string]> = [

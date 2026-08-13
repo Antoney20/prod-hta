@@ -326,12 +326,28 @@ function BudgetRecordView({ record, multi }: { record: BudgetRecord; multi: bool
     : "B.6 Budget Impact Analysis (5-Year)";
 
   const anyCostBasis = record.costBasis.some((r) => r.present);
-  const anySummary = record.summary.some((r) => r.present);
   const anyOffsets = record.offsets.some((r) => r.present);
   const anyJudgment = record.judgment.some((r) => r.present);
 
   return (
     <Block title={title}>
+      {/* Multi-Year Summary — headline figures, pinned to the top */}
+      <div className="mb-5 rounded-xl border border-[#27aae1]/30 bg-[#27aae1]/[0.06] p-3">
+        <SubCaption>Multi-Year Summary</SubCaption>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {record.summary.map((r) => (
+            <div key={r.label} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
+              <p className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500">
+                {r.label}
+              </p>
+              <p className={`mt-1 break-words text-sm font-bold tabular-nums ${r.present ? "text-slate-800" : "text-slate-300"}`}>
+                {r.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {anyCostBasis && (
         <div className="mb-4">
           <SubCaption>Cost Basis &amp; SHA Tariffs</SubCaption>
@@ -368,12 +384,6 @@ function BudgetRecordView({ record, multi }: { record: BudgetRecord; multi: bool
       </div>
       <FieldTable rows={active.rows} />
 
-      {anySummary && (
-        <div className="mt-4">
-          <SubCaption>Multi-Year Summary</SubCaption>
-          <FieldTable rows={record.summary} />
-        </div>
-      )}
       {anyOffsets && (
         <div className="mt-4">
           <SubCaption>Budget Offsets &amp; Donor Funding</SubCaption>

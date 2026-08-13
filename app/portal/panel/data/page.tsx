@@ -105,9 +105,7 @@ export default function DecisionTemplatesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={template} disabled={loading || !columns.length}>
-            <FileDown className="mr-1.5 h-4 w-4" /> Template
-          </Button>
+        
           <Button variant="outline" size="sm" onClick={download} disabled={loading || !filtered.length}>
             <Download className="mr-1.5 h-4 w-4" /> Export
           </Button>

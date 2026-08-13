@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, RefreshCw, ArrowRight } from "lucide-react";
+import { ArrowLeft, RefreshCw, ArrowRight, FileText } from "lucide-react";
 
 import { CoverageDetail } from "@/types/new/evidence-coverage";
 import { getCoverageDetail } from "@/app/api/new/panel/coverage";
@@ -65,6 +65,12 @@ export default function CoverageDetailPage() {
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/portal/assessment/evidence/${detail.id}`}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-4 py-1.5 text-sm font-medium text-[#27aae1] hover:bg-slate-50"
+          >
+            <FileText className="h-3.5 w-3.5" /> Documents &amp; materials
+          </Link>
           <Link
             href={`/portal/interventions/${detail.id}`}
             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-4 py-1.5 text-sm font-medium text-[#27aae1] hover:bg-slate-50"

@@ -105,7 +105,7 @@ export async function exportGrid(
       return len > 1 ? Math.max(n, len) : n;
     }, 0);
     for (let k = 0; k < maxRec; k++) {
-      const sub: (string | number)[] = ["", `Record ${k + 1}`, "", ""];
+      const sub: (string | number)[] = ["", t.reference_number ?? "", "", ""];
       for (const { c, fields } of cols) {
         const cell = byName.get(c.key);
         const rec = (cell?.children?.length ?? 0) > 1 ? cell!.children![k] : undefined;

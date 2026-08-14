@@ -42,6 +42,9 @@ import {
   ClipboardListIcon,
   File,
   Sparkles,
+  ListChecks,
+  FileEdit,
+  FileCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -84,9 +87,11 @@ const sharedBenefitsPackage: NavItem = {
     
     { type: "link", title: "Intervention by Package", href: "/portal/benefits-package/packages",  icon: <Gavel className="h-4 w-4" /> },
 
+    { type: "link", title: "SWG Prioritized Topics",   href: "/portal/benefits-package/swg-prioritized",           icon: <ListChecks className="h-4 w-4" /> },
+    { type: "link", title: "Proposed Benefits Package", href: "/portal/benefits-package/proposed-benefits-package", icon: <FileEdit className="h-4 w-4" /> },
+    { type: "link", title: "Revised Benefits Package",  href: "/portal/benefits-package/revised-package",           icon: <FileCheck className="h-4 w-4" /> },
   ],
 };
-
 
 const sharedInterventions: NavItem = {
   type: "link",

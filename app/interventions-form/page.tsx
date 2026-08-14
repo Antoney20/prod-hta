@@ -119,20 +119,7 @@ export default function Page() {
       <section className="flex-1 border-b border-gray-200 ">
         <ScrollToForm>
           <div className={`${CONTAINER} py-10 sm:py-14`}>
-            <div className="mb-8">
-              <div className="mb-3 flex items-center gap-3">
-                <span className="h-px w-8 bg-[#27aae1]" />
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#27aae1]">
-                  Proposal Form
-                </span>
-              </div>
-              <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
-                Submit Your Proposal
-              </h2>
-              <p className="mt-2 text-base text-gray-600 sm:text-lg">
-                Complete the form below to submit your intervention proposal.
-              </p>
-            </div>
+
 
             {/* wrapper padding tightened on mobile so the form isn't double-boxed */}
             <div className="">

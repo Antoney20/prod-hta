@@ -63,12 +63,12 @@ export default function EvidencePanelPage() {
   const openCreate = () => { setEditing(null); setFormOpen(true); };
   const openEdit = (c: Criterion) => { setEditing(c); setFormOpen(true); };
 
-  // const onDelete = async (id: string) => {
-  //   if (!confirm("Delete this criterion?")) return;
-  //   const res = await deleteCriterion(id);
-  //   if (res.ok) { toast.success("Deleted"); load(); }
-  //   else toast.error(res.error ?? "Delete failed");
-  // };
+  const onDelete = async (id: string) => {
+    if (!confirm("Delete this criterion?")) return;
+    const res = await deleteCriterion(id);
+    if (res.ok) { toast.success("Deleted"); load(); }
+    else toast.error(res.error ?? "Delete failed");
+  };
 
   const goUpload = (id: string) => router.push(`/portal/panel/evidence/${id}`);
 
@@ -128,11 +128,11 @@ export default function EvidencePanelPage() {
                           <Pencil size={14} className="mr-2" /> Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          // onClick={() => onDelete(g.primary.id)}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          <Trash2 size={14} className="mr-2" /> Delete
-                        </DropdownMenuItem>
+  onClick={() => onDelete(g.primary.id)}
+  className="text-red-600 focus:text-red-600"
+>
+  <Trash2 size={14} className="mr-2" /> Delete
+</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </AdminOnly>

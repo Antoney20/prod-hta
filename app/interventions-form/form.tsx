@@ -3,12 +3,8 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
 import type { FormErrors, FormData, EmailResponse } from '../services/types';
 import { ApiResponse, submitProposal } from '../api/interventions';
-// import { sanitizeEmail, sanitizeFormData, sanitizePhone, sanitizeText, validateField, validateFormData } from './validate';
-import RichEditor from '@/components/shared/editor';
-import { findBlocked, htmlToText, sanitizeFormData, sanitizePhone, validateField, validateFormData } from '@/lib/clean';
+import { sanitizeFormData, sanitizePhone, validateField, validateFormData } from '@/lib/clean';
 
-
-const RICH_FIELDS: (keyof FormData)[] = ['beneficiary','justification',  'expectedImpact', 'additionalInfo'];
 
 const MAX_FILES = 5;
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -23,17 +19,6 @@ const isAccepted = (file: File): boolean => {
   const ext = '.' + (file.name.split('.').pop() || '').toLowerCase();
   return ACCEPTED_EXT.includes(ext) || ACCEPTED_MIME.includes(file.type);
 };
-
-const stripHtml = (html: string): string => {
-  if (!html) return '';
-  if (typeof window === 'undefined') return html.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').trim();
-  const el = document.createElement('div');
-  el.innerHTML = html;
-  return (el.textContent || '').replace(/\u00a0/g, ' ').trim();
-};
-
-const isBlankHtml = (html: string): boolean => stripHtml(html).length === 0;
-
 
 
 const FieldError: React.FC<{ message?: string }> = ({ message }) =>
@@ -88,21 +73,6 @@ const BenefitsForm: React.FC = () => {
   const [emailStatus, setEmailStatus] = useState<EmailResponse | null>(null);
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [dragActive, setDragActive] = useState<boolean>(false);
-
-  const handleRichChange = (name: keyof FormData) => (val: string) => {
-    setFormData((prev) => ({ ...prev, [name]: val }));
-    setFormTouched(true);
-    // clear a "required" error as soon as the editor has real content
-    setErrors((prev) => {
-      if (!prev[name]) return prev;
-      if (!isBlankHtml(val)) {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      }
-      return prev;
-    });
-  };
 
   useEffect(() => {
     if (submitted) {
@@ -200,16 +170,7 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>): void => {
 const handleSubmit = async (e: React.FormEvent): Promise<void> => {
   e.preventDefault();
 
-  // Validate rich fields by their plain text, so empty markup ("<p><br></p>")
-  // counts as empty and length checks measure real content, not tags.
-  const forValidation: FormData = { ...formData };
-  RICH_FIELDS.forEach((f) => {
-    if (typeof forValidation[f] === "string") {
-      (forValidation[f] as unknown) = htmlToText(formData[f] as string);
-    }
-  });
-
-  const newErrors = validateFormData(forValidation);
+  const newErrors = validateFormData(formData);
   setErrors(newErrors);
 
   if (Object.keys(newErrors).length > 0) {
@@ -224,20 +185,9 @@ const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     return;
   }
 
-  // Sanitize everything: plain via sanitizeText, rich via DOM sanitizeHtml,
-  // files passed through — all handled inside sanitizeFormData now.
+  // Sanitize everything: plain text via sanitizeText, files passed through —
+  // all handled inside sanitizeFormData.
   const clean = sanitizeFormData(formData);
-
-  // Hard gate: never submit disallowed embedded media, even if the disabled
-  // button was bypassed (Enter key / programmatic submit).
-  const blockedField = RICH_FIELDS.find((f) => findBlocked(clean[f] as string).size > 0);
-  if (blockedField) {
-    setErrors((prev) => ({ ...prev, [blockedField]: "Remove the embedded media before submitting." }));
-    const el = document.querySelector(`[data-field="${blockedField}"]`);
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-    (el as HTMLElement | null)?.focus();
-    return;
-  }
 
   setFormData(clean);
   setIsSubmitting(true);
@@ -281,7 +231,7 @@ const handleSubmit = async (e: React.FormEvent): Promise<void> => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="container mx-auto p-6 py-24 bg-white ">
+    <form onSubmit={handleSubmit} className="container mx-auto  py-4 bg-white ">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-800">REPUBLIC OF KENYA</h1>
         <h2 className="text-xl font-semibold text-gray-700 mt-2">SOCIAL HEALTH INSURANCE ACT, 2023</h2>
@@ -445,57 +395,78 @@ const handleSubmit = async (e: React.FormEvent): Promise<void> => {
           <FieldError message={errors.interventionType} />
         </fieldset>
 
-         <div>
-          <RichEditor
-            name="beneficiary-input"
-            label=" 8. Proposed beneficiary for the proposed intervention"
-            required
-            invalid={!!errors.beneficiary}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="beneficiary-input">
+            8. Proposed beneficiary for the proposed intervention
+          </label>
+          <textarea
+            id="beneficiary-input"
+            name="beneficiary"
             value={formData.beneficiary}
-            onChange={handleRichChange('beneficiary')}
+            onChange={handleChange}
+            rows={4}
             placeholder="e.g., sickle cell patients…"
+            aria-required="true"
+            aria-invalid={!!errors.beneficiary}
+            aria-describedby={errors.beneficiary ? 'beneficiary-error' : undefined}
+            className={`w-full px-4 py-2 border ${errors.beneficiary ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           <FieldError message={errors.beneficiary} />
         </div>
 
-
         <div>
-          <RichEditor
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="justification-input">
+            9. Reasons/justification for proposal of the intervention
+          </label>
+          <textarea
+            id="justification-input"
             name="justification"
-            label="9. Reasons/justification for proposal of the intervention"
-            required
-            invalid={!!errors.justification}
             value={formData.justification}
-            onChange={handleRichChange('justification')}
+            onChange={handleChange}
+            rows={5}
             placeholder="Explain why this intervention is being proposed…"
+            aria-required="true"
+            aria-invalid={!!errors.justification}
+            aria-describedby={errors.justification ? 'justification-error' : undefined}
+            className={`w-full px-4 py-2 border ${errors.justification ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           <FieldError message={errors.justification} />
         </div>
 
         <div>
-          <RichEditor
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="expectedImpact-input">
+            10. Anticipated/Expected impact if the proposed intervention is included in the benefits package
+          </label>
+          <textarea
+            id="expectedImpact-input"
             name="expectedImpact"
-            label="10. Anticipated/Expected impact if the proposed intervention is included in the benefits package"
-            required
-            invalid={!!errors.expectedImpact}
             value={formData.expectedImpact}
-            onChange={handleRichChange('expectedImpact')}
-            minHeight={180}
+            onChange={handleChange}
+            rows={7}
             placeholder="Describe the expected impact…"
+            aria-required="true"
+            aria-invalid={!!errors.expectedImpact}
+            aria-describedby={errors.expectedImpact ? 'expectedImpact-error' : undefined}
+            className={`w-full px-4 py-2 border ${errors.expectedImpact ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           <FieldError message={errors.expectedImpact} />
         </div>
 
         <div>
-          <RichEditor
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="additionalInfo-input">
+            11. Any additional information that you may want to provide about the intervention?
+            <span className="text-gray-500 italic text-xs ml-1">You may attach a document in PDF format.</span>
+          </label>
+          <textarea
+            id="additionalInfo-input"
             name="additionalInfo"
-            label="11. Any additional information that you may want to provide about the intervention?"
-            hint="You may attach a document in PDF format."
-            invalid={!!errors.additionalInfo}
             value={formData.additionalInfo}
-            onChange={handleRichChange('additionalInfo')}
-            minHeight={120}
+            onChange={handleChange}
+            rows={5}
             placeholder="Optional: provide any additional information about the intervention…"
+            aria-invalid={!!errors.additionalInfo}
+            aria-describedby={errors.additionalInfo ? 'additionalInfo-error' : undefined}
+            className={`w-full px-4 py-2 border ${errors.additionalInfo ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           <FieldError message={errors.additionalInfo} />
         </div>

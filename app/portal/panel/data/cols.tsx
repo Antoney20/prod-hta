@@ -4,14 +4,23 @@ export interface CritCol {
   key: string;
   name: string;
   kind: string;
-  fields: string[];      
-  important: string[];   
+  fields: string[];
+  important: string[];
 }
 
 export const cellValue = (v: unknown): string =>
   v == null ? "" : Array.isArray(v) ? v.join(" · ") : String(v);
 
 const NO_SERVICE = "No service";
+
+/** Canonical grouping key for a service label: lower-cased, letters + digits only.
+ *  So "Out-Patient", "out patient", and "OutPatient" all collapse to "outpatient".
+ *  Only the grouping key is normalised — display keeps the first-seen spelling. */
+const serviceKey = (label: string): string => {
+  if (label === NO_SERVICE) return NO_SERVICE;
+  const k = label.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return k || label.trim().toLowerCase();
+};
 
 /** Read the service value out of one evidence object (`service`/`services` field). */
 function serviceFromEvidence(ev: Record<string, unknown> | null | undefined): string | null {
@@ -41,23 +50,26 @@ export interface ServiceRow {
 }
 
 /** Group a target's child records by service into per-service rows.
- *  Each criterion may carry `children` (record variants); each child's service
- *  is read from its own evidence. Records with no service collect under
- *  "No service". Falls back to the merged `evidence` when a criterion has no
- *  children, so every service row still shows a value where one exists. */
+ *  Grouping is by the normalised service key, so spacing/punctuation/case
+ *  differences merge into one row. Each criterion may carry `children` (record
+ *  variants); each child's service is read from its own evidence. Records with
+ *  no service collect under "No service". Falls back to the merged `evidence`
+ *  when a criterion has no children, so every service row still shows a value
+ *  where one exists. */
 export function serviceRowsOf(t: EvidenceTarget): ServiceRow[] {
-  // service label -> (criterion key -> evidence object)
-  const groups = new Map<string, Map<string, Record<string, unknown>>>();
+  // normalised key -> { label: first-seen display, evidence: crit-key -> evidence }
+  const groups = new Map<string, { label: string; evidence: Map<string, Record<string, unknown>> }>();
   const order: string[] = [];
 
   const ensure = (label: string) => {
-    let g = groups.get(label);
+    const gk = serviceKey(label);
+    let g = groups.get(gk);
     if (!g) {
-      g = new Map();
-      groups.set(label, g);
-      order.push(label);
+      g = { label, evidence: new Map() };
+      groups.set(gk, g);
+      order.push(gk);
     }
-    return g;
+    return g.evidence;
   };
 
   for (const c of t.criteria ?? []) {
@@ -78,9 +90,12 @@ export function serviceRowsOf(t: EvidenceTarget): ServiceRow[] {
   }
 
   // Named services first (first-seen), "No service" last if present.
-  const named = order.filter((l) => l !== NO_SERVICE);
+  const named = order.filter((k) => k !== NO_SERVICE);
   const ordered = groups.has(NO_SERVICE) ? [...named, NO_SERVICE] : named;
-  return ordered.map((service) => ({ service, evidence: groups.get(service)! }));
+  return ordered.map((gk) => {
+    const g = groups.get(gk)!;
+    return { service: g.label, evidence: g.evidence };
+  });
 }
 
 export function buildColumns(targets: EvidenceTarget[]): CritCol[] {

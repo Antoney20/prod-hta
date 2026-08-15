@@ -171,56 +171,60 @@ export default function TargetsTable({
 
               if (!isOpen || !canExpand) return [mainRow];
 
-              const subRows = serviceRows.map((sr, si) => (
-                <tr key={`${rowId}-svc-${si}`} className="bg-gray-200">
-                  <td className={`${TD} border-r border-slate-50`}>
-                    <div className="flex items-center gap-2 pl-8">
-                      <span className="h-4 w-px bg-slate-200" aria-hidden />
-                      <span className="text-[10px] uppercase tracking-wide text-slate-400">Service</span>
-                    </div>
-                  </td>
-                  <td className={`${TD} border-r border-slate-50`} colSpan={0}>
-                    {sr.service === "No service" ? (
-                      <span className="text-xs text-slate-400">No service</span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-xs text-[#27aae1]">
-                        <Workflow className="h-3 w-3" /> {sr.service}
-                      </span>
-                    )}
-                  </td>
-                  <td className={`${TD} text-xs text-slate-400`}>—</td>
-                  <td className={`${TD} text-xs`}>
-                    {sr.service === "No service" ? (
-                      <span className="text-slate-300">No service</span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
-                        <Workflow className="h-3 w-3" /> {sr.service}
-                      </span>
-                    )}
-                  </td>
-                  <td className={`${TD} border-r border-slate-100 text-xs text-slate-400`}>—</td>
-                  {columns.flatMap((c) => {
-                    const ev = sr.evidence.get(c.key);
-                    const desc = c.kind === "descriptive";
-                    return visible.get(c.key)!.map((f, i) => {
-                      const val = ev ? cellValue(ev[f]) : "";
-                      return (
-                        <td key={`${rowId}-svc-${si}-${c.key}-${f}`}
-                          className={`${TD} text-xs ${i === 0 ? "border-l border-slate-100" : ""} ${
-                            desc ? "min-w-72 text-slate-700" : "max-w-40 truncate text-slate-600"
-                          }`}
-                          title={val || undefined}>
-                          {val
-                            ? desc
-                              ? <p className="line-clamp-3 whitespace-pre-wrap">{val}</p>
-                              : val
-                            : <span className="text-slate-300">—</span>}
-                        </td>
-                      );
-                    });
-                  })}
-                </tr>
-              ));
+
+
+const subRows = serviceRows.map((sr, si) => (
+  <tr key={`${rowId}-svc-${si}`} className="bg-slate-100">
+    {/* Reference — inherited from parent, indented + muted to mark a service row */}
+    <td className={`${TD} border-r border-slate-50`}>
+      <div className="flex items-start gap-2 pl-8">
+        <span className="mt-1.5 h-4 w-px bg-slate-300" aria-hidden />
+        <div>
+          <span className="font-mono text-xs text-slate-500">{t.reference_number || "—"}</span>
+          <span className="mt-1 block text-[10px] uppercase tracking-wide text-slate-400">Service</span>
+        </div>
+      </div>
+    </td>
+    {/* Name — inherited from parent */}
+    <td className={`${TD} border-r border-slate-50 font-medium text-slate-600`}>
+      <p className="line-clamp-2 max-w-xs">{t.name || "—"}</p>
+    </td>
+    {/* Package — inherited from parent */}
+    <td className={`${TD} text-xs text-slate-500`}>{t.package || "—"}</td>
+    {/* Service — the only column that differs */}
+    <td className={`${TD} text-xs`}>
+      {sr.service === "No service" ? (
+        <span className="text-slate-300">No service</span>
+      ) : (
+        <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
+          <Workflow className="h-3 w-3" /> {sr.service}
+        </span>
+      )}
+    </td>
+    {/* Phase — inherited from parent */}
+    <td className={`${TD} border-r border-slate-100 text-xs text-slate-500`}>{t.phase || "—"}</td>
+    {columns.flatMap((c) => {
+      const ev = sr.evidence.get(c.key);
+      const desc = c.kind === "descriptive";
+      return visible.get(c.key)!.map((f, i) => {
+        const val = ev ? cellValue(ev[f]) : "";
+        return (
+          <td key={`${rowId}-svc-${si}-${c.key}-${f}`}
+            className={`${TD} text-xs ${i === 0 ? "border-l border-slate-100" : ""} ${
+              desc ? "min-w-72 text-slate-700" : "max-w-40 truncate text-slate-600"
+            }`}
+            title={val || undefined}>
+            {val
+              ? desc
+                ? <p className="line-clamp-3 whitespace-pre-wrap">{val}</p>
+                : val
+              : <span className="text-slate-300">—</span>}
+          </td>
+        );
+      });
+    })}
+  </tr>
+));
 
               return [mainRow, ...subRows];
             })

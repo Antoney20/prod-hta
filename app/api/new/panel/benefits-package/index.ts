@@ -79,3 +79,8 @@ export const getRevised = async (id: string): Promise<RevisedPackage | null> => 
     return null;
   }
 };
+
+export const createProposed = async (
+  body: { name: string; fund?: string; data?: Record<string, unknown>; items?: unknown[] },
+): Promise<{ id: string }> =>
+  payload<{ id: string }>(await api.post(`/v3/proposed-packages/`, body));

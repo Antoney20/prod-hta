@@ -56,3 +56,21 @@ export const deleteReport = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+/** Group included appraised interventions into ProposedBenefitPackage records. */
+export const buildProposed = async (
+  id: string,
+  body: { fund?: string; included_only?: boolean } = {},
+): Promise<{ id: string; package: string; count: number }[]> =>
+  unwrap<{ id: string; package: string; count: number }[]>(
+    await api.post(`${BASE}/${id}/build-proposed/`, body),
+  );
+
+  /** Group included appraised interventions into RevisedBenefitPackage records. */
+export const buildRevised = async (
+  id: string,
+  body: { fund?: string; included_only?: boolean } = {},
+): Promise<{ id: string; package: string; count: number }[]> =>
+  unwrap<{ id: string; package: string; count: number }[]>(
+    await api.post(`${BASE}/${id}/build-revised/`, body),
+  );

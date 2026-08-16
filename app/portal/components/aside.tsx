@@ -83,12 +83,13 @@ const sharedBenefitsPackage: NavItem = {
   icon: <ClipboardList className="h-5 w-5" />,
   children: [
     { type: "link", title: "Current Benefits Package",      href: "/portal/benefits-package",           icon: <FaCheck className="h-4 w-4" /> },
-        { type: "link", title: "Tariffs Reimbursements", href: "/portal/benefits-package/annex",  icon: <FaStethoscope className="h-4 w-4" /> },
-    
+    { type: "link", title: "Tariffs Reimbursements", href: "/portal/benefits-package/annex",  icon: <FaStethoscope className="h-4 w-4" /> },
+
     { type: "link", title: "Intervention by Package", href: "/portal/benefits-package/packages",  icon: <Gavel className="h-4 w-4" /> },
 
     { type: "link", title: "SWG Prioritized Topics",   href: "/portal/benefits-package/swg-prioritized",           icon: <ListChecks className="h-4 w-4" /> },
-    { type: "link", title: "Proposed Benefits Package", href: "/portal/benefits-package/proposed-benefits-package", icon: <FileEdit className="h-4 w-4" /> },
+    { type: "link", title: "Appraised Interventions & Services", href: "/portal/benefits-package/appraisal-report", icon: <ClipboardList className="h-4 w-4" /> },
+    { type: "link", title: "Proposed Benefits Package", href: "/portal/benefits-package/proposed", icon: <FileEdit className="h-4 w-4" /> },
     { type: "link", title: "Revised Benefits Package",  href: "/portal/benefits-package/revised-package",           icon: <FileCheck className="h-4 w-4" /> },
   ],
 };

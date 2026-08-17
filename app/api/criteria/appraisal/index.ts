@@ -2,9 +2,9 @@ import api from "@/app/api/auth";
 import { PaginatedResponse } from "@/types/new/shared";
 import {
   CriteriaAppraisalTool,
-  CriteriaAppraisalScore,
-  CriteriaAppraisalScoreCreatePayload,
-  BulkAppraisalScorePayload,
+  // CriteriaAppraisalScore,
+  // CriteriaAppraisalScoreCreatePayload,
+  // BulkAppraisalScorePayload,
 } from "@/types/new/appraisal";
 
 
@@ -85,52 +85,52 @@ export const deleteAppraisalCriteria = async (
 };
 
 
-export const getAppraisalScores = async (
-  interventionId?: string
-): Promise<CriteriaAppraisalScore[]> => {
-  try {
-    const params = interventionId ? { intervention: interventionId } : {};
-    const res = await api.get<PaginatedResponse<CriteriaAppraisalScore>>(
-      "/v3/appraisal-scores/",
-      { params }
-    );
-    return res.data.results ?? [];
-  } catch {
-    return [];
-  }
-};
+// export const getAppraisalScores = async (
+//   interventionId?: string
+// ): Promise<CriteriaAppraisalScore[]> => {
+//   try {
+//     const params = interventionId ? { intervention: interventionId } : {};
+//     const res = await api.get<PaginatedResponse<CriteriaAppraisalScore>>(
+//       "/v3/appraisal-scores/",
+//       { params }
+//     );
+//     return res.data.results ?? [];
+//   } catch {
+//     return [];
+//   }
+// };
 
-export const createAppraisalScore = async (
-  body: CriteriaAppraisalScoreCreatePayload
-): Promise<{ data: CriteriaAppraisalScore | null; error: string | null }> => {
-  try {
-    const res = await api.post<CriteriaAppraisalScore>("/v3/appraisal-scores/", body);
-    return { data: res.data, error: null };
-  } catch (err) {
-    return { data: null, error: extractApiError(err) };
-  }
-};
+// export const createAppraisalScore = async (
+//   body: CriteriaAppraisalScoreCreatePayload
+// ): Promise<{ data: CriteriaAppraisalScore | null; error: string | null }> => {
+//   try {
+//     const res = await api.post<CriteriaAppraisalScore>("/v3/appraisal-scores/", body);
+//     return { data: res.data, error: null };
+//   } catch (err) {
+//     return { data: null, error: extractApiError(err) };
+//   }
+// };
 
-export const bulkCreateAppraisalScores = async (
-  payload: BulkAppraisalScorePayload
-): Promise<{ data: CriteriaAppraisalScore[] | null; error: string | null }> => {
-  try {
-    const res = await api.post<CriteriaAppraisalScore[]>("/v3/appraisal-scores/bulk/", payload);
-    return { data: res.data, error: null };
-  } catch (err) {
-    return { data: null, error: extractApiError(err) };
-  }
-};
+// export const bulkCreateAppraisalScores = async (
+//   payload: BulkAppraisalScorePayload
+// ): Promise<{ data: CriteriaAppraisalScore[] | null; error: string | null }> => {
+//   try {
+//     const res = await api.post<CriteriaAppraisalScore[]>("/v3/appraisal-scores/bulk/", payload);
+//     return { data: res.data, error: null };
+//   } catch (err) {
+//     return { data: null, error: extractApiError(err) };
+//   }
+// };
 
-export const getAppraisalScoresSummary = async (
-  interventionId: string
-): Promise<CriteriaAppraisalScore[]> => {
-  try {
-    const res = await api.get<CriteriaAppraisalScore[]>("/v3/appraisal-scores/summary/", {
-      params: { intervention: interventionId },
-    });
-    return Array.isArray(res.data) ? res.data : [];
-  } catch {
-    return [];
-  }
-};
+// export const getAppraisalScoresSummary = async (
+//   interventionId: string
+// ): Promise<CriteriaAppraisalScore[]> => {
+//   try {
+//     const res = await api.get<CriteriaAppraisalScore[]>("/v3/appraisal-scores/summary/", {
+//       params: { intervention: interventionId },
+//     });
+//     return Array.isArray(res.data) ? res.data : [];
+//   } catch {
+//     return [];
+//   }
+// };

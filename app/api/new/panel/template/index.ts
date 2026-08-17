@@ -49,3 +49,14 @@ export const regeneratePayload = async (body: GenerateInput = {}): Promise<Evide
     throw new Error(errMsg(e));
   }
 };
+
+
+
+export const getTargetDetailed = async (id: string): Promise<EvidenceTarget> => {
+  try {
+    const res = await api.get(`${BASE}${id}/detailed/`);
+    return unwrap<EvidenceTarget>(res);
+  } catch (e) {
+    throw new Error(errMsg(e));
+  }
+};

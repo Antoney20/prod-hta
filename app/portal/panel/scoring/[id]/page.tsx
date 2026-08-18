@@ -18,14 +18,17 @@ import {
 import { EvidenceTarget } from "@/types/new/decision-template";
 import { getTarget } from "@/app/api/new/panel/template";
 import {
-  getAppraisalCriteria, listPanelScores, bulkCreatePanelScores,
+  getAppraisalCriteria, listPanelScores, bulkCreatePanelScores, getPanelRules,
 } from "@/app/api/new/panel/panel-scoring";
 import { useGlobalUser } from "@/app/context/guard";
 
 import {
   buildScoreMap, collectServices, groupCriteria, groupsScored, serviceKey,
+  evidenceForService, norm,
 } from "../_lib/scoring";
+import { computeAutoPick, indexRules, ruleKey, AutoPick } from "../_lib/autoscore";
 import PanelScoringWizard from "./_components/wizard";
+import { PanelScoringRule } from "@/types/panel/panel-score";
 
 const SCORE_ROLES = new Set(["admin", "panel"]);
 
@@ -38,17 +41,23 @@ export default function PanelScoringDetailPage() {
 
   const [target, setTarget] = useState<EvidenceTarget | null>(null);
   const [criteria, setCriteria] = useState<CriteriaAppraisalTool[]>([]);
+  const [rules, setRules] = useState<PanelScoringRule[]>([]);
   const [scores, setScores] = useState<PanelAppraisalScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [service, setService] = useState<string>(""); // "" = general
+  const [service, setService] = useState<string>(""); 
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [t, crit] = await Promise.all([getTarget(id), getAppraisalCriteria()]);
+      const [t, crit, rls] = await Promise.all([
+        getTarget(id),
+        getAppraisalCriteria(),
+        getPanelRules({ active: true }),
+      ]);
       setTarget(t);
       setCriteria(crit);
+      setRules(rls);
       const key = t.kind === "national_proposal" ? { national_proposal: id } : { intervention: id };
       setScores(user?.id ? await listPanelScores({ ...key, reviewer: user.id }) : []);
     } catch (e: any) {
@@ -67,12 +76,32 @@ export default function PanelScoringDetailPage() {
   const groups = useMemo(() => groupCriteria(activeCriteria), [activeCriteria]);
   const scoreMap = useMemo(() => buildScoreMap(scores), [scores]);
   const services = useMemo(() => (target ? collectServices(target) : []), [target]);
+  const ruleIndex = useMemo(() => indexRules(rules), [rules]);
 
   useEffect(() => {
     if (!requestedService) return;
     const match = services.find((s) => serviceKey(s) === serviceKey(requestedService));
     if (match) setService(match);
   }, [requestedService, services]);
+
+  // Band auto-picks for THIS scope, keyed by group.key. Match rule ↔ group on
+  // the canonical alphanumeric key (ruleKey), NOT g.key (which keeps spaces).
+  const autoPicks = useMemo(() => {
+    if (!target) return {} as Record<string, AutoPick>;
+    const evByName = new Map(
+      target.criteria.map((ec) => [norm(ec.criterion), ec] as const)
+    );
+    const out: Record<string, AutoPick> = {};
+    for (const g of groups) {
+      const rule = ruleIndex.get(ruleKey(g.name));
+      if (!rule || rule.kind !== "band") continue;
+      const ec = evByName.get(g.key);
+      const ev = ec ? evidenceForService(ec, service) : {};
+      const pick = computeAutoPick(rule, g, ev);
+      if (pick?.optionId) out[g.key] = pick;
+    }
+    return out;
+  }, [target, groups, ruleIndex, service]);
 
   const canScore = isInitialized ? !!user?.role && SCORE_ROLES.has(user.role) : false;
   const locked = target ? groupsScored(scoreMap, target.id, service, groups) : false;
@@ -82,7 +111,7 @@ export default function PanelScoringDetailPage() {
   const goPrevService = () => setService(units[(unitIndex - 1 + units.length) % units.length]);
   const goNextService = () => setService(units[(unitIndex + 1) % units.length]);
 
- const handleSubmit = async (payloads: PanelScoreCreatePayload[]) => {
+  const handleSubmit = async (payloads: PanelScoreCreatePayload[]) => {
     if (!canScore) {
       toast.error("Your role does not allow appraisal scoring.");
       return;
@@ -239,6 +268,7 @@ export default function PanelScoringDetailPage() {
         service={service}
         groups={groups}
         scoreMap={scoreMap}
+        autoPicks={autoPicks}
         onSubmit={handleSubmit}
         readOnly={locked || !canScore}
         submitting={submitting}

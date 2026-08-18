@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
-  ChevronLeft, ChevronRight, Send, Loader2, FileText, AlertTriangle, CheckCircle2,
+  ChevronLeft, ChevronRight, Send, Loader2, FileText, AlertTriangle, CheckCircle2, Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { EvidenceTarget } from "@/types/new/decision-template";
 import {
   CriterionGroup, CriterionOption, evidenceForService, norm, scoreForGroup, scoreValueOf,
 } from "../../_lib/scoring";
+import { AutoPick } from "../../_lib/autoscore";
 import { EvidenceValue, HtmlContent } from "./prose";
 
 interface Draft {
@@ -57,6 +58,7 @@ export default function PanelScoringWizard({
   service,
   groups,
   scoreMap,
+  autoPicks = {},
   onSubmit,
   readOnly = false,
   submitting = false,
@@ -65,6 +67,7 @@ export default function PanelScoringWizard({
   service: string;
   groups: CriterionGroup[];
   scoreMap: Map<string, PanelAppraisalScore>;
+  autoPicks?: Record<string, AutoPick>;
   onSubmit: (payloads: PanelScoreCreatePayload[]) => Promise<void>;
   readOnly?: boolean;
   submitting?: boolean;
@@ -86,6 +89,11 @@ export default function PanelScoringWizard({
           value: scoreValueOf(existing),
           comment: existing.comment ?? "",
         };
+        continue;
+      }
+      const auto = autoPicks[g.key];
+      if (auto?.optionId) {
+        init[g.key] = { optionId: auto.optionId, value: auto.score, comment: "" };
       }
     }
     return init;
@@ -98,11 +106,16 @@ export default function PanelScoringWizard({
   const group = groups[step];
   const currentDraft = group ? drafts[group.key] : undefined;
 
+  const autoPick = group ? autoPicks[group.key] : undefined;
+  // A group is locked from manual editing when a band rule auto-filled it and
+  // there isn't already a saved score being reviewed.
+  const groupAutoLocked = !!autoPick && !readOnly;
+
   const goPrev = () => setStep((s) => Math.max(0, s - 1));
   const goNext = () => setStep((s) => Math.min(groups.length - 1, s + 1));
 
   const selectOption = (opt: CriterionOption) => {
-    if (!group || readOnly) return;
+    if (!group || readOnly || groupAutoLocked) return;
     const wasDrafted = !!drafts[group.key];
     setDrafts((prev) => ({
       ...prev,
@@ -132,11 +145,17 @@ export default function PanelScoringWizard({
     setConfirmOpen(false);
     const payloads: PanelScoreCreatePayload[] = groups.map((g) => {
       const d = drafts[g.key];
+      const auto = autoPicks[g.key];
       return {
         ...(isNational ? { national_proposal: target.id } : { intervention: target.id }),
         criteria: d.optionId,
         ...(service ? { service } : {}), // service name sent only when scoped to one
-        score: { value: d.value, criteria_label: g.name, option_id: d.optionId },
+        score: {
+          value: d.value,
+          criteria_label: g.name,
+          option_id: d.optionId,
+          ...(auto ? { auto: true, auto_value: auto.value } : {}),
+        },
         ...(d.comment ? { comment: d.comment } : {}),
       };
     });
@@ -210,6 +229,19 @@ export default function PanelScoringWizard({
             </div>
             <h4 className="text-base font-semibold leading-snug text-slate-800">{group.name}</h4>
             {group.description && <HtmlContent html={group.description} />}
+            {groupAutoLocked && (
+              <div className="flex items-center gap-1.5 rounded-md border border-[#27aae1]/20 bg-[#27aae1]/5 px-3 py-2">
+                <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#27aae1]" />
+                <span className="text-xs text-slate-600">
+                  Auto-scored from evidence
+                  {autoPick?.value != null && !Array.isArray(autoPick.value) && (
+                    <> (value <strong className="tabular-nums">{autoPick.value}</strong>)</>
+                  )}{" "}
+                  → <strong>{autoPick?.score} pt{autoPick?.score === 1 ? "" : "s"}</strong>. This
+                  criterion can&apos;t be changed manually.
+                </span>
+              </div>
+            )}
             {missing && (
               <div className="flex items-center gap-1.5 text-amber-600">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
@@ -220,24 +252,27 @@ export default function PanelScoringWizard({
 
           <CardContent className="space-y-4 px-5 pb-5">
             <div className="space-y-2">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-[#27aae1]">
-                {readOnly ? "Options — your selection highlighted" : "Select one option"}
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-[#27aae1]">
+                {readOnly
+                  ? "Options — your selection highlighted"
+                  : groupAutoLocked
+                  ? "Auto-selected option"
+                  : "Select one option"}
               </p>
-{group.options.map((opt) => {
+              {group.options.map((opt) => {
                 const selected = currentDraft?.optionId === opt.id;
-                // In review/locked mode keep every option visible, just disabled;
-                // the chosen one stays highlighted + checked, the rest muted.
-                const dimmed = readOnly && !selected;
+                const frozen = readOnly || groupAutoLocked;
+                const dimmed = frozen && !selected;
                 return (
                   <div
                     key={opt.id}
                     role="button"
-                    aria-disabled={readOnly}
+                    aria-disabled={frozen}
                     aria-pressed={selected}
-                    tabIndex={readOnly ? -1 : 0}
+                    tabIndex={frozen ? -1 : 0}
                     onClick={() => selectOption(opt)}
                     onKeyDown={(e) => {
-                      if (!readOnly && (e.key === "Enter" || e.key === " ")) {
+                      if (!frozen && (e.key === "Enter" || e.key === " ")) {
                         e.preventDefault();
                         selectOption(opt);
                       }
@@ -247,12 +282,10 @@ export default function PanelScoringWizard({
                         ? "border-[#27aae1] bg-[#27aae1]/5 ring-1 ring-[#27aae1]/40"
                         : missing
                         ? "border-amber-200 hover:border-amber-300 hover:bg-amber-50"
-                        : readOnly
+                        : frozen
                         ? "border-slate-200"
                         : "border-slate-200 hover:border-[#27aae1] hover:bg-slate-50"
-                    } ${readOnly ? "cursor-default" : "cursor-pointer"} ${
-                      dimmed ? "opacity-55" : ""
-                    }`}
+                    } ${frozen ? "cursor-default" : "cursor-pointer"} ${dimmed ? "opacity-55" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-1 items-start gap-2.5">

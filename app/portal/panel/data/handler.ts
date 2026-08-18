@@ -6,7 +6,6 @@ type PreparedCol = { c: CritCol; fields: string[] };
 // neutral only — no brand fills. structure comes from merges + a light grid.
 const GRID = { style: "thin", color: { argb: "FFDDDDDD" } } as const;
 const RULE = { style: "medium", color: { argb: "FF8A8A8A" } } as const;
-const MUTED = "FF8A8A8A";
 
 /** Two-row header: the five fixed columns merge down across both rows, and each
  *  criterion name merges across its field columns. Returns the total column count. */
@@ -85,38 +84,33 @@ export async function exportGrid(
   const cols: PreparedCol[] = columns.map((c) => ({ c, fields: visibleFields(c, showAll) }));
   const totalCols = writeHeader(ws, cols);
 
-  for (const t of targets) {
-    const byName = new Map(t.criteria.map((c) => [c.criterion.trim().toLowerCase(), c] as const));
-
-    // main row — merged / consolidated view
-    const main: (string | number)[] = [
-      t.reference_number ?? "", t.name ?? "", t.package ?? "", serviceOf(t), t.phase ?? "",
+  const pushRow = (service: string, evFor: (key: string) => any, t: EvidenceTarget) => {
+    const row: (string | number)[] = [
+      t.reference_number ?? "", t.name ?? "", t.package ?? "", service, t.phase ?? "",
     ];
     for (const { c, fields } of cols) {
-      const cell = byName.get(c.key);
-      for (const f of fields) main.push(cell ? cellValue(cell.evidence?.[f]) : "");
+      const ev = evFor(c.key);
+      for (const f of fields) row.push(ev ? cellValue(ev[f]) : "");
     }
-    const mr = ws.addRow(main);
-    mr.font = { size: 10 };
-    mr.alignment = { vertical: "top", wrapText: true };
+    const rr = ws.addRow(row);
+    rr.font = { size: 10 };
+    rr.alignment = { vertical: "top", wrapText: true };
+  };
 
-    // per-service breakdown — one row per distinct service, below the main row.
-    // Each sub-row COPIES the parent's Reference + Name (and Package/Phase);
-    // only Service differs.
+  for (const t of targets) {
     const serviceRows = serviceRowsOf(t);
-    if (serviceRows.length > 1) {
-      for (const sr of serviceRows) {
-        const row: (string | number)[] = [
-          t.reference_number ?? "", t.name ?? "", t.package ?? "", sr.service, t.phase ?? "",
-        ];
-        for (const { c, fields } of cols) {
-          const ev = sr.evidence.get(c.key);
-          for (const f of fields) row.push(ev ? cellValue(ev[f]) : "");
-        }
-        const rr = ws.addRow(row);
-        rr.font = { size: 10, italic: true, color: { argb: MUTED } };
-        rr.alignment = { vertical: "top", wrapText: true };
-      }
+
+    if (serviceRows.length === 0) {
+      // No service breakdown — a single row from this target's own evidence.
+      const byName = new Map(t.criteria.map((c) => [c.criterion.trim().toLowerCase(), c] as const));
+      pushRow(serviceOf(t), (key) => byName.get(key)?.evidence, t);
+      continue;
+    }
+
+    // One row per distinct service. Each row carries ONLY its own service's
+    // data — nothing is merged or consolidated into a general/main row.
+    for (const sr of serviceRows) {
+      pushRow(sr.service, (key) => sr.evidence.get(key), t);
     }
   }
 

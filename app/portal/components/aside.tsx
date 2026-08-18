@@ -45,6 +45,7 @@ import {
   ListChecks,
   FileEdit,
   FileCheck,
+  Sliders,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -249,6 +250,8 @@ const panelNavItems: NavItem[] = [
     { type: "link", title: "Appraisal Template", href: "/portal/panel/data",      icon: <File className="h-4 w-4" /> },
     { type: "link", title: "Panel Scoring",           href: "/portal/panel/scoring",         icon: <ClipboardCheck className="h-4 w-4" /> },
     { type: "link", title: "Panel Scores Report",     href: "/portal/panel/scoring/report",  icon: <BarChart3 className="h-4 w-4" /> },
+
+    { type: "link", title: "Panel Survey",            href: "/portal/panel/survey",          icon: <ListChecks className="h-4 w-4" /> },
     { type: "link", title: "Agentic Process", href: "/portal/panel/agentic",      icon: <Sparkles className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
   
@@ -379,7 +382,11 @@ const adminNavItems: NavItem[] = [
     { type: "link", title: "Criteria Rules and Guides",   href: "/portal/panel/rules", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Template", href: "/portal/panel/data",      icon: <File className="h-4 w-4" /> },
     { type: "link", title: "Panel Scoring",           href: "/portal/panel/scoring",         icon: <ClipboardCheck className="h-4 w-4" /> },
+      { type: "link", title: "Panel Survey",            href: "/portal/panel/survey",          icon: <ListChecks className="h-4 w-4" /> },
+        { type: "link", title: "Panel Survey Submissions",            href: "/portal/panel/survey/scores",          icon: <ListChecks className="h-4 w-4" /> },
     { type: "link", title: "Panel Scores Report",     href: "/portal/panel/scoring/report",  icon: <BarChart3 className="h-4 w-4" /> },
+    { type: "link", title: "Auto-Score Rules",        href: "/portal/panel/scoring/rules",   icon: <Sliders className="h-4 w-4" /> },
+
     { type: "link", title: "Agentic Process", href: "/portal/panel/agentic",      icon: <Sparkles className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
 

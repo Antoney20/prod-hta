@@ -26,7 +26,9 @@ import {
   buildScoreMap, collectServices, groupCriteria, groupsScored, serviceKey,
   evidenceForService, norm,
 } from "../_lib/scoring";
-import { computeAutoPick, indexRules, ruleKey, AutoPick } from "../_lib/autoscore";
+import {
+  computeAuto, indexRules, ruleKey, AutoPick, AutoFailReason,
+} from "../_lib/autoscore";
 import PanelScoringWizard from "./_components/wizard";
 import { PanelScoringRule } from "@/types/panel/panel-score";
 
@@ -45,7 +47,7 @@ export default function PanelScoringDetailPage() {
   const [scores, setScores] = useState<PanelAppraisalScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [service, setService] = useState<string>(""); 
+  const [service, setService] = useState<string>(""); // "" = general
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,23 +86,27 @@ export default function PanelScoringDetailPage() {
     if (match) setService(match);
   }, [requestedService, services]);
 
-  // Band auto-picks for THIS scope, keyed by group.key. Match rule ↔ group on
-  // the canonical alphanumeric key (ruleKey), NOT g.key (which keeps spaces).
-  const autoPicks = useMemo(() => {
-    if (!target) return {} as Record<string, AutoPick>;
+  // Per-scope auto results, split into successful picks and explained failures.
+  // A rule that matches → autoPicks (auto-fill + lock). A rule that should fire
+  // but can't → autoFails (show "couldn't auto-score", let the user pick).
+  const { autoPicks, autoFails } = useMemo(() => {
+    const picks: Record<string, AutoPick> = {};
+    const fails: Record<string, AutoFailReason> = {};
+    if (!target) return { autoPicks: picks, autoFails: fails };
+
     const evByName = new Map(
       target.criteria.map((ec) => [norm(ec.criterion), ec] as const)
     );
-    const out: Record<string, AutoPick> = {};
     for (const g of groups) {
       const rule = ruleIndex.get(ruleKey(g.name));
-      if (!rule || rule.kind !== "band") continue;
+      if (!rule || rule.kind !== "band") continue; // combo handled separately
       const ec = evByName.get(g.key);
       const ev = ec ? evidenceForService(ec, service) : {};
-      const pick = computeAutoPick(rule, g, ev);
-      if (pick?.optionId) out[g.key] = pick;
+      const res = computeAuto(rule, g, ev);
+      if (res.status === "matched") picks[g.key] = res;
+      else fails[g.key] = res.reason;
     }
-    return out;
+    return { autoPicks: picks, autoFails: fails };
   }, [target, groups, ruleIndex, service]);
 
   const canScore = isInitialized ? !!user?.role && SCORE_ROLES.has(user.role) : false;
@@ -269,6 +275,7 @@ export default function PanelScoringDetailPage() {
         groups={groups}
         scoreMap={scoreMap}
         autoPicks={autoPicks}
+        autoFails={autoFails}
         onSubmit={handleSubmit}
         readOnly={locked || !canScore}
         submitting={submitting}

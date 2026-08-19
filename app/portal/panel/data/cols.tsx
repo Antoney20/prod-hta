@@ -33,69 +33,95 @@ function serviceFromEvidence(ev: Record<string, unknown> | null | undefined): st
   return null;
 }
 
-/** A target's single service (first criterion that carries one), else "No service". */
+/** A target's single service (first record that carries one), else "No service".
+ *  Reads per-record children so it returns one clean label, never a joined list. */
 export function serviceOf(t: EvidenceTarget): string {
   for (const c of t.criteria ?? []) {
-    const s = serviceFromEvidence(c.evidence as Record<string, unknown> | undefined);
-    if (s) return s;
+    const children = (c as any).children as Array<{ evidence?: Record<string, unknown> }> | undefined;
+    if (children && children.length) {
+      for (const child of children) {
+        const s = serviceFromEvidence(child?.evidence);
+        if (s) return s;
+      }
+    }
   }
   return NO_SERVICE;
 }
 
-/** One expandable sub-row per distinct service across the target's child records.
- *  `evidence` maps criterion-key -> that service's evidence object for the columns. */
+/** One row per uploaded evidence record, reconstructed as the original upload
+ *  rows. `evidence` maps criterion-key -> that row's evidence object. */
 export interface ServiceRow {
   service: string; // display label ("No service" for unassigned)
   evidence: Map<string, Record<string, unknown>>;
 }
 
-/** Group a target's child records by service into per-service rows.
- *  Grouping is by the normalised service key, so spacing/punctuation/case
- *  differences merge into one row. Each criterion may carry `children` (record
- *  variants); each child's service is read from its own evidence. Records with
- *  no service collect under "No service". Falls back to the merged `evidence`
- *  when a criterion has no children, so every service row still shows a value
- *  where one exists. */
+/** Rebuild a target's uploaded rows, grouped by service.
+ *
+ *  Each criterion carries `children` — one per uploaded record, in upload order.
+ *  Records are grouped by their own service (normalised key so spacing / case /
+ *  punctuation variants merge), then, WITHIN a service, zipped by position: the
+ *  k-th record of every criterion lines up on row k. That reconstructs the row
+ *  the data was uploaded as, one record per row — nothing is ever stacked into a
+ *  single cell, and there is no merged / general row. A criterion with fewer
+ *  records than the service's longest simply leaves later rows blank. Records
+ *  with no service collect under "No service". Falls back to the merged
+ *  `evidence` only when a criterion has no children at all. */
 export function serviceRowsOf(t: EvidenceTarget): ServiceRow[] {
-  // normalised key -> { label: first-seen display, evidence: crit-key -> evidence }
-  const groups = new Map<string, { label: string; evidence: Map<string, Record<string, unknown>> }>();
+  // normalised service key -> { label (first-seen), perCrit: crit-key -> records[] }
+  const svc = new Map<
+    string,
+    { label: string; perCrit: Map<string, Record<string, unknown>[]> }
+  >();
   const order: string[] = [];
 
-  const ensure = (label: string) => {
+  const ensureSvc = (label: string) => {
     const gk = serviceKey(label);
-    let g = groups.get(gk);
+    let g = svc.get(gk);
     if (!g) {
-      g = { label, evidence: new Map() };
-      groups.set(gk, g);
+      g = { label, perCrit: new Map() };
+      svc.set(gk, g);
       order.push(gk);
     }
-    return g.evidence;
+    return g;
   };
 
   for (const c of t.criteria ?? []) {
     const key = c.criterion.trim().toLowerCase();
     const children = (c as any).children as Array<{ evidence?: Record<string, unknown> }> | undefined;
+    const records: Record<string, unknown>[] =
+      children && children.length
+        ? children.map((ch) => ch?.evidence ?? {})
+        : c.evidence
+          ? [c.evidence as Record<string, unknown>]
+          : [];
 
-    if (children && children.length) {
-      for (const child of children) {
-        const ev = child?.evidence ?? {};
-        const label = serviceFromEvidence(ev) ?? NO_SERVICE;
-        ensure(label).set(key, ev);
-      }
-    } else if (c.evidence) {
-      const ev = c.evidence as Record<string, unknown>;
+    for (const ev of records) {
       const label = serviceFromEvidence(ev) ?? NO_SERVICE;
-      ensure(label).set(key, ev);
+      const g = ensureSvc(label);
+      const list = g.perCrit.get(key) ?? [];
+      list.push(ev);
+      g.perCrit.set(key, list);
     }
   }
 
   // Named services first (first-seen), "No service" last if present.
   const named = order.filter((k) => k !== NO_SERVICE);
-  const ordered = groups.has(NO_SERVICE) ? [...named, NO_SERVICE] : named;
-  return ordered.map((gk) => {
-    const g = groups.get(gk)!;
-    return { service: g.label, evidence: g.evidence };
-  });
+  const ordered = svc.has(NO_SERVICE) ? [...named, NO_SERVICE] : named;
+
+  const rows: ServiceRow[] = [];
+  for (const gk of ordered) {
+    const g = svc.get(gk)!;
+    let maxRows = 0;
+    for (const list of g.perCrit.values()) maxRows = Math.max(maxRows, list.length);
+    for (let i = 0; i < maxRows; i++) {
+      const evidence = new Map<string, Record<string, unknown>>();
+      for (const [key, list] of g.perCrit) {
+        if (list[i]) evidence.set(key, list[i]);
+      }
+      rows.push({ service: g.label, evidence });
+    }
+  }
+  return rows;
 }
 
 export function buildColumns(targets: EvidenceTarget[]): CritCol[] {

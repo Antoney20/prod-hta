@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Layers, Workflow } from "lucide-react";
+import { Layers, Workflow } from "lucide-react";
 import { EvidenceTarget } from "@/types/new/decision-template";
-import { cellValue, CritCol, serviceOf, serviceRowsOf, visibleFields } from "./cols";
+import { cellValue, CritCol, serviceRowsOf, visibleFields } from "./cols";
 
 const TH = "px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap";
 const THC = "px-2 py-1.5 text-left text-[9px] font-semibold uppercase tracking-wide text-slate-400 whitespace-nowrap";
@@ -21,6 +21,44 @@ const short = (raw: string) => {
   if (n.includes("congruence") && n.includes("existing")) return "Congruence";
   return raw.trim();
 };
+
+/** Render the criterion cells for one row's evidence map. */
+function critCells(
+  columns: CritCol[],
+  visible: Map<string, string[]>,
+  evFor: (key: string) => Record<string, unknown> | undefined,
+  keyPrefix: string,
+) {
+  return columns.flatMap((c) => {
+    const ev = evFor(c.key);
+    const desc = c.kind === "descriptive";
+    return visible.get(c.key)!.map((f, i) => {
+      const val = ev ? cellValue(ev[f]) : "";
+      return (
+        <td key={`${keyPrefix}-${c.key}-${f}`}
+          className={`${TD} text-xs ${i === 0 ? "border-l border-slate-100" : ""} ${
+            desc ? "min-w-72 text-slate-700" : "max-w-40 truncate text-slate-600"
+          }`}
+          title={val || undefined}>
+          {val
+            ? desc
+              ? <p className="line-clamp-3 whitespace-pre-wrap">{val}</p>
+              : val
+            : <span className="text-slate-300">—</span>}
+        </td>
+      );
+    });
+  });
+}
+
+function ServiceChip({ service, withIcon = false }: { service: string; withIcon?: boolean }) {
+  if (service === "No service") return <span className="text-slate-300">No service</span>;
+  return (
+    <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
+      {withIcon && <Workflow className="h-3 w-3" />} {service}
+    </span>
+  );
+}
 
 export default function TargetsTable({
   rows, columns, loading, showAll, onOpen,
@@ -91,12 +129,13 @@ export default function TargetsTable({
           ) : (
             rows.flatMap((t) => {
               const rowId = `${t.kind}-${t.id}`;
-              const byName = new Map(
-                t.criteria.map((c) => [c.criterion.trim().toLowerCase(), c] as const)
-              );
-              const service = serviceOf(t);
+              // One row per uploaded record. The FIRST row carries the ref /
+              // controls; the rest are shown when expanded. Nothing is stacked —
+              // each row is a single uploaded record's data.
               const serviceRows = serviceRowsOf(t);
-              const canExpand = serviceRows.length > 1;
+              const first = serviceRows[0];
+              const rest = serviceRows.slice(1);
+              const canExpand = rest.length > 0;
               const isOpen = expanded.has(rowId);
 
               const mainRow = (
@@ -106,7 +145,7 @@ export default function TargetsTable({
                       {canExpand ? (
                         <button
                           onClick={() => toggle(rowId)}
-                          title={isOpen ? "Collapse services" : "Expand by service"}
+                          title={isOpen ? "Collapse records" : `Expand ${serviceRows.length} records`}
                           aria-expanded={isOpen}
                           className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded border transition ${
                             isOpen
@@ -128,6 +167,9 @@ export default function TargetsTable({
                           t.kind === "intervention" ? "text-[#27aae1]" : "text-amber-600"
                         }`}>
                           {t.kind === "intervention" ? "Intervention" : "Program"}
+                          {canExpand && (
+                            <span className="ml-1 text-slate-400">· {serviceRows.length} records</span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -137,94 +179,37 @@ export default function TargetsTable({
                   </td>
                   <td className={`${TD} text-xs text-slate-600`}>{t.package || "—"}</td>
                   <td className={`${TD} text-xs`}>
-                    {service === "No service" ? (
-                      <span className="text-slate-300">No service</span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
-                        {service}
-                      </span>
-                    )}
+                    <ServiceChip service={first?.service ?? "No service"} />
                   </td>
                   <td className={`${TD} border-r border-slate-100 text-xs text-slate-600`}>{t.phase || "—"}</td>
-                  {columns.flatMap((c) => {
-                    const cell = byName.get(c.key);
-                    const desc = c.kind === "descriptive";
-                    return visible.get(c.key)!.map((f, i) => {
-                      const val = cell ? cellValue(cell.evidence?.[f]) : "";
-                      return (
-                        <td key={`${c.key}-${f}`}
-                          className={`${TD} text-xs ${i === 0 ? "border-l border-slate-100" : ""} ${
-                            desc ? "min-w-72 text-slate-700" : "max-w-40 truncate text-slate-600"
-                          }`}
-                          title={val || undefined}>
-                          {val
-                            ? desc
-                              ? <p className="line-clamp-3 whitespace-pre-wrap">{val}</p>
-                              : val
-                            : <span className="text-slate-300">—</span>}
-                        </td>
-                      );
-                    });
-                  })}
+                  {critCells(columns, visible, (key) => first?.evidence.get(key), rowId)}
                 </tr>
               );
 
               if (!isOpen || !canExpand) return [mainRow];
 
-
-
-const subRows = serviceRows.map((sr, si) => (
-  <tr key={`${rowId}-svc-${si}`} className="bg-slate-100">
-    {/* Reference — inherited from parent, indented + muted to mark a service row */}
-    <td className={`${TD} border-r border-slate-50`}>
-      <div className="flex items-start gap-2 pl-8">
-        <span className="mt-1.5 h-4 w-px bg-slate-300" aria-hidden />
-        <div>
-          <span className="font-mono text-xs text-slate-500">{t.reference_number || "—"}</span>
-          <span className="mt-1 block text-[10px] uppercase tracking-wide text-slate-400">Service</span>
-        </div>
-      </div>
-    </td>
-    {/* Name — inherited from parent */}
-    <td className={`${TD} border-r border-slate-50 font-medium text-slate-600`}>
-      <p className="line-clamp-2 max-w-xs">{t.name || "—"}</p>
-    </td>
-    {/* Package — inherited from parent */}
-    <td className={`${TD} text-xs text-slate-500`}>{t.package || "—"}</td>
-    {/* Service — the only column that differs */}
-    <td className={`${TD} text-xs`}>
-      {sr.service === "No service" ? (
-        <span className="text-slate-300">No service</span>
-      ) : (
-        <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
-          <Workflow className="h-3 w-3" /> {sr.service}
-        </span>
-      )}
-    </td>
-    {/* Phase — inherited from parent */}
-    <td className={`${TD} border-r border-slate-100 text-xs text-slate-500`}>{t.phase || "—"}</td>
-    {columns.flatMap((c) => {
-      const ev = sr.evidence.get(c.key);
-      const desc = c.kind === "descriptive";
-      return visible.get(c.key)!.map((f, i) => {
-        const val = ev ? cellValue(ev[f]) : "";
-        return (
-          <td key={`${rowId}-svc-${si}-${c.key}-${f}`}
-            className={`${TD} text-xs ${i === 0 ? "border-l border-slate-100" : ""} ${
-              desc ? "min-w-72 text-slate-700" : "max-w-40 truncate text-slate-600"
-            }`}
-            title={val || undefined}>
-            {val
-              ? desc
-                ? <p className="line-clamp-3 whitespace-pre-wrap">{val}</p>
-                : val
-              : <span className="text-slate-300">—</span>}
-          </td>
-        );
-      });
-    })}
-  </tr>
-));
+              const subRows = rest.map((sr, si) => (
+                <tr key={`${rowId}-rec-${si}`} className="bg-slate-100">
+                  <td className={`${TD} border-r border-slate-50`}>
+                    <div className="flex items-start gap-2 pl-8">
+                      <span className="mt-1.5 h-4 w-px bg-slate-300" aria-hidden />
+                      <div>
+                        <span className="font-mono text-xs text-slate-500">{t.reference_number || "—"}</span>
+                        <span className="mt-1 block text-[10px] uppercase tracking-wide text-slate-400">Record</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className={`${TD} border-r border-slate-50 font-medium text-slate-600`}>
+                    <p className="line-clamp-2 max-w-xs">{t.name || "—"}</p>
+                  </td>
+                  <td className={`${TD} text-xs text-slate-500`}>{t.package || "—"}</td>
+                  <td className={`${TD} text-xs`}>
+                    <ServiceChip service={sr.service} withIcon />
+                  </td>
+                  <td className={`${TD} border-r border-slate-100 text-xs text-slate-500`}>{t.phase || "—"}</td>
+                  {critCells(columns, visible, (key) => sr.evidence.get(key), `${rowId}-rec-${si}`)}
+                </tr>
+              ));
 
               return [mainRow, ...subRows];
             })

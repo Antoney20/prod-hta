@@ -7,3 +7,4 @@ export default function PanelScoreReportLayout({ children }: { children: React.R
     </RoleGuard>
   );
 }
+

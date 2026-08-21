@@ -83,6 +83,8 @@ export interface PanelScoreSummaryRow {
   package:          string | null;
   reviewers_scored: number;
   scores:           PanelScoreDetail[];
+  submitted_at: string | null;
+    scored_at: string | null;
 }
 
 export interface PanelScoreSummaryParams {

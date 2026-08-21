@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  RefreshCw, BarChart3, Search, Layers, Workflow, Download, Trash2,
+  RefreshCw, BarChart3, Search, Layers, Workflow, Download, Trash2, Calendar,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -20,6 +19,8 @@ import { getScoresSummary } from "@/app/api/new/panel/panel-scoring";
 import { globalUserStore } from "@/app/context/guard";
 
 import { exportScoresReport, deleteUnits } from "./handler";
+import { criteriaColumns, groupByDate, scoreForColumn } from "./report";
+;
 
 const UNASSIGNED = "__unassigned";
 const ADMIN_ROLES = new Set(["admin"]);
@@ -45,6 +46,15 @@ function StatCard({ label, value, sub, accent }: {
     </div>
   );
 }
+
+const scoreCell = (v: number | null) =>
+  v == null ? (
+    <span className="text-slate-300">—</span>
+  ) : (
+    <span className="font-semibold tabular-nums text-slate-800">
+      {Number.isInteger(v) ? v : v.toFixed(v * 4 % 1 === 0 ? 2 : 1)}
+    </span>
+  );
 
 export default function PanelScoreReportPage() {
   const isAdmin = !!globalUserStore.userData?.role && ADMIN_ROLES.has(globalUserStore.userData.role);
@@ -118,6 +128,11 @@ export default function PanelScoreReportPage() {
     });
   }, [rows, kind, pkg, search]);
 
+  // Criteria columns are derived from the FULL row set (stable header across
+  // date groups and filters); the body is grouped by date.
+  const columns = useMemo(() => criteriaColumns(rows), [rows]);
+  const groups = useMemo(() => groupByDate(filtered), [filtered]);
+
   const allVisibleSelected = filtered.length > 0 && filtered.every((r) => selected.has(rowId(r)));
   const toggleAll = () =>
     setSelected((prev) => {
@@ -187,6 +202,9 @@ export default function PanelScoreReportPage() {
   };
 
   const selectedCount = selected.size;
+  // fixed leading columns + one per criterion; used for group-header colspan
+  const leadCols = (isAdmin ? 1 : 0) + 5;
+  const totalCols = leadCols + columns.length;
 
   return (
     <div className="space-y-5">
@@ -199,7 +217,7 @@ export default function PanelScoreReportPage() {
           <div>
             <h1 className="text-xl font-bold text-slate-800">Panel Scores Report</h1>
             <p className="max-w-2xl text-sm text-slate-500">
-             Panel Scores Report.
+              Every scored unit with its per-criterion scores, grouped by submission date.
             </p>
           </div>
         </div>
@@ -217,8 +235,7 @@ export default function PanelScoreReportPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatCard label="Scored units" value={stats.units} sub="target + service combinations" />
         <StatCard label="Reviewers" value={stats.reviewers} sub="members" accent="#27aae1" />
-        <StatCard label="Criteria scores" value={"---"
-        } sub="individual selections" accent="#059669" />
+        <StatCard label="Criteria scores" value={stats.scoreRows} sub="individual selections" accent="#059669" />
       </div>
 
       {/* Body */}
@@ -278,15 +295,8 @@ export default function PanelScoreReportPage() {
                 {selectedCount} unit{selectedCount === 1 ? "" : "s"} selected
               </span>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
-                  Clear
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="gap-1.5"
-                  onClick={() => setConfirmOpen(true)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>Clear</Button>
+                <Button size="sm" variant="destructive" className="gap-1.5" onClick={() => setConfirmOpen(true)}>
                   <Trash2 className="h-3.5 w-3.5" /> Delete
                 </Button>
               </div>
@@ -300,78 +310,95 @@ export default function PanelScoreReportPage() {
                 <tr className="border-b border-slate-200">
                   {isAdmin && (
                     <th className={`${TH} w-10`}>
-                      <Checkbox
-                        checked={allVisibleSelected}
-                        onCheckedChange={toggleAll}
-                        aria-label="Select all"
-                      />
+                      <Checkbox checked={allVisibleSelected} onCheckedChange={toggleAll} aria-label="Select all" />
                     </th>
                   )}
-                  <th className={`${TH} min-w-60`}>Reference</th>
-                  <th className={`${TH} min-w-72`}>Intervention</th>
-                  <th className={`${TH} min-w-44`}>Service</th>
-                  <th className={`${TH} min-w-32`}>Phase</th>
-                  <th className={`${TH} min-w-28 text-center`}>Reviewers</th>
+                  <th className={`${TH} min-w-48`}>Reference</th>
+                  <th className={`${TH} min-w-64`}>Intervention</th>
+                  <th className={`${TH} min-w-40`}>Service</th>
+                  <th className={`${TH} min-w-28`}>Batch</th>
+                  <th className={`${TH} min-w-24 text-center`}>Reviewers</th>
+                  {columns.map((c) => (
+                    <th key={c.key} className={`${TH} min-w-28 text-center`} title={c.name}>
+                      {c.name}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
-                  <tr><td colSpan={isAdmin ? 6 : 5} className="py-16 text-center text-sm text-slate-400">Loading…</td></tr>
-                ) : filtered.length === 0 ? (
+                  <tr><td colSpan={totalCols} className="py-16 text-center text-sm text-slate-400">Loading…</td></tr>
+                ) : groups.length === 0 ? (
                   <tr>
-                    <td colSpan={isAdmin ? 6 : 5} className="py-16 text-center">
+                    <td colSpan={totalCols} className="py-16 text-center">
                       <BarChart3 className="mx-auto mb-2 h-8 w-8 text-slate-300" />
                       <p className="text-sm text-slate-400">No scored units match your filters.</p>
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((r) => {
-                    const id = rowId(r);
-                    const checked = selected.has(id);
-                    return (
-                      <tr key={id} className={`transition-colors hover:bg-slate-50/70 ${checked ? "bg-[#27aae1]/5" : ""}`}>
-                        {isAdmin && (
-                          <td className={TD}>
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={() => toggleOne(id)}
-                              aria-label="Select unit"
-                            />
-                          </td>
-                        )}
-                        <td className={`${TD} border-r border-slate-50`}>
-                          <span className="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-[#27aae1]">
-                            {r.reference_number || "—"}
-                          </span>
-                          <span className={`mt-1 block text-[10px] uppercase tracking-wide ${
-                            r.target_type === "intervention" ? "text-[#27aae1]" : "text-amber-600"
-                          }`}>
-                            {r.target_type === "intervention" ? "Intervention" : "Program"}
-                          </span>
-                        </td>
-                        <td className={`${TD} font-medium text-slate-800`}>
-                          <p className="line-clamp-2 max-w-xs">{r.intervention || "—"}</p>
-                        </td>
-                        <td className={`${TD} text-xs`}>
-                          {r.service ? (
-                            <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
-                              <Workflow className="h-3 w-3" /> {r.service}
+                  groups.map((g) => (
+                    <>
+                      <tr key={`grp-${g.key}`} className="bg-slate-50/80">
+                        <td colSpan={totalCols} className="px-3 py-2">
+                          <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                            {g.label}
+                            <span className="rounded-full bg-slate-200/70 px-2 py-0.5 text-[11px] font-medium text-slate-500">
+                              {g.rows.length} scored
                             </span>
-                          ) : (
-                            <span className="rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-500">
-                              General
-                            </span>
-                          )}
-                        </td>
-                        <td className={`${TD} text-xs text-slate-600`}>{r.phase || "—"}</td>
-                        <td className={`${TD} text-center`}>
-                          <span className="inline-flex items-center rounded-full bg-[#27aae1]/10 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-[#27aae1]">
-                            {r.reviewers_scored}
                           </span>
                         </td>
                       </tr>
-                    );
-                  })
+                      {g.rows.map((r) => {
+                        const id = rowId(r);
+                        const checked = selected.has(id);
+                        return (
+                          <tr key={id} className={`transition-colors hover:bg-slate-50/70 ${checked ? "bg-[#27aae1]/5" : ""}`}>
+                            {isAdmin && (
+                              <td className={TD}>
+                                <Checkbox checked={checked} onCheckedChange={() => toggleOne(id)} aria-label="Select unit" />
+                              </td>
+                            )}
+                            <td className={TD}>
+                              <span className="rounded bg-slate-100 px-2 py-1 font-mono text-xs text-[#27aae1]">
+                                {r.reference_number || "—"}
+                              </span>
+                              <span className={`mt-1 block text-[10px] uppercase tracking-wide ${
+                                r.target_type === "intervention" ? "text-[#27aae1]" : "text-amber-600"
+                              }`}>
+                                {r.target_type === "intervention" ? "Intervention" : "Program"}
+                              </span>
+                            </td>
+                            <td className={`${TD} font-medium text-slate-800`}>
+                              <p className="line-clamp-2 max-w-xs">{r.intervention || "—"}</p>
+                            </td>
+                            <td className={`${TD} text-xs`}>
+                              {r.service ? (
+                                <span className="inline-flex items-center gap-1 rounded bg-[#27aae1]/10 px-2 py-0.5 text-[#27aae1]">
+                                  <Workflow className="h-3 w-3" /> {r.service}
+                                </span>
+                              ) : (
+                                <span className="rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-500">
+                                  General
+                                </span>
+                              )}
+                            </td>
+                            <td className={`${TD} text-xs text-slate-600`}>{r.phase || "—"}</td>
+                            <td className={`${TD} text-center`}>
+                              <span className="inline-flex items-center rounded-full bg-[#27aae1]/10 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-[#27aae1]">
+                                {r.reviewers_scored}
+                              </span>
+                            </td>
+                            {columns.map((c) => (
+                              <td key={c.key} className={`${TD} text-center`}>
+                                {scoreCell(scoreForColumn(r, c))}
+                              </td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </>
+                  ))
                 )}
               </tbody>
             </table>
@@ -394,9 +421,7 @@ export default function PanelScoreReportPage() {
                 <strong>{selectedRows.length}</strong> selected unit
                 {selectedRows.length === 1 ? "" : "s"}.
               </span>
-              <span className="block text-xs text-slate-400">
-                This can&apos;t be undone.
-              </span>
+              <span className="block text-xs text-slate-400">This can&apos;t be undone.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

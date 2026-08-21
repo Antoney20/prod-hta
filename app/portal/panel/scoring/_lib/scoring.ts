@@ -1,6 +1,6 @@
 import { UUID } from "@/types/new/shared";
 import { CriteriaAppraisalTool, PanelAppraisalScore } from "@/types/new/panel-score";
-import { EvidenceCriterion, EvidenceTarget } from "@/types/new/decision-template";
+import { EvidenceCriterion, EvidenceRecord, EvidenceTarget } from "@/types/new/decision-template";
 
 export const SERVICE_KEYS = ["service", "services"] as const;
 
@@ -12,33 +12,72 @@ export const norm = (s: string): string => (s || "").trim().toLowerCase();
 
 /* ---------------------------------------------------------------- services */
 
+/** A criterion's evidence as a flat list of per-record SCALAR data objects,
+ *  whatever the source shape:
+ *   - /scoring/ endpoint: `evidence` is EvidenceRecord[] → unwrap each record's
+ *     own `evidence` object.
+ *   - legacy retrieve/generate: `evidence` is a merged object and the scalar
+ *     per-record data lives in `children[]` → use those. Falling back to the
+ *     merged object is the OLD bug (that object is where `[871, 0]` lives), so
+ *     we only use it when there are no per-record entries at all. */
+function recordsOf(crit: EvidenceCriterion): Record<string, unknown>[] {
+  const c = crit as unknown as {
+    evidence?: unknown;
+    children?: { evidence?: Record<string, unknown> }[];
+  };
+  if (Array.isArray(c.evidence)) {
+    return (c.evidence as EvidenceRecord[]).map((r) => r?.evidence ?? {});
+  }
+  if (c.children?.length) {
+    return c.children.map((r) => r.evidence ?? {});
+  }
+  const obj = c.evidence as Record<string, unknown> | undefined;
+  return obj && Object.keys(obj).length ? [obj] : [];
+}
+
+/** The service a single record belongs to ("" = no service). */
+function serviceOf(ev: Record<string, unknown>): string {
+  for (const k of SERVICE_KEYS) {
+    const v = ev?.[k];
+    if (Array.isArray(v)) {
+      const first = v.find((x) => x != null && x !== "");
+      if (first != null) return String(first).trim();
+    } else if (v != null && String(v).trim() !== "") {
+      return String(v).trim();
+    }
+  }
+  return "";
+}
+
 export function collectServices(target: EvidenceTarget): string[] {
   const seen = new Map<string, string>();
   for (const crit of target.criteria) {
-    const records = crit.children?.length ? crit.children.map((c) => c.evidence) : [crit.evidence];
-    for (const ev of records) {
-      for (const k of SERVICE_KEYS) {
-        const label = String(ev?.[k] ?? "").trim();
-        const key = serviceKey(label);
-        if (key && !seen.has(key)) seen.set(key, label);
-      }
+    for (const ev of recordsOf(crit)) {
+      const label = serviceOf(ev);
+      const key = serviceKey(label);
+      if (key && !seen.has(key)) seen.set(key, label);
     }
   }
   return Array.from(seen.values()).sort((a, b) => a.localeCompare(b));
 }
 
+/** One record's SCALAR data for a scope.
+ *   - General ("")    → the first no-service record (shared data), else {}.
+ *   - a named service → that service's record; else the shared record; else {}.
+ *  Never returns the merged bag, so a field is never `[871, 0]`. */
 export function evidenceForService(
   crit: EvidenceCriterion,
   service: string
 ): Record<string, unknown> {
-  if (!service) return crit.evidence;
+  const records = recordsOf(crit);
+  if (records.length === 0) return {};
+
+  const general = records.find((ev) => !serviceKey(serviceOf(ev)));
   const want = serviceKey(service);
-  for (const rec of crit.children ?? []) {
-    for (const k of SERVICE_KEYS) {
-      if (serviceKey(String(rec.evidence?.[k] ?? "")) === want) return rec.evidence;
-    }
-  }
-  return crit.evidence;
+  if (!want) return general ?? {};
+
+  const matched = records.find((ev) => serviceKey(serviceOf(ev)) === want);
+  return matched ?? general ?? {};
 }
 
 export const unitsOf = (target: EvidenceTarget): string[] => ["", ...collectServices(target)];
@@ -58,8 +97,39 @@ export interface CriterionGroup {
   options: CriterionOption[];
 }
 
+// Wizard/display order for criteria. Matched by loose prefix (punctuation and
+// spacing collapsed), so "Burden of Disease (Morbidity)" AND "(Mortality)" both
+// resolve to the "burden of disease" slot and sort next to each other. Anything
+// not listed here sorts alphabetically AFTER these.
+const CRITERION_ORDER = [
+  "clinical effectiveness",
+  "safety",
+  "quality",
+  "burden of disease",
+  "incidence or occurrence of diseases",
+  "population",
+  "equity",
+  "cost effectiveness",
+  "budgetary impact and affordability of intervention",
+  "feasibility of implementation of the intervention",
+  "catastrophic health expenditure",
+  "access to healthcare",
+  "congruence with existing priorities in the health sector",
+];
+
+const looseKey = (s: string): string =>
+  (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+const criterionRank = (name: string): number => {
+  const n = looseKey(name);
+  const i = CRITERION_ORDER.findIndex((k) => n.startsWith(k));
+  return i === -1 ? CRITERION_ORDER.length : i;
+};
+
 /** Fold the flat appraisal-tool rows into one group per criteria name, each
- *  holding its scoring options (sorted high → low). Headers are ignored. */
+ *  holding its scoring options (sorted high → low). Groups are ordered by
+ *  CRITERION_ORDER (BoD Morbidity/Mortality adjacent), then alphabetically for
+ *  anything unlisted. Headers are ignored. */
 export function groupCriteria(tools: CriteriaAppraisalTool[]): CriterionGroup[] {
   const map = new Map<string, CriterionGroup>();
   for (const t of tools) {
@@ -74,6 +144,11 @@ export function groupCriteria(tools: CriteriaAppraisalTool[]): CriterionGroup[] 
   }
   const groups = Array.from(map.values());
   for (const g of groups) g.options.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+  groups.sort((a, b) => {
+    const ra = criterionRank(a.name);
+    const rb = criterionRank(b.name);
+    return ra !== rb ? ra - rb : a.name.localeCompare(b.name);
+  });
   return groups;
 }
 

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, RefreshCw, ClipboardCheck, Eye, Layers, Lock, CheckCircle2,
-  ChevronLeft, ChevronRight, FileText, ExternalLink,
+  ChevronLeft, ChevronRight, FileText, ExternalLink, FolderOpen,
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -217,6 +217,16 @@ export default function PanelScoringDetailPage() {
           >
             <FileText className="h-3.5 w-3.5" /> Detailed report
           </Button>
+          {target.assessment_evidence && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() => router.push(`/portal/assessment/evidence/${target.assessment_evidence}`)}
+            >
+              <FolderOpen className="h-3.5 w-3.5" /> Assessment evidence
+            </Button>
+          )}
           {target.package && (
             <Badge variant="outline" className="gap-1 border-slate-200 text-xs text-slate-600">
               <Layers className="h-3 w-3" /> {target.package}

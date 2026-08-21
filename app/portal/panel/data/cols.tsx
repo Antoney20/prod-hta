@@ -92,7 +92,7 @@ export function serviceRowsOf(t: EvidenceTarget): ServiceRow[] {
       children && children.length
         ? children.map((ch) => ch?.evidence ?? {})
         : c.evidence
-          ? [c.evidence as Record<string, unknown>]
+          ? [c.evidence as unknown as Record<string, unknown>]
           : [];
 
     for (const ev of records) {

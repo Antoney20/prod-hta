@@ -6,7 +6,8 @@ import { Search, ArrowRight } from 'lucide-react'
 import {
   LayoutDashboard, ClipboardList, Layers, FileText, CheckSquare,
   NotepadTextDashed, Gavel, BookText, BarChart3, FolderOpen,
-  ActivitySquare, Mail, Users,
+  ActivitySquare, Mail, Users, Sparkles, ClipboardCheck, ListChecks,
+  SlidersHorizontal, File, Settings,
 } from 'lucide-react'
 
 type Role = 'admin' | 'secretariat' | 'swg' | 'panel' | 'assessment' | 'user' | string | undefined
@@ -25,19 +26,35 @@ const CARDS: NavCard[] = [
   { title: 'Benefits Package', description: 'Current package and tariffs', href: '/portal/benefits-package', icon: ClipboardList },
   { title: 'Interventions by Package', description: 'View interventions grouped by package', href: '/portal/benefits-package/packages', icon: Layers },
   { title: 'Tariff Reimbursements', description: 'Annex line-item tariffs', href: '/portal/benefits-package/annex', icon: FileText },
+  { title: 'SWG Prioritized Topics', description: 'Prioritized topics for appraisal', href: '/portal/benefits-package/swg-prioritized', icon: ListChecks },
+  { title: 'Appraised Interventions & Services', description: 'Appraisal report of interventions', href: '/portal/benefits-package/appraisal-report', icon: ClipboardList },
+  { title: 'Proposed Benefits Package', description: 'Draft revised package', href: '/portal/benefits-package/proposed', icon: FileText },
+  { title: 'Revised Benefits Package', description: 'Finalized revised package', href: '/portal/benefits-package/revised-package', icon: FileText },
   { title: 'Task Management', description: 'Your tasks and boards', href: '/portal/tasks', icon: CheckSquare },
   { title: 'Activity Tracker', description: 'Activities and sub-activities', href: '/portal/activities', icon: NotepadTextDashed },
   { title: 'Calendar & Events', description: 'Upcoming meetings and training', href: '/portal/events', icon: FolderOpen },
 
-  // role-gated
+  // role-gated — topic prioritization
   { title: 'Score Interventions', description: 'Topic prioritization scoring', href: '/portal/tp/category', icon: BarChart3, roles: ['admin', 'swg'] },
   { title: 'Weighted Reports', description: 'Individual weighted reports', href: '/portal/tp/weighting', icon: BarChart3, roles: ['admin', 'swg'] },
   { title: 'Scoring Reports', description: 'Aggregate scoring reports', href: '/portal/tp/reports', icon: BarChart3, roles: ['admin'] },
   { title: 'Review Status', description: 'Track review progress', href: '/portal/tracker/review-status', icon: ActivitySquare, roles: ['admin', 'secretariat'] },
   { title: 'Assign to Batch/Phase', description: 'Assign interventions to a phase', href: '/portal/tracker/phase', icon: Layers, roles: ['admin'] },
+
+  // role-gated — assessment / panel evidence & appraisal
   { title: 'Evidence', description: 'Upload and review evidence', href: '/portal/assessment/evidence', icon: BookText, roles: ['admin', 'panel', 'assessment'] },
+  { title: 'Panel Criteria Appraisal Tool', description: 'Configure the appraisal tool', href: '/portal/panel/config/tool', icon: Settings, roles: ['admin', 'panel'] },
+  { title: 'Appraisal Template', description: 'Decision template evidence', href: '/portal/panel/data', icon: File, roles: ['admin', 'panel'] },
+  { title: 'Panel Scoring', description: 'Score interventions and services', href: '/portal/panel/scoring', icon: ClipboardCheck, roles: ['admin', 'panel'] },
+  { title: 'Panel Scores Report', description: 'Aggregated panel scores', href: '/portal/panel/scoring/report', icon: BarChart3, roles: ['admin', 'panel'] },
+  { title: 'Panel Survey', description: 'HTA criteria weighting survey', href: '/portal/panel/survey', icon: ListChecks, roles: ['admin', 'panel'] },
+  { title: 'Agentic Process', description: 'Agentic appraisal pipeline', href: '/portal/panel/agentic', icon: Sparkles, roles: ['admin', 'panel'] },
   { title: 'Appraisal Results', description: 'Panel appraisal outcomes', href: '/portal/panel/appraisal', icon: Gavel, roles: ['admin', 'panel'] },
   { title: 'Panel Decision', description: 'Record panel decisions', href: '/portal/panel/decision', icon: Gavel, roles: ['admin', 'panel'] },
+
+  // role-gated — admin only
+  { title: 'Criteria Weights', description: 'Configure criteria weights', href: '/portal/panel/weights', icon: SlidersHorizontal, roles: ['admin'] },
+  { title: 'Auto-Score Rules', description: 'Deterministic auto-scoring rules', href: '/portal/panel/scoring/rules', icon: SlidersHorizontal, roles: ['admin'] },
   { title: 'Email Setup', description: 'Send emails and templates', href: '/portal/feedback/home', icon: Mail, roles: ['admin'] },
   { title: 'Member Directory', description: 'People and roles', href: '/portal/members', icon: Users, roles: ['admin'] },
 ]

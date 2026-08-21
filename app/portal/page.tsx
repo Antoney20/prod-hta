@@ -182,35 +182,6 @@ const DashboardPage: React.FC = () => {
 
         <InterventionTrendChart trends={data.trends} />
 
-        {/* Interventions by package */}
-        <Section
-          title="Interventions by Package"
-          description={`${data.packages.total_packages} packages · ${data.packages.unassigned_interventions} unassigned`}
-          icon={Layers}
-          iconColor="text-[#27aae1]"
-        >
-          {data.packages.by_package.length === 0 ? (
-            <p className="text-sm text-gray-400 py-6 text-center">No packages yet.</p>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {data.packages.by_package.slice(0, 8).map((p) => {
-                const max = data.packages.by_package[0].intervention_count || 1
-                const pct = Math.round((p.intervention_count / max) * 100)
-                return (
-                  <div key={p.id} className="flex items-center gap-3 py-2.5">
-                    <span className="w-48 truncate text-sm text-gray-700">{p.name}</span>
-                    <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
-                      <div className="h-full rounded-full bg-[#27aae1]" style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="w-10 text-right text-sm font-semibold text-gray-800 tabular-nums">
-                      {p.intervention_count}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </Section>
 
         <QuickNav role={role} />
 

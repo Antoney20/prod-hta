@@ -5,8 +5,10 @@ export interface Guide {
   file: string | null;
 }
 
-/** One evidence record within a criterion. Criteria that hold more than one
- *  record (duplicates) expose each here; `evidence` remains the merged view. */
+/** One uploaded evidence record within a criterion. A criterion may carry
+ *  several — each is a separate submission kept whole, with its own scalar
+ *  data. Records are never merged across each other, so no field ever becomes
+ *  a parallel `[a, b]` value list. */
 export interface EvidenceRecord {
   evidence_id: string;
   score: number | null;
@@ -19,8 +21,10 @@ export interface EvidenceCriterion {
   criterion: string;
   type: string;
   target_fields: string[];
-  evidence: Record<string, unknown>;   // merged view — all records folded together
-  children?: EvidenceRecord[];         // one entry per record; length > 1 ⇒ duplicated
+  /** One entry per uploaded record, in upload order. Each carries that
+   *  record's own scalar values — this replaces the old merged `evidence`
+   *  object and the separate `children` list. */
+  evidence: EvidenceRecord[];
   guides: Guide[];
 }
 
@@ -32,6 +36,7 @@ export interface EvidenceTarget {
   package: string | null;
   phase: string | null;
   criteria: EvidenceCriterion[];
+  assessment_evidence?: string | null;
 }
 
 /** Compact index row (list). */

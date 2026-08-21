@@ -20,7 +20,9 @@ export const listTargets = async (kind?: EvidenceRow["kind"]): Promise<EvidenceR
   }
 };
 
-/** Full evidence payload for one target. */
+/** Full evidence payload for one target (scoring detail page).
+ *  Response carries per-record scalar data in `children`; `scoring.ts`
+ *  (recordsOf) reads that, so no field is ever zipped into `[a, b]`. */
 export const getTarget = async (id: string): Promise<EvidenceTarget> => {
   try {
     const res = await api.get(`${BASE}${id}`);
@@ -40,7 +42,6 @@ export const generatePayload = async (kind?: EvidenceTarget["kind"]): Promise<Ev
   }
 };
 
-
 export const regeneratePayload = async (body: GenerateInput = {}): Promise<EvidenceTarget[]> => {
   try {
     const res = await api.post(BASE, body);
@@ -49,8 +50,6 @@ export const regeneratePayload = async (body: GenerateInput = {}): Promise<Evide
     throw new Error(errMsg(e));
   }
 };
-
-
 
 export const getTargetDetailed = async (id: string): Promise<EvidenceTarget> => {
   try {

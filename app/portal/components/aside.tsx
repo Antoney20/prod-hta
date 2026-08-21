@@ -179,7 +179,19 @@ const assessmentGroupNavItems: NavItem[] = [
     children: [
       { type: "link", title: "Upload Evidence",   href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
       { type: "link", title: "Available Evidence", href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
+         
     ],
+  },
+
+  {
+
+   type: "group",
+    title: "Panel Evidence",
+    icon: <FileText className="h-5 w-5" />,
+    children: [
+
+   { type: "link", title: "Assessment Evidence (upload excel)",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
+    ]
   },
 
   { type: "divider" },
@@ -207,7 +219,7 @@ const panelNavItems: NavItem[] = [
     title: "Evidence",
     icon: <FileText className="h-5 w-5" />,
     children: [
-      { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
+      // { type: "link", title: "Upload Evidence",    href: "/portal/assessment/evidence/upload", icon: <Plus className="h-4 w-4" /> },
       { type: "link", title: "Available Evidence",  href: "/portal/assessment/evidence",        icon: <FolderOpen className="h-4 w-4" /> },
         // { type: "link", title: "Extract Evidence",  href: " /portal/assessment/evidence/extraction",        icon: <CloudUpload   className="h-4 w-4" /> },
 
@@ -223,9 +235,10 @@ const panelNavItems: NavItem[] = [
     title: "Configuration",
     icon: <Settings className="h-5 w-5" />,
     children: [
-      { type: "link", title: "Assessment Tool Info",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
-      // { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
-       { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
+      { type: "link", title: "Panel Criteria Appraisal Tool",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
+      { type: "link", title: "Panel Survey",            href: "/portal/panel/survey",          icon: <ListChecks className="h-4 w-4" /> },
+      // // { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
+      //  { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },
   // {
@@ -240,13 +253,13 @@ const panelNavItems: NavItem[] = [
 
   {
   type: "group",
-  title: "Evidence Weighting",
+  title: "Evidence Weighting Panel",
   icon: <LineChart className="h-5 w-5" />,
   children: [
-    { type: "link", title: "Assessment Evidence (upload)",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
-    { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
+    // { type: "link", title: "Assessment Evidence (upload)",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
+    // { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
     // { type: "link", title: "Protocol Guides",   href: "/portal/panel/protocol-guide", icon: <SlidersHorizontal className="h-4 w-4" /> },
-    { type: "link", title: "Criteria Rules and Guides",   href: "/portal/panel/rules", icon: <SlidersHorizontal className="h-4 w-4" /> },
+    // { type: "link", title: "Criteria Rules and Guides",   href: "/portal/panel/rules", icon: <SlidersHorizontal className="h-4 w-4" /> },
     { type: "link", title: "Appraisal Template", href: "/portal/panel/data",      icon: <File className="h-4 w-4" /> },
     { type: "link", title: "Panel Scoring",           href: "/portal/panel/scoring",         icon: <ClipboardCheck className="h-4 w-4" /> },
     { type: "link", title: "Panel Scores Report",     href: "/portal/panel/scoring/report",  icon: <BarChart3 className="h-4 w-4" /> },
@@ -256,7 +269,7 @@ const panelNavItems: NavItem[] = [
     { type: "link", title: "Appraisal Results", href: "/portal/panel/appraisal",      icon: <BarChart3 className="h-4 w-4" /> },
   
 
-    { type: "link", title: "Panel Decision", href: "/portal/panel/decision",      icon: <FaFileContract className="h-4 w-4" /> },
+    // { type: "link", title: "Panel Decision", href: "/portal/panel/decision",      icon: <FaFileContract className="h-4 w-4" /> },
 
   ],
 },

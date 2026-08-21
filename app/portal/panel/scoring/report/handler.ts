@@ -1,8 +1,10 @@
 import ExcelJS from "exceljs";
-import {
-  PanelScoreSummaryRow,
-} from "@/types/new/panel-score";
+import { PanelScoreSummaryRow } from "@/types/new/panel-score";
 import { deletePanelScoresBulk } from "@/app/api/new/panel/panel-scoring";
+import {
+  criteriaColumns, rowDate, scoreForColumn, reviewersOf, scoreForReviewerColumn,
+} from "./report";
+
 
 const stripHtml = (html: string): string =>
   (html || "")
@@ -25,7 +27,10 @@ export const deleteUnits = async (units: PanelScoreSummaryRow[]): Promise<{ dele
   return deletePanelScoresBulk(ids);
 };
 
-/** Full export — one sheet of summary units, one sheet of every reviewer score. */
+/** Full export — both sheets are criteria-as-columns pivots.
+ *  Sheet 1 "Scores": one row per UNIT (score averaged across reviewers).
+ *  Sheet 2 "All scores": one row per REVIEWER per unit (each reviewer's own
+ *  scorecard, no averaging). */
 export const exportScoresReport = async (rows: PanelScoreSummaryRow[]): Promise<void> => {
   const wb = new ExcelJS.Workbook();
   wb.creator = "BPTAP";
@@ -40,73 +45,78 @@ export const exportScoresReport = async (rows: PanelScoreSummaryRow[]): Promise<
     row.eachCell((cell) => {
       cell.fill = HEADER_FILL;
       cell.font = { color: { argb: "FFFFFFFF" }, bold: true, size: 11 };
-      cell.alignment = { vertical: "middle" };
+      cell.alignment = { vertical: "middle", wrapText: true };
     });
-    row.height = 20;
+    row.height = 26;
   };
 
-  /* Sheet 1 — Units summary */
-  const s1 = wb.addWorksheet("Units");
+  const columns = criteriaColumns(rows);
+
+  /* Sheet 1 — Pivot: one row per unit, one column per criterion */
+  const s1 = wb.addWorksheet("Scores");
   s1.columns = [
+    { header: "Date", key: "date", width: 14 },
     { header: "Reference", key: "ref", width: 24 },
     { header: "Type", key: "type", width: 14 },
-    { header: "Intervention", key: "name", width: 46 },
+    { header: "Intervention", key: "name", width: 44 },
     { header: "Service", key: "service", width: 26 },
-    { header: "Phase", key: "phase", width: 16 },
-    { header: "Package", key: "package", width: 22 },
-    { header: "Reviewers Scored", key: "reviewers", width: 18 },
+    { header: "Batch", key: "batch", width: 16 },
+    { header: "Reviewers", key: "reviewers", width: 12 },
+    ...columns.map((c) => ({ header: c.name, key: `c_${c.key}`, width: 18 })),
   ];
   headerRowStyle(s1.getRow(1));
   for (const r of rows) {
-    s1.addRow({
+    const rec: Record<string, unknown> = {
+      date: rowDate(r).label,
       ref: r.reference_number || "—",
       type: r.target_type === "intervention" ? "Intervention" : "National Program",
       name: r.intervention || "—",
       service: r.service || "General",
-      phase: r.phase || "—",
-      package: r.package || "Unassigned",
+      batch: r.phase || "—",
       reviewers: r.reviewers_scored,
-    });
+    };
+    for (const c of columns) {
+      const v = scoreForColumn(r, c);
+      rec[`c_${c.key}`] = v == null ? "" : v;
+    }
+    s1.addRow(rec);
   }
-  s1.autoFilter = "A1:G1";
-  s1.views = [{ state: "frozen", ySplit: 1 }];
+  s1.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: s1.columnCount } };
+  s1.views = [{ state: "frozen", xSplit: 4, ySplit: 1 }];
 
-  /* Sheet 2 — All reviewer scores */
-  const s2 = wb.addWorksheet("Scores");
+  /* Sheet 2 — Per reviewer: one row per reviewer per unit, criteria as columns */
+  const s2 = wb.addWorksheet("All scores");
   s2.columns = [
+    { header: "Date", key: "date", width: 14 },
     { header: "Reference", key: "ref", width: 24 },
-    { header: "Intervention", key: "name", width: 40 },
-    { header: "Service", key: "service", width: 24 },
-    { header: "Phase", key: "phase", width: 16 },
+    { header: "Type", key: "type", width: 14 },
+    { header: "Intervention", key: "name", width: 44 },
+    { header: "Service", key: "service", width: 26 },
+    { header: "Batch", key: "batch", width: 16 },
     { header: "Reviewer", key: "reviewer", width: 22 },
-    { header: "Criterion", key: "criterion", width: 30 },
-    { header: "Selected Option", key: "option", width: 60 },
-    { header: "Score", key: "score", width: 10 },
-    { header: "Notes", key: "notes", width: 40 },
-    { header: "Scored At", key: "at", width: 22 },
+    ...columns.map((c) => ({ header: c.name, key: `c_${c.key}`, width: 18 })),
   ];
   headerRowStyle(s2.getRow(1));
   for (const r of rows) {
-    for (const sc of r.scores) {
-      s2.addRow({
+    for (const rv of reviewersOf(r)) {
+      const rec: Record<string, unknown> = {
+        date: rowDate(r).label,
         ref: r.reference_number || "—",
+        type: r.target_type === "intervention" ? "Intervention" : "National Program",
         name: r.intervention || "—",
         service: r.service || "General",
-        phase: r.phase || "—",
-        reviewer: sc.reviewer_name,
-        criterion: sc.criteria_name,
-        option: stripHtml(sc.scoring_approach),
-        score: sc.score ?? "",
-        notes: sc.comment || "",
-        at: sc.created_at ? new Date(sc.created_at).toLocaleString("en-GB") : "",
-      });
+        batch: r.phase || "—",
+        reviewer: rv.reviewer_name || `#${rv.reviewer_id}`,
+      };
+      for (const c of columns) {
+        const v = scoreForReviewerColumn(r, rv.reviewer_id, c);
+        rec[`c_${c.key}`] = v == null ? "" : v;
+      }
+      s2.addRow(rec);
     }
   }
-  s2.autoFilter = "A1:J1";
-  s2.views = [{ state: "frozen", ySplit: 1 }];
-  s2.eachRow({ includeEmpty: false }, (row, i) => {
-    if (i > 1) row.getCell("option").alignment = { wrapText: true, vertical: "top" };
-  });
+  s2.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: s2.columnCount } };
+  s2.views = [{ state: "frozen", xSplit: 4, ySplit: 1 }];
 
   const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], {

@@ -41,7 +41,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const KILLER_CANDIDATES: { slug: string; no: number; name: string; threshold: string }[] = [
   { slug: "clinical_effectiveness", no: 1, name: "Clinical Effectiveness", threshold: "Zero benefit" },
   { slug: "safety", no: 2, name: "Safety", threshold: "Unacceptable toxicity" },
-  { slug: "cost_effectiveness", no: 3, name: "Cost-Effectiveness", threshold: "ICER > 3x GDP per capita" },
+  { slug: "cost_effectiveness", no: 3, name: "Cost-Effectiveness", threshold: "ICER < 0.5x GDP per capita" },
   { slug: "budget_impact", no: 4, name: "Budget Impact", threshold: "Breaks the annual pharmaceutical ceiling" },
   { slug: "feasibility", no: 5, name: "Feasibility", threshold: "Cannot be implemented safely" },
   { slug: "other", no: 6, name: "Other", threshold: "" },

@@ -15,10 +15,11 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
-import { Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Pencil, UserX, UserCheck, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import type { Member } from '@/types/dashboard/members';
-import { updateMember, deleteMember } from '@/app/api/dashboard/members';
+import { updateMember, deleteMember, activateMember } from '@/app/api/dashboard/members';
+import ConfirmDeactivateDialog from './dialogue';
 
 interface MembersListProps {
   members: Member[];
@@ -90,7 +91,9 @@ const MembersList: React.FC<MembersListProps> = ({ members, onRefresh, canEdit }
   const [editing, setEditing] = useState<Member | null>(null);
   const [form, setForm] = useState<EditForm>({ phone_number: '', notes: '', organization: '', role: 'user' });
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deactivating, setDeactivating] = useState<Member | null>(null);
+  const [deactivateLoading, setDeactivateLoading] = useState(false);
+  const [activatingId, setActivatingId] = useState<string | null>(null);
 
   const openEdit = (m: Member) => {
     setEditing(m);
@@ -117,17 +120,32 @@ const MembersList: React.FC<MembersListProps> = ({ members, onRefresh, canEdit }
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this member? This cannot be undone.')) return;
-    setDeletingId(id);
+  const handleDeactivate = async () => {
+    if (!deactivating) return;
+    setDeactivateLoading(true);
     try {
-      await deleteMember(id);
-      toast.success('Member deleted.');
+      // DELETE endpoint soft-deactivates server-side (sets user.is_active = false)
+      await deleteMember(deactivating.id);
+      toast.success('Account deactivated.');
+      setDeactivating(null);
       onRefresh();
     } catch {
-      toast.error('Failed to delete member.');
+      toast.error('Failed to deactivate account.');
     } finally {
-      setDeletingId(null);
+      setDeactivateLoading(false);
+    }
+  };
+
+  const handleActivate = async (member: Member) => {
+    setActivatingId(member.id);
+    try {
+      await activateMember(member.id);
+      toast.success('Account activated.');
+      onRefresh();
+    } catch {
+      toast.error('Failed to activate account.');
+    } finally {
+      setActivatingId(null);
     }
   };
 
@@ -183,16 +201,28 @@ const MembersList: React.FC<MembersListProps> = ({ members, onRefresh, canEdit }
             <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => openEdit(member)}>
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              size="icon" variant="ghost"
-              className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={() => handleDelete(member.id)}
-              disabled={deletingId === member.id}
-            >
-              {deletingId === member.id
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                : <Trash2 className="h-3.5 w-3.5" />}
-            </Button>
+            {member.is_active ? (
+              <Button
+                size="icon" variant="ghost"
+                className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => setDeactivating(member)}
+                title="Deactivate account"
+              >
+                <UserX className="h-3.5 w-3.5" />
+              </Button>
+            ) : (
+              <Button
+                size="icon" variant="ghost"
+                className="h-7 w-7 text-green-600 hover:text-green-700 hover:bg-green-50"
+                onClick={() => handleActivate(member)}
+                disabled={activatingId === member.id}
+                title="Activate account"
+              >
+                {activatingId === member.id
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  : <UserCheck className="h-3.5 w-3.5" />}
+              </Button>
+            )}
           </div>
         </TableCell>
       )}
@@ -303,6 +333,15 @@ const MembersList: React.FC<MembersListProps> = ({ members, onRefresh, canEdit }
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Deactivate confirm */}
+      <ConfirmDeactivateDialog
+        open={!!deactivating}
+        name={deactivating ? getFullName(deactivating.first_name, deactivating.last_name, deactivating.username) : ''}
+        loading={deactivateLoading}
+        onCancel={() => setDeactivating(null)}
+        onConfirm={handleDeactivate}
+      />
     </>
   );
 };

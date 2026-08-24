@@ -77,7 +77,15 @@ export default function PanelScoringDetailPage() {
   const activeCriteria = useMemo(() => criteria.filter((c) => c.active), [criteria]);
   const groups = useMemo(() => groupCriteria(activeCriteria), [activeCriteria]);
   const scoreMap = useMemo(() => buildScoreMap(scores), [scores]);
-  const services = useMemo(() => (target ? collectServices(target) : []), [target]);
+   const services = useMemo(
+    () =>
+      target
+        ? collectServices(target).filter(
+            (s) => serviceKey(s) !== "" && serviceKey(s) !== "general"
+          )
+        : [],
+    [target]
+  );
   const ruleIndex = useMemo(() => indexRules(rules), [rules]);
 
   useEffect(() => {

@@ -193,6 +193,8 @@ const assessmentGroupNavItems: NavItem[] = [
    { type: "link", title: "Assessment Evidence (upload excel)",    href: "/portal/panel/evidence",                icon: <FileStackIcon className="h-4 w-4" /> },
     ]
   },
+  { type: "link", title: "Evidence Coverage (Status)",      href: "/portal/panel/evidence/coverage",       icon: <ClipboardListIcon className="h-4 w-4" /> },
+    // { type: "link", title: "Protocol Guides",   href: "/portal/panel/p
 
   { type: "divider" },
   { type: "section", title: "Common" },
@@ -371,7 +373,7 @@ const adminNavItems: NavItem[] = [
     children: [
       { type: "link", title: "Assessment Tool Info",     href: "/portal/panel/config/tool",     icon: <SlidersHorizontal className="h-4 w-4" /> },
       // { type: "link", title: "Criteria Info", href: "/portal/panel/config/criteria-evidence", icon: <BookText className="h-4 w-4" /> },
-       { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
+      //  { type: "link", title: "Criteria Weights", href: "/portal/panel/weights",         icon: <PenSquare className="h-4 w-4" /> },
     ],
   },
   // {

@@ -21,6 +21,14 @@ interface Props {
   onSaved: () => void;
 }
 
+// looks like markup already?
+const looksHtml = (s: string) => /<\/?[a-z][\s\S]*>/i.test(s);
+
+// plain-text notes: keep newlines as <br> so breaks survive HTML rendering.
+// leave existing markup untouched.
+const newlinesToBr = (raw: string): string =>
+  looksHtml(raw) ? raw : raw.replace(/\r\n|\r|\n/g, "<br>");
+
 export default function EvidenceEditDialog({
   open, onOpenChange, criterion, allCriteria, row, targetLabel, onSaved,
 }: Props) {
@@ -34,7 +42,9 @@ export default function EvidenceEditDialog({
     const init: Record<string, string> = {};
     for (const h of headers) {
       const v = (row.data as any)?.[h.key];
-      init[h.key] = v == null ? "" : Array.isArray(v) ? v.join(", ") : String(v);
+      // show stored <br> back as real newlines in the editor
+      const s = v == null ? "" : Array.isArray(v) ? v.join(", ") : String(v);
+      init[h.key] = h.type === "text" ? s.replace(/<br\s*\/?>/gi, "\n") : s;
     }
     setData(init);
   }, [open, row, headers]);
@@ -89,6 +99,8 @@ export default function EvidenceEditDialog({
       if (h.type === "number") {
         const n = Number(raw.replace(/,/g, ""));
         out[h.key] = Number.isNaN(n) ? raw : n;
+      } else if (h.type === "text") {
+        out[h.key] = newlinesToBr(raw);           // newlines → <br>; links/HTML preserved
       } else {
         out[h.key] = raw;
       }
@@ -122,6 +134,7 @@ export default function EvidenceEditDialog({
             {headers.map((h) => {
               const computed = isFormula(h);
               const spanFull = h.type === "text" || computed;
+              const val = data[h.key] ?? "";
               return (
                 <div key={h.key} className={spanFull ? "sm:col-span-2" : ""}>
                   <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -152,17 +165,19 @@ export default function EvidenceEditDialog({
                       </div>
                     </div>
                   ) : h.type === "choice" && h.options?.length ? (
-                    <select className={inputCls} value={data[h.key] ?? ""} onChange={(e) => set(h.key, e.target.value)}>
+                    <select className={inputCls} value={val} onChange={(e) => set(h.key, e.target.value)}>
                       <option value="">—</option>
                       {h.options.map((o) => <option key={o} value={o}>{o}</option>)}
                     </select>
                   ) : h.type === "text" ? (
-                    <textarea className={`${inputCls} min-h-[70px]`} value={data[h.key] ?? ""} onChange={(e) => set(h.key, e.target.value)} />
+                    <textarea className={`${inputCls} min-h-[70px]`} value={val}
+                      placeholder="Plain text, links, or HTML…"
+                      onChange={(e) => set(h.key, e.target.value)} />
                   ) : (
                     <input
                       type={h.type === "number" ? "number" : "text"}
                       className={inputCls}
-                      value={data[h.key] ?? ""}
+                      value={val}
                       onChange={(e) => set(h.key, e.target.value)}
                     />
                   )}

@@ -31,6 +31,29 @@ export interface EvidenceRowResult {
 const norm = (s: string) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
 const normRef = (s: unknown) => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const isEmpty = (v: any) => v == null || v === "" || (Array.isArray(v) && v.length === 0);
+// a cell that carries structured data → parse it into a real object/array
+function tryJson(s: string): unknown | null {
+  const t = s.trim();
+  if (!(t.startsWith("{") || t.startsWith("["))) return null;
+  try {
+    const v = JSON.parse(t);
+    return v && typeof v === "object" ? v : null;   // only objects/arrays, not bare 5/"x"
+  } catch {
+    return null;
+  }
+}
+
+// plain-text cell → HTML: bare URLs become links, newlines become <br>.
+// leaves cells that are already markup untouched. matches the edit dialog's
+// on-save behaviour so uploaded and hand-edited notes render identically.
+const textToHtml = (s: string): string => {
+  if (/<\/?[a-z][\s\S]*>/i.test(s)) return s;
+  return s
+    .replace(/(https?:\/\/[^\s<]+)/g, (u) =>
+      `<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`)
+    .replace(/\r\n|\r|\n/g, "<br>");
+};
+
 
 const REF_ALIASES = [
   "referenceno", "reference", "referencenumber", "refno", "ref",
@@ -80,6 +103,11 @@ function cellText(value: any): string {
   if (value == null) return "";
   if (value instanceof Date) return value.toISOString().slice(0, 10);
   if (typeof value === "object") {
+    if ("hyperlink" in value) {
+      const label = value.text ?? (value.richText?.map((t: any) => t.text).join("") ?? "");
+      const href = String(value.hyperlink ?? "");
+      return label && label !== href ? `${label} (${href})` : href || String(label);
+    }
     if ("text" in value) return String(value.text ?? "");
     if ("result" in value) return String(value.result ?? "");
     if ("richText" in value) return value.richText.map((t: any) => t.text).join("");
@@ -188,8 +216,14 @@ export function coerce(raw: any, header: CriterionHeader): { value: any; error?:
         return { value: s, error: `invalid option "${s}"` };
       return { value: s };
     }
-    default:
-      return { value: s };
+    // default:
+
+    //   return { value: s };
+        default: {
+      const j = tryJson(s);
+      if (j != null) return { value: j };
+      return { value: textToHtml(s) };      // newlines → <br>, links → anchors, HTML kept
+    }
   }
 }
 

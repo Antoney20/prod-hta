@@ -104,7 +104,16 @@ const DashboardPage: React.FC = () => {
   const isAdmin = data.counts.scope === 'all'
   const role = user?.role as string | undefined
 
+
   const cards: StatCard[] = [
+    {
+      label: 'Total Interventions',
+      value: data.counts.total_intervention_proposals + data.counts.total_national_program_proposals,
+      icon: Layers,
+      href: '/portal/interventions',
+      sub: 'All proposals',
+      accent: '#27aae1',
+    },
     {
       label: 'Intervention Proposals',
       value: data.counts.total_intervention_proposals,
@@ -113,15 +122,7 @@ const DashboardPage: React.FC = () => {
       sub: 'View all',
     },
     {
-      label: 'National Programs',
-      value: data.counts.total_national_programs,
-      icon: ClipboardList,
-      href: '/portal/national-programs',
-      sub: 'Manage programs',
-      accent: '#6366f1',
-    },
-    {
-      label: 'Program Proposals',
+      label: 'National Program Proposals',
       value: data.counts.total_national_program_proposals,
       icon: ActivitySquare,
       href: '/portal/national-programs/proposals',

@@ -31,6 +31,7 @@ export default function DecisionTemplatesPage() {
   const router = useRouter();
   const [user] = useState(globalUserStore.userData);
   const canRegenerate = !!user?.role && REGEN_ROLES.has(user.role);
+  const canExport = user?.role === "admin";
 
   const [targets, setTargets] = useState<EvidenceTarget[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,10 +106,12 @@ export default function DecisionTemplatesPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-        
-          <Button variant="outline" size="sm" onClick={download} disabled={loading || !filtered.length}>
-            <Download className="mr-1.5 h-4 w-4" /> Export
-          </Button>
+
+          {canExport && (
+            <Button variant="outline" size="sm" onClick={download} disabled={loading || !filtered.length}>
+              <Download className="mr-1.5 h-4 w-4" /> Export
+            </Button>
+          )}
           <Button variant="outline" size="icon" onClick={load} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>

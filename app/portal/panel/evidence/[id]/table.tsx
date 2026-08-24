@@ -12,6 +12,7 @@ import {
 import { htmlToText } from "@/components/shared/text";
 import { Criterion, CriterionEvidence, CriterionHeader } from "@/types/new/evidence-panel";
 import { AdminOnly } from "@/app/context/role";
+import { useAuth } from "@/app/api/auth";
 import { DeleteDialog } from "@/app/portal/national-programs/cc/delete";
 import { exportEvidence } from "./handler";
 import { isFormula } from "./formulas";
@@ -62,6 +63,11 @@ interface Props {
 export default function EvidenceTable({
   criterion, rows, allCriteria, loading, resolveTarget, onDelete, onEdited, onCriterionChanged,
 }: Props) {
+  const { user } = useAuth();
+
+  const canEdit = user?.role === "admin" || user?.role === "secretariat" || user?.role === "assessment";
+  const canExport = user?.role === "admin" || user?.role === "assessment";
+
   const [search, setSearch] = useState("");
   const [size, setSize] = useState(20);
   const [page, setPage] = useState(1);
@@ -117,11 +123,11 @@ export default function EvidenceTable({
             onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500">
-          <AdminOnly silent>
+          {canExport && (
             <Button variant="outline" size="sm" onClick={doExport} disabled={filtered.length === 0}>
               <Download className="mr-1.5 h-4 w-4" /> Export
             </Button>
-          </AdminOnly>
+          )}
           <span>Rows</span>
           <select value={size} onChange={(e) => { setSize(Number(e.target.value)); setPage(1); }}
             className="border border-slate-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#27aae1]">
@@ -166,13 +172,13 @@ export default function EvidenceTable({
                         ƒ{c.round != null ? ` ${c.round}dp` : ""}
                       </span>
                     )}
-                    <AdminOnly silent>
+                    {canEdit && (
                       <button type="button" onClick={() => setToEditHeader(c)}
                         title="Edit formula / rounding"
                         className="text-slate-300 hover:text-[#27aae1]">
                         <Pencil className="h-3 w-3" />
                       </button>
-                    </AdminOnly>
+                    )}
                   </div>
                 </th>
               ))}
@@ -216,11 +222,11 @@ export default function EvidenceTable({
                   </td>
                  {cols.map((c) => (
                     <td key={c.key} className={`${TD} text-xs ${isFormula(c) ? "font-mono text-slate-800" : "text-slate-600"}`}>
-                      <p className="line-clamp-2 max-w-60">{cell((r.data as any)?.[c.key], c)}</p>
+                      <p className="line-clamp-2 max-w-60 whitespace-pre-line">{cell((r.data as any)?.[c.key], c)}</p>
                     </td>
                   ))}
                   <td className={`${TD} text-right`}>
-                    <AdminOnly silent>
+                    {canEdit && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-7 w-7"><MoreHorizontal className="h-4 w-4" /></Button>
@@ -229,12 +235,14 @@ export default function EvidenceTable({
                           <DropdownMenuItem onClick={() => setToEdit(r)}>
                             <Pencil className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => setToDelete([r])}>
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete
-                          </DropdownMenuItem>
+                          <AdminOnly silent>
+                            <DropdownMenuItem className="text-destructive" onClick={() => setToDelete([r])}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
+                          </AdminOnly>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </AdminOnly>
+                    )}
                   </td>
                 </tr>
               ))

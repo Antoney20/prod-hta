@@ -496,17 +496,10 @@
 
 "use client";
 
-
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { FileText, ClipboardList, Printer } from "lucide-react";
-import { DuplicateGroup, EvidenceSource, NA_LABEL } from "./helpers";
+import { DuplicateGroup, EvidenceSource } from "./helpers";
 import {
-  buildReport,
   buildServiceReports,
-  BudgetRecord,
-  GradeRow,
-  RenderFormBlock,
   RenderSection,
   ReportMeta,
   ReportModel,
@@ -515,26 +508,12 @@ import {
 
 const BRAND = "#27aae1";
 
-/* Exact wording carried over from the .docx template. */
-const SECTION_1_TITLE = "Evidence Synthesis Report";
-const SECTION_2_TITLE = "Appendix B: HTA Submission Report";
+const REPORT_TITLE = "Evidence Synthesis Report";
 const SYNTHESIS_INTRO =
-  "This report is organized against the 12 HBTAP criteria (Clinical Effectiveness; Safety; Quality; " +
-  "Burden of Disease; Incidence/Prevalence; Population Impact; Equity; Cost-Effectiveness; Budgetary " +
-  "Impact; Feasibility; Catastrophic Health Expenditure; Government Priorities).";
-const FORM_A = {
-  title: "Form A: Clinical Evidence Summary",
-  instructions:
-    "Provide a structured summary of the best available evidence for clinical effectiveness, safety, and quality. Use GRADE framework where possible.",
-};
-const FORM_B = {
-  title: "Form B: Economic Evaluation",
-  instructions: "Cost-effectiveness results and budget impact analysis.",
-};
-const FORM_C = {
-  title: "Form C: Equity and Feasibility",
-  instructions: "The Kenya HTA process explicitly recognizes equity and feasibility as priority-setting criteria.",
-};
+  "This report lists every criterion captured for the submission — Clinical Effectiveness, Safety, " +
+  "Quality, Burden of Disease, Incidence, Cost-Effectiveness, Budgetary Impact, Feasibility, " +
+  "Catastrophic Health Expenditure, Access to Healthcare, Equity, and Congruence — with each field " +
+  "read directly from the evidence record.";
 
 export default function EvidenceReport({ source }: { source: EvidenceSource }) {
   const bundle = useMemo(() => buildServiceReports(source), [source]);
@@ -554,7 +533,7 @@ export default function EvidenceReport({ source }: { source: EvidenceSource }) {
         <ServiceTabs services={bundle.services} active={idx} onSelect={setActive} />
       )}
 
-      {/* key resets per-service internal state (e.g. budget year tabs) */}
+      {/* key resets per-service internal state */}
       <ReportBody
         key={current.key}
         model={current.model}
@@ -635,7 +614,7 @@ function ServiceTabs({
   );
 }
 
-/* ---- Report body (Section 1 + Section 2) ---- */
+/* ---- Report body (single auto section, all 12 criteria) ---- */
 
 function ReportBody({
   model, hideEmpty, onToggleHideEmpty,
@@ -644,101 +623,41 @@ function ReportBody({
   hideEmpty: boolean;
   onToggleHideEmpty: (v: boolean) => void;
 }) {
-  const byId = (id: string) => model.submission.find((b) => b.id === id);
-
   return (
-    <>
-      {/* ===================== SECTION 1 ===================== */}
-      <section className=" py-7 ">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <SectionLabel n={1} title={SECTION_1_TITLE} />
-          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-500">
-            <input
-              type="checkbox"
-              checked={hideEmpty}
-              onChange={(e) => onToggleHideEmpty(e.target.checked)}
-              className="h-3.5 w-3.5 accent-[#27aae1]"
-            />
-            Hide empty fields
-          </label>
-        </div>
+    <section className=" py-7 ">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-lg font-bold tracking-tight text-slate-900">{REPORT_TITLE}</h2>
+        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-500">
+          <input
+            type="checkbox"
+            checked={hideEmpty}
+            onChange={(e) => onToggleHideEmpty(e.target.checked)}
+            className="h-3.5 w-3.5 accent-[#27aae1]"
+          />
+          Hide empty fields
+        </label>
+      </div>
 
-        <p className="mt-3 text-sm leading-relaxed text-slate-500">{SYNTHESIS_INTRO}</p>
-        {model.meta.justification && (
-          <p className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
-            <span className="font-semibold text-slate-700">Justification: </span>
-            {model.meta.justification}
-          </p>
-        )}
+      <p className="mt-3 text-sm leading-relaxed text-slate-500">{SYNTHESIS_INTRO}</p>
+      {model.meta.justification && (
+        <p className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
+          <span className="font-semibold text-slate-700">Justification: </span>
+          {model.meta.justification}
+        </p>
+      )}
 
-        <div className="mt-6 space-y-4">
-          {model.synthesis.map((s) => (
-            <Criterion key={s.id} section={s} hideEmpty={hideEmpty} />
-          ))}
-        </div>
+      <div className="mt-6 space-y-4">
+        {model.synthesis.map((s) => (
+          <Criterion key={s.id} section={s} hideEmpty={hideEmpty} />
+        ))}
+      </div>
 
-        {model.duplicates.length > 0 && <DuplicateRecords groups={model.duplicates} />}
-      </section>
-
-      {/* section divider */}
-      <div className="mx-6 border-t-2 border-slate-100 sm:mx-10" />
-
-      {/* ===================== SECTION 2 ===================== */}
-      <section className="py-7 ">
-        <SectionLabel n={2} title={SECTION_2_TITLE} />
-
-        {/* Form A */}
-        <FormHeading title={FORM_A.title} instructions={FORM_A.instructions} />
-        <div className="space-y-4">
-          {byId("a1") && <FormBlockView block={byId("a1")!} />}
-          <KeyEvidence model={model} />
-          <GradeProfile rows={model.grade} />
-        </div>
-
-        {/* Form B */}
-        <FormHeading title={FORM_B.title} instructions={FORM_B.instructions} />
-        <div className="space-y-4">
-          {byId("b5") && <FormBlockView block={byId("b5")!} />}
-          <BudgetImpact records={model.budgetImpact.records} />
-        </div>
-
-        {/* Form C */}
-        <FormHeading title={FORM_C.title} instructions={FORM_C.instructions} />
-        <div className="space-y-4">
-          {byId("c1eq") && <FormBlockView block={byId("c1eq")!} />}
-          {byId("c2feas") && <FormBlockView block={byId("c2feas")!} />}
-        </div>
-      </section>
-    </>
+      {model.duplicates.length > 0 && <DuplicateRecords groups={model.duplicates} />}
+    </section>
   );
 }
 
-/* ------------------------------------------------------------------ */
-
-function SectionLabel({ n, title }: { n: number; title: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span
-        className="flex h-6 items-center rounded-full px-2.5 text-[11px] font-bold uppercase tracking-wider text-white"
-        style={{ background: BRAND }}
-      >
-        Section {n}
-      </span>
-      <h2 className="text-lg font-bold tracking-tight text-slate-900">{title}</h2>
-    </div>
-  );
-}
-
-function FormHeading({ title, instructions }: { title: string; instructions: string }) {
-  return (
-    <div className="mb-3 mt-8 border-b border-slate-200 pb-2 first:mt-6">
-      <h3 className="text-sm font-bold uppercase tracking-wide text-slate-700">{title}</h3>
-      <p className="mt-1 text-xs italic leading-relaxed text-slate-500">{instructions}</p>
-    </div>
-  );
-}
-
-/* ---- Section 1 pieces ---- */
+/* ---- Criterion card ---- */
 
 function Criterion({ section, hideEmpty }: { section: RenderSection; hideEmpty: boolean }) {
   const m = section.title.match(/^Criterion\s+(\d+):\s*(.*)$/);
@@ -854,243 +773,4 @@ function DuplicateRecords({ groups }: { groups: DuplicateGroup[] }) {
       </div>
     </div>
   );
-}
-
-/* ---- Section 2 pieces ---- */
-
-function KeyEvidence({ model }: { model: ReturnType<typeof buildReport> }) {
-  const k = model.keyEvidence;
-  return (
-    <Block title="A.2 Key Evidence Summary">
-      {!k.hasRow ? (
-        <Empty />
-      ) : (
-        <MiniTable
-          head={["#", "Design", "Outcome", "Effect size (95% CI)", "Limitations"]}
-          rows={[["1", k.design, k.outcome, k.effect, k.limitations]]}
-        />
-      )}
-    </Block>
-  );
-}
-
-function GradeProfile({ rows }: { rows: GradeRow[] }) {
-  return (
-    <Block title="A.3 GRADE Evidence Profile">
-      <MiniTable
-        head={["Outcome", "No. of studies", "Study design", "Certainty", "Effect estimate"]}
-        rows={rows.map((r) => [
-          r.outcome,
-          r.studies || "—",
-          r.design || "—",
-          "☐ High ☐ Moderate ☐ Low ☐ Very low",
-          r.effect || "—",
-        ])}
-        emphasizeFirst
-      />
-    </Block>
-  );
-}
-
-/* ---- B.6 Budget Impact (multi-year, tabbed; repeats per record) ---- */
-
-function SubCaption({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#1d70b8]">
-      {children}
-    </p>
-  );
-}
-
-function BudgetImpact({ records }: { records: BudgetRecord[] }) {
-  if (!records.length) {
-    return (
-      <Block title="B.6 Budget Impact Analysis (5-Year)">
-        <Empty />
-      </Block>
-    );
-  }
-  return (
-    <>
-      {records.map((rec, i) => (
-        <BudgetRecordView key={rec.label || i} record={rec} multi={records.length > 1} />
-      ))}
-    </>
-  );
-}
-
-function BudgetRecordView({ record, multi }: { record: BudgetRecord; multi: boolean }) {
-  const firstWithData = record.years.find((y) => y.hasData)?.year ?? 1;
-  const [year, setYear] = useState(firstWithData);
-  const active = record.years.find((y) => y.year === year) ?? record.years[0];
-
-  const title = multi
-    ? `B.6 Budget Impact Analysis (5-Year) — Record ${record.label}`
-    : "B.6 Budget Impact Analysis (5-Year)";
-
-  const anyCostBasis = record.costBasis.some((r) => r.present);
-  const anyOffsets = record.offsets.some((r) => r.present);
-  const anyJudgment = record.judgment.some((r) => r.present);
-
-  return (
-    <Block title={title}>
-      {/* Multi-Year Summary — headline figures, pinned to the top */}
-      <div className="mb-5 rounded-xl border border-[#27aae1]/30 bg-[#27aae1]/[0.06] p-3">
-        <SubCaption>Multi-Year Summary</SubCaption>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {record.summary.map((r) => (
-            <div key={r.label} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5">
-              <p className="text-[10px] font-semibold uppercase leading-tight tracking-wide text-slate-500">
-                {r.label}
-              </p>
-              <p className={`mt-1 break-words text-sm font-bold tabular-nums ${r.present ? "text-slate-800" : "text-slate-300"}`}>
-                {r.value}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {anyCostBasis && (
-        <div className="mb-4">
-          <SubCaption>Cost Basis &amp; SHA Tariffs</SubCaption>
-          <FieldTable rows={record.costBasis} />
-        </div>
-      )}
-
-      <SubCaption>Year-by-Year Projection</SubCaption>
-      <div className="mb-2 flex flex-wrap gap-1.5">
-        {record.years.map((y) => {
-          const isActive = y.year === year;
-          return (
-            <button
-              key={y.year}
-              onClick={() => setYear(y.year)}
-              className={[
-                "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition",
-                isActive
-                  ? "border-transparent text-white"
-                  : "border-slate-200 text-slate-500 hover:bg-slate-50",
-              ].join(" ")}
-              style={isActive ? { background: BRAND } : undefined}
-            >
-              Year {y.year}
-              {!y.hasData && (
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-white/60" : "bg-slate-300"}`}
-                  aria-hidden
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
-      <FieldTable rows={active.rows} />
-
-      {anyOffsets && (
-        <div className="mt-4">
-          <SubCaption>Budget Offsets &amp; Donor Funding</SubCaption>
-          <FieldTable rows={record.offsets} />
-        </div>
-      )}
-      {anyJudgment && (
-        <div className="mt-4">
-          <SubCaption>Affordability</SubCaption>
-          <FieldTable rows={record.judgment} />
-        </div>
-      )}
-    </Block>
-  );
-}
-
-function FormBlockView({ block }: { block: RenderFormBlock }) {
-  return (
-    <Block title={block.title} intro={block.intro}>
-      <div className="overflow-hidden rounded-lg border border-slate-200">
-        <table className="w-full border-collapse text-sm">
-          <tbody>
-            {block.rows.map((r, i) => (
-              <tr key={i} className="border-b border-slate-100 last:border-0">
-                <td className="w-1/3 bg-slate-50/70 px-3 py-2 align-top text-xs font-semibold text-slate-600">
-                  {r.label}
-                </td>
-                <td className="px-3 py-2 align-top text-sm">
-                  {r.kind === "text" ? (
-                    <span className={`whitespace-pre-wrap break-words ${r.text === NA_LABEL ? "text-slate-300" : "text-slate-700"}`}>{r.text}</span>
-                  ) : (
-                    <span className="flex flex-wrap gap-x-3 gap-y-1 text-slate-600">
-                      {r.options?.map((o) => (
-                        <span key={o.label} className={o.checked ? "font-medium text-slate-800" : ""}>
-                          {o.checked ? "☑" : "☐"} {o.label}
-                        </span>
-                      ))}
-                      {r.suffix && <span className="text-slate-300">{r.suffix}</span>}
-                    </span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Block>
-  );
-}
-
-/* ---- shared Section 2 chrome ---- */
-
-function Block({
-  title, intro, children,
-}: {
-  title: string; intro?: string; children: React.ReactNode;
-}) {
-  return (
-    <div className="break-inside-avoid rounded-xl border border-slate-200">
-      <div className="border-b border-slate-100 px-4 py-2.5">
-        <h4 className="text-sm font-semibold text-slate-800">{title}</h4>
-        {intro && <p className="mt-0.5 text-xs text-slate-500">{intro}</p>}
-      </div>
-      <div className="p-4">{children}</div>
-    </div>
-  );
-}
-
-function MiniTable({
-  head, rows, emphasizeFirst,
-}: {
-  head: string[]; rows: string[][]; emphasizeFirst?: boolean;
-}) {
-  return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200">
-      <table className="w-full border-collapse text-xs">
-        <thead className="bg-slate-50 text-left text-slate-500">
-          <tr>
-            {head.map((h) => (
-              <th key={h} className="border-b border-slate-200 px-2.5 py-2 font-semibold">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, ri) => (
-            <tr key={ri} className="border-b border-slate-100 align-top last:border-0">
-              {r.map((c, ci) => (
-                <td
-                  key={ci}
-                  className={`whitespace-pre-wrap break-words px-2.5 py-2 ${
-                    emphasizeFirst && ci === 0 ? "font-medium text-slate-700" : "text-slate-600"
-                  }`}
-                >
-                  {c}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function Empty() {
-  return <p className="py-2 text-center text-sm text-slate-300">—</p>;
 }

@@ -1,15 +1,11 @@
 import {
   NA_LABEL,
-  bucketOutcome,
   cleanVal,
   collectDuplicateRecords,
   combineCi,
   combineIcd,
   combineNote,
-  detectDatabases,
-  extraDatabases,
   flattenEvidence,
-  isAffirmative,
   isPresent,
   makeGetter,
   slug,
@@ -17,54 +13,20 @@ import {
   type EvidenceInstance,
   type EvidenceSource,
   type Getter,
-  type GradeOutcome,
 } from "./helpers";
 import {
   GROUP_ALIASES,
-  SUBMISSION_BLOCKS,
   buildSynthesisSections,
-  type ComputationId,
-  type FormBlock,
-  type MatchSpec,
   type ReportSection,
   type SubTable,
   type ValueSpec,
 } from "./evidence-map";
 
 /* ------------------------------------------------------------------ *
- * Procedural computations referenced by `computed(id)` in the map.
- * Add new ones here and expose the id in ComputationId.
- * ------------------------------------------------------------------ */
-
-const COMPUTATIONS: Record<ComputationId, (get: Getter) => string | null> = {
-  studiesMetaN: (get) =>
-    combineCi(get("clinical_effectiveness.studies_included"), get("clinical_effectiveness.studies_meta")),
-
-  effectSummary: (get) => {
-    const parts: string[] = [];
-    const add = (label: string, v: unknown, c: unknown) => {
-      const combined = combineCi(v, c);
-      if (isPresent(combined)) parts.push(`${label}=${combined}`);
-    };
-    add("Survival", get("clinical_effectiveness.survival_rate"), get("clinical_effectiveness.survival_rate_ci"));
-    add("HR", get("clinical_effectiveness.hazard_ratio"), get("clinical_effectiveness.hazard_ratio_ci"));
-    add("OR", get("clinical_effectiveness.odds_ratio"), get("clinical_effectiveness.odds_ratio_ci"));
-    add("RR", get("clinical_effectiveness.relative_risk"), get("clinical_effectiveness.relative_risk_ci"));
-    return parts.length ? parts.join("; ") : null;
-  },
-
-  limitations: (get) => {
-    let out = combineNote(
-      get("clinical_effectiveness.heterogeneity"),
-      get("clinical_effectiveness.heterogeneity_explanation")
-    );
-    out = combineNote(out, get("clinical_effectiveness.notes_clinical_effect_est"));
-    return out;
-  },
-};
-
-/* ------------------------------------------------------------------ *
- * Value resolution.
+ * Value resolution. The auto synthesis emits only `field` specs; the
+ * others are kept for generality (a section could still carry a ci/note/
+ * icd/const row). `computed` is intentionally not handled — it returns
+ * null via the default.
  * ------------------------------------------------------------------ */
 
 export function resolveValue(spec: ValueSpec, get: Getter): string | null {
@@ -75,20 +37,25 @@ export function resolveValue(spec: ValueSpec, get: Getter): string | null {
       return combineCi(get(spec.value), get(spec.ci));
     case "note":
       return spec.paths.reduce<string | null>(
-        (acc, p, i) => (i === 0 ? (isPresent(get(p)) ? String(get(p)).trim() : null) : combineNote(acc, get(p), spec.sep)),
+        (acc, p, i) =>
+          i === 0
+            ? isPresent(get(p))
+              ? String(get(p)).trim()
+              : null
+            : combineNote(acc, get(p), spec.sep),
         null
       );
     case "icd":
       return combineIcd(get(spec.codes), get(spec.name));
     case "const":
       return spec.text;
-    case "computed":
-      return COMPUTATIONS[spec.id](get);
+    default:
+      return null;
   }
 }
 
 /* ------------------------------------------------------------------ *
- * Render model — what the component actually walks.
+ * Render model — what the component walks.
  * ------------------------------------------------------------------ */
 
 export interface RenderRow {
@@ -134,237 +101,6 @@ export function resolveSection(section: ReportSection, get: Getter): RenderSecti
 }
 
 /* ------------------------------------------------------------------ *
- * Submission form resolution (checkbox / text rows).
- * ------------------------------------------------------------------ */
-
-export interface RenderFormRow {
-  label: string;
-  kind: "text" | "options";
-  text?: string; // for text rows
-  options?: Array<{ label: string; checked: boolean }>;
-  suffix?: string;
-}
-export interface RenderFormBlock {
-  id: string;
-  title: string;
-  intro?: string;
-  rows: RenderFormRow[];
-}
-
-function matchChecked(match: MatchSpec, options: string[], get: Getter): Set<string> {
-  const checked = new Set<string>();
-  if (match.kind === "affirmative") {
-    const aff = isAffirmative(get(match.path));
-    if (aff === true) checked.add("Yes");
-    else if (aff === false) checked.add("No");
-  } else if (match.kind === "databases") {
-    for (const db of detectDatabases(get(match.path))) checked.add(db);
-  } else {
-    const v = cleanVal(get(match.path)).toLowerCase();
-    for (const o of options) if (o.toLowerCase() === v) checked.add(o);
-  }
-  return checked;
-}
-
-export function resolveFormBlock(block: FormBlock, get: Getter): RenderFormBlock {
-  const rows: RenderFormRow[] = block.rows.map((row) => {
-    if (row.kind === "text") {
-      return { label: row.label, kind: "text", text: cleanVal(resolveValue(row.value, get)) };
-    }
-    // Databases: check the standard options present in the comma-separated
-    // list (case-insensitive) AND append any non-standard source verbatim so
-    // nothing entered in the data is lost.
-    if (row.match.kind === "databases") {
-      const raw = get(row.match.path);
-      const detected = new Set(detectDatabases(raw));
-      const options = [
-        ...row.options.map((o) => ({ label: o, checked: detected.has(o) })),
-        ...extraDatabases(raw).map((e) => ({ label: e, checked: true })),
-      ];
-      return { label: row.label, kind: "options", options, suffix: row.suffix };
-    }
-    const checked = matchChecked(row.match, row.options, get);
-    return {
-      label: row.label,
-      kind: "options",
-      options: row.options.map((o) => ({ label: o, checked: checked.has(o) })),
-      suffix: row.suffix,
-    };
-  });
-  return { id: block.id, title: block.title, intro: block.intro, rows };
-}
-
-/* ------------------------------------------------------------------ *
- * GRADE profile (A.3) — one row per outcome, filled by bucketing the
- * clinical outcome. Kept here because it's genuinely procedural.
- * ------------------------------------------------------------------ */
-
-export interface GradeRow {
-  outcome: GradeOutcome;
-  studies: string;
-  design: string;
-  effect: string;
-}
-
-const GRADE_OUTCOMES: GradeOutcome[] = [
-  "Mortality",
-  "Morbidity",
-  "Quality of life",
-  "Serious adverse events",
-];
-
-export function resolveGrade(get: Getter): GradeRow[] {
-  const bucket = bucketOutcome(get("clinical_effectiveness.outcome"));
-  const design = cleanVal(get("clinical_effectiveness.study_design"));
-  const studies = cleanVal(COMPUTATIONS.studiesMetaN(get));
-  const effect = cleanVal(COMPUTATIONS.effectSummary(get));
-  return GRADE_OUTCOMES.map((o) =>
-    o === bucket
-      ? { outcome: o, studies, design, effect }
-      : { outcome: o, studies: "", design: "", effect: "" }
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Budget Impact (B.6) — multi-year, tabbed. Read directly off the
- * budget criterion's evidence records rather than through the flat
- * getter, because the year fields are too numerous/positional to spell
- * out as flat form rows. One tabbed block is emitted per record, so a
- * criterion carrying more than one uploaded record repeats the table.
- * ------------------------------------------------------------------ */
-
-export interface BudgetYear {
-  year: number;
-  rows: RenderRow[];
-  hasData: boolean;
-}
-export interface BudgetRecord {
-  label: string; // "A"/"B"/… when >1 record, else ""
-  years: BudgetYear[];
-  costBasis: RenderRow[];
-  summary: RenderRow[];
-  offsets: RenderRow[];
-  judgment: RenderRow[];
-  hasData: boolean;
-}
-export interface BudgetImpactModel {
-  records: BudgetRecord[];
-  hasData: boolean;
-}
-
-// [label, field-key suffix] — combined with `year_{N}_` per year.
-const BUDGET_YEAR_FIELDS: Array<[string, string]> = [
-  ["Eligible Population", "eligible_population"],
-  ["Target Coverage (%)", "target_coverage"],
-  ["Number Treated", "number_treated"],
-  ["Total Cost (KES)", "total_cost_kes"],
-  ["Current Cost (KES)", "current_cost_kes"],
-  ["Incremental Budget (KES)", "incremental_budget_kes"],
-];
-
-const BUDGET_COST_BASIS: Array<[string, string]> = [
-  ["Service", "service"],
-  ["Est. Target Population", "est_target_population"],
-  ["Obs. Morbidity", "obs_morbidity"],
-  ["Coverage (%)", "coverage"],
-  ["TDABC Unit Cost (KES)", "tdabc_unit_cost_kes"],
-  ["TDABC Tariff (KES)", "tdabc_tariff_kes"],
-  ["Optimised Tariff (KES)", "optimised_tariff_kes"],
-  ["SHA Current Tariff (KES)", "sha_current_tariff_kes"],
-];
-
-const BUDGET_SUMMARY: Array<[string, string]> = [
-  ["Annual Growth Factor", "annual_growth_factor"],
-  ["5-Year Incremental Budget Impact (KES)", "5_year_incremental_budget_impact_kes"],
-  ["SHA Annual Budget (KES)", "sha_annual_budget_kes"],
-  ["As % Of SHA Budget", "as_of_sha_budget"],
-];
-
-const BUDGET_OFFSETS: Array<[string, string]> = [
-  ["Budget Offsets Available (Disinvestment)?", "budget_offsets_available_disinvestment"],
-  ["Budget Offsets - Specify", "budget_offsets_specify"],
-  ["External Donor Funding Anticipated?", "external_donor_funding_anticipated"],
-  ["Donor Funding - Specify", "donor_funding_specify"],
-];
-
-const BUDGET_JUDGMENT: Array<[string, string]> = [
-  ["Affordability Judgment", "affordability_judgment"],
-  ["Notes", "notes"],
-];
-
-const RECORD_LETTERS_BI = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-/** Slug-normalised key lookup over a single record's data. */
-function normalizedLookup(data: Record<string, unknown>): (key: string) => unknown {
-  const map = new Map<string, unknown>();
-  for (const [k, v] of Object.entries(data ?? {})) map.set(slug(k), v);
-  return (key: string) => map.get(slug(key));
-}
-
-// function biRow(look: (k: string) => unknown, label: string, key: string): RenderRow {
-//   const raw = look(key);
-//   const v = isPresent(raw) ? String(raw).trim() : null;
-//   return { label, value: cleanVal(v), present: isPresent(v) };
-// }
-
-
-/** Format a numeric-looking value with thousands separators; pass through otherwise. */
-function withCommas(v: string): string {
-  // Only touch plain numbers (optional leading -, digits, optional decimals).
-  if (!/^-?\d+(\.\d+)?$/.test(v)) return v;
-  const [intPart, decPart] = v.split(".");
-  const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return decPart != null ? `${grouped}.${decPart}` : grouped;
-}
-
-function biRow(look: (k: string) => unknown, label: string, key: string): RenderRow {
-  const raw = look(key);
-  const v = isPresent(raw) ? String(raw).trim() : null;
-  return { label, value: v == null ? cleanVal(v) : withCommas(cleanVal(v)), present: isPresent(v) };
-} 
-function buildBudgetRecord(data: Record<string, unknown>): BudgetRecord {
-  const look = normalizedLookup(data);
-
-  const years: BudgetYear[] = [];
-  for (let y = 1; y <= 5; y++) {
-    const rows = BUDGET_YEAR_FIELDS.map(([label, suffix]) => biRow(look, label, `year_${y}_${suffix}`));
-    years.push({ year: y, rows, hasData: rows.some((r) => r.present) });
-  }
-
-  const costBasis = BUDGET_COST_BASIS.map(([l, k]) => biRow(look, l, k));
-  const summary = BUDGET_SUMMARY.map(([l, k]) => biRow(look, l, k));
-  const offsets = BUDGET_OFFSETS.map(([l, k]) => biRow(look, l, k));
-  const judgment = BUDGET_JUDGMENT.map(([l, k]) => biRow(look, l, k));
-
-  const hasData =
-    years.some((y) => y.hasData) ||
-    [costBasis, summary, offsets, judgment].some((g) => g.some((r) => r.present));
-
-  return { label: "", years, costBasis, summary, offsets, judgment, hasData };
-}
-
-export function resolveBudgetImpact(src: EvidenceSource): BudgetImpactModel {
-  const crit = (src.criteria ?? []).find((c) => slug(c?.criterion_name).includes("budget"));
-  if (!crit) return { records: [], hasData: false };
-
-  const instances = (crit.instances ?? []).filter((i) => i && i.data);
-  const sources: Record<string, unknown>[] =
-    instances.length > 0
-      ? instances.map((i) => (i.data ?? {}) as Record<string, unknown>)
-      : crit.data
-      ? [crit.data as Record<string, unknown>]
-      : [];
-
-  const records = sources.map(buildBudgetRecord).filter((r) => r.hasData);
-  const multi = records.length > 1;
-  records.forEach((r, i) => {
-    r.label = multi ? RECORD_LETTERS_BI[i] ?? String(i + 1) : "";
-  });
-
-  return { records, hasData: records.length > 0 };
-}
-
-/* ------------------------------------------------------------------ *
  * Top-level build.
  * ------------------------------------------------------------------ */
 
@@ -379,17 +115,7 @@ export interface ReportMeta {
 export interface ReportModel {
   meta: ReportMeta;
   synthesis: RenderSection[];
-  submission: RenderFormBlock[];
-  grade: GradeRow[];
-  keyEvidence: {
-    design: string;
-    outcome: string;
-    effect: string;
-    limitations: string;
-    hasRow: boolean;
-  };
   duplicates: DuplicateGroup[];
-  budgetImpact: BudgetImpactModel;
 }
 
 export function buildReport(src: EvidenceSource): ReportModel {
@@ -406,20 +132,10 @@ export function buildReport(src: EvidenceSource): ReportModel {
       : null,
   };
 
-  const design = cleanVal(get("clinical_effectiveness.study_design"));
-  const outcome = cleanVal(get("clinical_effectiveness.outcome"));
-  const effect = cleanVal(COMPUTATIONS.effectSummary(get));
-  const limitations = cleanVal(COMPUTATIONS.limitations(get));
-  const hasRow = [design, outcome, effect, limitations].some((v) => v !== NA_LABEL);
-
   return {
     meta,
     synthesis: buildSynthesisSections(src).map((s) => resolveSection(s, get)),
-    submission: SUBMISSION_BLOCKS.map((b) => resolveFormBlock(b, get)),
-    grade: resolveGrade(get),
-    keyEvidence: { design, outcome, effect, limitations, hasRow },
     duplicates: collectDuplicateRecords(src),
-    budgetImpact: resolveBudgetImpact(src),
   };
 }
 
@@ -505,7 +221,6 @@ function enumerateServices(src: EvidenceSource): { services: ServiceKey[]; hasNo
   for (const c of src.criteria ?? []) {
     const svcKey = serviceHeaderKey(c);
     if (!svcKey) {
-      // no service column → all its records are unassigned collector material
       if (instancesOf(c).length > 0) hasNoService = true;
       continue;
     }
@@ -524,7 +239,7 @@ function enumerateServices(src: EvidenceSource): { services: ServiceKey[]; hasNo
 
 /** A source copy for a NAMED service: each criterion keeps only the single
  *  record matching that service value; non-service criteria keep their fullest
- *  record so every tab still shows all 12 criteria. Clean, one record each. */
+ *  record so every tab still shows all criteria. Clean, one record each. */
 function filterSourceByNamedService(src: EvidenceSource, serviceKey: string): EvidenceSource {
   const criteria = (src.criteria ?? []).map((c) => {
     const svcKey = serviceHeaderKey(c);
@@ -586,7 +301,6 @@ export function buildServiceReports(src: EvidenceSource): ServiceReportBundle {
   }
 
   if (hasNoService) {
-    // The collector keeps its duplicates (buildReport → collectDuplicateRecords).
     tabs.push({
       key: NO_SERVICE_KEY,
       label: NO_SERVICE_LABEL,
@@ -594,8 +308,6 @@ export function buildServiceReports(src: EvidenceSource): ServiceReportBundle {
     });
   }
 
-  // No named services and nothing unassigned would be impossible if there's any
-  // data; single view only when there are no service tabs at all beyond Overview.
   const single = services.length === 0 && !hasNoService;
 
   return { meta: overview.meta, services: tabs, single };

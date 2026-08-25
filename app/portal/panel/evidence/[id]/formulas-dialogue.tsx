@@ -106,6 +106,23 @@ export default function FormulaDialog({
   );
   const localKeys = useMemo(() => currentHeaders.map((h) => h.key), [currentHeaders]);
 
+  // a real field on THIS criterion to seed function examples with, so every
+  // inserted snippet is immediately valid; prefer a population field.
+  const sampleField = useMemo(() => {
+    const keys = currentHeaders.map((h) => h.key);
+    return keys.find((k) => k.toLowerCase().includes("population")) ?? keys[0] ?? "est_target_population";
+  }, [currentHeaders]);
+
+  const FN_CHIPS: { label: string; snippet: string; note: string }[] = [
+    { label: "nz",       snippet: `nz(${sampleField})`,          note: "blank → 0" },
+    { label: "coalesce", snippet: `coalesce(${sampleField}, 0)`, note: "first non-blank, else 0" },
+    { label: "ifnull",   snippet: `ifnull(${sampleField}, 0)`,   note: "alias of coalesce" },
+    { label: "round",    snippet: `round(${sampleField}, 2)`,    note: "round to n dp" },
+    { label: "min",      snippet: `min(${sampleField}, 0)`,      note: "" },
+    { label: "max",      snippet: `max(${sampleField}, 0)`,      note: "" },
+    { label: "if =0",   snippet: `iif(${sampleField} == 0, 0, ${sampleField})`, note: "if x == 0 then a else b" },
+  ];
+
   // criterion name → UNION of header keys across every record sharing that name.
   // Fixes duplicate-name records where a plain map would drop the record that
   // actually holds the field (last-wins), rejecting a valid reference.
@@ -242,7 +259,7 @@ export default function FormulaDialog({
               <textarea
                 value={formula}
                 onChange={(e) => setFormula(e.target.value)}
-                placeholder={`e.g.  unit_cost * quantity   ·   coverage * 100   ·   ref("Population", "size")`}
+                placeholder={`e.g.  est_target_population / obs_morbidity   ·   nz(est_target_population)   ·   ref("Burden of Disease (Mortality)", "estimated_target_population")`}
                 className={`w-full min-h-[64px] rounded-md border px-3 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[#27aae1] ${
                   result && !result.ok ? "border-red-300" : "border-slate-300"
                 }`}
@@ -310,10 +327,41 @@ export default function FormulaDialog({
               </div>
             </div>
 
+            {/* quick-insert functions, incl. blank-handling (nz / coalesce / ifnull) */}
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] font-medium text-slate-500">Blanks</span>
+                <button
+                  type="button"
+                  onClick={() => setFormula((f) => (f.trim() ? `nz(${f.trim()})` : `nz(${sampleField})`))}
+                  className="rounded-full border border-[#fe7105]/40 bg-[#fe7105]/5 px-2 py-0.5 text-[11px] text-[#c65600] hover:border-[#fe7105]"
+                >
+                  wrap in nz( ) → treat blanks as 0
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[11px] font-medium text-slate-500">Functions</span>
+                {FN_CHIPS.map((fn) => (
+                  <button
+                    key={fn.label}
+                    type="button"
+                    title={fn.note}
+                    onClick={() => insert(fn.snippet)}
+                    className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] text-slate-600 hover:border-[#27aae1]"
+                  >
+                    {fn.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <p className="text-[11px] text-slate-400">
               Functions: {FORMULA_FUNCTIONS.join(", ")}. Operators + − * / % ^, comparisons, and{" "}
-              <code className="rounded bg-slate-100 px-1">cond ? a : b</code>. Cross-criterion values use the
-              target’s matching record and default to 0 when missing.
+              <code className="rounded bg-slate-100 px-1">cond ? a : b</code>. A blank input leaves the result
+              as “—”; wrap it to fill instead —{" "}
+              <code className="rounded bg-slate-100 px-1">nz(est_target_population)</code> is 0 when blank,{" "}
+              <code className="rounded bg-slate-100 px-1">coalesce(a, b)</code> takes the first that has a value.
+              Cross-criterion <code className="rounded bg-slate-100 px-1">ref()</code> values default to 0 when missing.
             </p>
           </div>
         )}

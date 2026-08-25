@@ -492,6 +492,8 @@
 //   return <p className="py-2 text-center text-sm text-slate-300">—</p>;
 // }
 
+
+
 "use client";
 
 
@@ -537,6 +539,7 @@ const FORM_C = {
 export default function EvidenceReport({ source }: { source: EvidenceSource }) {
   const bundle = useMemo(() => buildServiceReports(source), [source]);
   const [active, setActive] = useState(0);
+  const [hideEmpty, setHideEmpty] = useState(true);
   const idx = active < bundle.services.length ? active : 0;
   const current = bundle.services[idx];
 
@@ -552,7 +555,12 @@ export default function EvidenceReport({ source }: { source: EvidenceSource }) {
       )}
 
       {/* key resets per-service internal state (e.g. budget year tabs) */}
-      <ReportBody key={current.key} model={current.model} />
+      <ReportBody
+        key={current.key}
+        model={current.model}
+        hideEmpty={hideEmpty}
+        onToggleHideEmpty={setHideEmpty}
+      />
 
       <ReportFooter meta={bundle.meta} />
     </article>
@@ -629,14 +637,32 @@ function ServiceTabs({
 
 /* ---- Report body (Section 1 + Section 2) ---- */
 
-function ReportBody({ model }: { model: ReportModel }) {
+function ReportBody({
+  model, hideEmpty, onToggleHideEmpty,
+}: {
+  model: ReportModel;
+  hideEmpty: boolean;
+  onToggleHideEmpty: (v: boolean) => void;
+}) {
   const byId = (id: string) => model.submission.find((b) => b.id === id);
 
   return (
     <>
       {/* ===================== SECTION 1 ===================== */}
       <section className=" py-7 ">
-        <SectionLabel n={1} title={SECTION_1_TITLE} />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SectionLabel n={1} title={SECTION_1_TITLE} />
+          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-500">
+            <input
+              type="checkbox"
+              checked={hideEmpty}
+              onChange={(e) => onToggleHideEmpty(e.target.checked)}
+              className="h-3.5 w-3.5 accent-[#27aae1]"
+            />
+            Hide empty fields
+          </label>
+        </div>
+
         <p className="mt-3 text-sm leading-relaxed text-slate-500">{SYNTHESIS_INTRO}</p>
         {model.meta.justification && (
           <p className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
@@ -647,7 +673,7 @@ function ReportBody({ model }: { model: ReportModel }) {
 
         <div className="mt-6 space-y-4">
           {model.synthesis.map((s) => (
-            <Criterion key={s.id} section={s} />
+            <Criterion key={s.id} section={s} hideEmpty={hideEmpty} />
           ))}
         </div>
 
@@ -714,10 +740,17 @@ function FormHeading({ title, instructions }: { title: string; instructions: str
 
 /* ---- Section 1 pieces ---- */
 
-function Criterion({ section }: { section: RenderSection }) {
+function Criterion({ section, hideEmpty }: { section: RenderSection; hideEmpty: boolean }) {
   const m = section.title.match(/^Criterion\s+(\d+):\s*(.*)$/);
   const num = m?.[1];
   const label = m?.[2] ?? section.title;
+
+  // When hiding empties, drop non-present rows and any table left with none.
+  const tables = hideEmpty
+    ? section.tables
+        .map((t) => ({ ...t, rows: t.rows.filter((r) => r.present) }))
+        .filter((t) => t.rows.length > 0)
+    : section.tables;
 
   return (
     <div className="break-inside-avoid rounded-xl border border-slate-200">
@@ -740,7 +773,7 @@ function Criterion({ section }: { section: RenderSection }) {
 
       {section.hasData && (
         <div className="space-y-3 p-4">
-          {section.tables.map((t, i) => (
+          {tables.map((t, i) => (
             <div key={i}>
               {t.caption && (
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#1d70b8]">

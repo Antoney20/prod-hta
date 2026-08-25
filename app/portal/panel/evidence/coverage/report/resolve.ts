@@ -22,7 +22,7 @@ import {
 import {
   GROUP_ALIASES,
   SUBMISSION_BLOCKS,
-  SYNTHESIS_SECTIONS,
+  buildSynthesisSections,
   type ComputationId,
   type FormBlock,
   type MatchSpec,
@@ -414,7 +414,7 @@ export function buildReport(src: EvidenceSource): ReportModel {
 
   return {
     meta,
-    synthesis: SYNTHESIS_SECTIONS.map((s) => resolveSection(s, get)),
+    synthesis: buildSynthesisSections(src).map((s) => resolveSection(s, get)),
     submission: SUBMISSION_BLOCKS.map((b) => resolveFormBlock(b, get)),
     grade: resolveGrade(get),
     keyEvidence: { design, outcome, effect, limitations, hasRow },

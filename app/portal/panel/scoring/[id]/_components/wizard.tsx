@@ -22,7 +22,7 @@ import {
   serviceKey,
 } from "../../_lib/scoring";
 import { AutoPick, AutoFailReason, failMessage } from "../../_lib/autoscore";
-import { EvidenceValue, HtmlContent } from "./prose";
+import { EvidenceValue, HtmlContent, HtmlContentSimple } from "./prose";
 
 interface Draft {
   optionId: string;
@@ -345,7 +345,7 @@ export default function PanelScoringWizard({
               </span>
             </div>
             <h4 className="text-base font-semibold leading-snug text-slate-800">{group.name}</h4>
-            {group.description && <HtmlContent html={group.description} />}
+            {group.description && <HtmlContentSimple html={group.description} />}
             {groupAutoLocked && (
               <div className="flex items-center gap-1.5 rounded-md border border-[#27aae1]/20 bg-[#27aae1]/5 px-3 py-2">
                 <Sparkles className="h-3.5 w-3.5 shrink-0 text-[#27aae1]" />
@@ -422,7 +422,7 @@ export default function PanelScoringWizard({
                         >
                           {selected && <span className="h-2 w-2 rounded-full bg-[#27aae1]" />}
                         </span>
-                        <HtmlContent html={opt.scoring_approach} className="text-sm leading-relaxed text-slate-700" />
+                        <HtmlContentSimple html={opt.scoring_approach} className="text-sm leading-relaxed text-slate-700" />
                       </div>
                       <ScoreBadge score={opt.score} />
                     </div>

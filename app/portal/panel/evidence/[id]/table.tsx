@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Search, MoreHorizontal, Trash2, Pencil, Download, ChevronLeft, ChevronRight, Inbox,
+  Search, MoreHorizontal, Trash2, Pencil, Download,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Inbox,
 } from "lucide-react";
 import { htmlToText } from "@/components/shared/text";
 import { Criterion, CriterionEvidence, CriterionHeader } from "@/types/new/evidence-panel";
@@ -20,7 +21,7 @@ import EvidenceEditDialog from "./dialogue";
 import FormulaDialog from "./formulas-dialogue";
 
 
-const SIZES = [20, 30, 50];
+const SIZES = [10,20, 30, 50, 100, 200];
 const TH = "px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 whitespace-nowrap";
 const TD = "px-3 py-3 align-top";
 
@@ -78,22 +79,33 @@ export default function EvidenceTable({
 
   const cols = criterion.headers ?? [];
 
+  // Precompute a lowercase haystack per row from the SAME text we render,
+  // so search reflects exactly what's on screen (formatted numbers, target, etc.).
+  const searchIndex = useMemo(() => {
+    return rows.map((r) => {
+      const t = resolveTarget?.(r);
+      const parts: string[] = [t?.reference ?? "", t?.name ?? ""];
+      for (const c of cols) parts.push(cell((r.data as any)?.[c.key], c));
+      return { row: r, hay: parts.join(" \u241f ").toLowerCase() };
+    });
+  }, [rows, cols, resolveTarget]);
+
+  // Multi-term AND search — every whitespace-separated term must match.
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
-    return rows.filter((r) => {
-      const t = resolveTarget?.(r);
-      return (
-        (t?.reference ?? "").toLowerCase().includes(q) ||
-        (t?.name ?? "").toLowerCase().includes(q) ||
-        JSON.stringify(r.data ?? {}).toLowerCase().includes(q)
-      );
-    });
-  }, [rows, search, resolveTarget]);
+    const terms = q.split(/\s+/);
+    return searchIndex.filter((e) => terms.every((t) => e.hay.includes(t))).map((e) => e.row);
+  }, [rows, search, searchIndex]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / size));
   const safePage = Math.min(page, totalPages);
   const paged = filtered.slice((safePage - 1) * size, safePage * size);
+
+  // Keep page state in bounds whenever the result set or size shrinks.
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const allSel = filtered.length > 0 && filtered.every((r) => selected.has(r.id));
   const someSel = selected.size > 0 && !allSel;
@@ -191,7 +203,9 @@ export default function EvidenceTable({
             ) : paged.length === 0 ? (
               <tr><td colSpan={6 + cols.length} className="py-16 text-center">
                 <Inbox className="mx-auto mb-2 h-8 w-8 text-slate-300" />
-                <p className="text-sm text-slate-400">No evidence yet. Upload a file to get started.</p>
+                <p className="text-sm text-slate-400">
+                  {search.trim() ? "No rows match your search." : "No evidence yet. Upload a file to get started."}
+                </p>
               </td></tr>
             ) : (
               paged.map((r, idx) => (
@@ -251,18 +265,26 @@ export default function EvidenceTable({
         </table>
       </div>
 
-      {filtered.length > size && (
-        <div className="flex items-center justify-between text-sm">
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
           <span className="text-slate-500">
-            {(safePage - 1) * size + 1}–{Math.min(safePage * size, filtered.length)} of {filtered.length}
+            Showing <strong className="text-slate-700">{(safePage - 1) * size + 1}</strong>–
+            <strong className="text-slate-700">{Math.min(safePage * size, filtered.length)}</strong> of{" "}
+            <strong className="text-slate-700">{filtered.length}</strong>
           </span>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={safePage <= 1} onClick={() => setPage((p) => p - 1)}>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={safePage <= 1} onClick={() => setPage(1)}>
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={safePage <= 1} onClick={() => setPage((p) => p - 1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-slate-600">Page {safePage} of {totalPages}</span>
-            <Button variant="outline" size="sm" disabled={safePage >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            <span className="px-2 text-slate-600">Page {safePage} of {totalPages}</span>
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={safePage >= totalPages} onClick={() => setPage((p) => p + 1)}>
               <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" className="h-8 w-8 p-0" disabled={safePage >= totalPages} onClick={() => setPage(totalPages)}>
+              <ChevronsRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

@@ -36,9 +36,8 @@ export function HtmlContent({ html, className }: { html: string; className?: str
 }
 
 export function HtmlContentSimple({ html, className }: { html: string; className?: string }) {
-  const clean = sanitizeHtml(toHtml(html || ""))
-    .replace(/<(?!\/?(br|b|strong)\b)[^>]*>/gi, "");
-  return <div className={className ?? PROSE} dangerouslySetInnerHTML={{ __html: clean }} />;
+  const clean = ((html || ""))
+  return <div className={className } dangerouslySetInnerHTML={{ __html: clean }} />;
 }
 
 /** Render one evidence value — HTML string, number, plain text, object, or a merged list. */

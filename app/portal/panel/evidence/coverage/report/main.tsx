@@ -515,6 +515,50 @@ const SYNTHESIS_INTRO =
   "Catastrophic Health Expenditure, Access to Healthcare, Equity, and Congruence — with each field " +
   "read directly from the evidence record.";
 
+
+  // Minimal allowlist sanitizer — strip every tag except inline formatting,
+// links, and lists; drop javascript:/data: hrefs. Allowlist, not blocklist.
+const ALLOWED = new Set(["b", "strong", "i", "em", "u", "br", "a", "ul", "ol", "li", "p", "span"]);
+
+const sanitizeCell = (html: string): string =>
+  html
+    // drop script/style blocks wholesale (tags + contents)
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, "")
+    // walk every tag; keep allowed ones (a keeps a safe href only), strip the rest
+    .replace(/<\/?([a-z][a-z0-9]*)\b([^>]*)>/gi, (tag, name: string, attrs: string) => {
+      const n = name.toLowerCase();
+      if (!ALLOWED.has(n)) return "";
+      if (tag.startsWith("</")) return `</${n}>`;
+      if (n === "a") {
+        const m = attrs.match(/\bhref\s*=\s*("([^"]*)"|'([^']*)'|([^\s>]+))/i);
+        const href = (m?.[2] ?? m?.[3] ?? m?.[4] ?? "").trim();
+        return /^(https?:|mailto:|\/|#)/i.test(href)
+          ? `<a href="${href.replace(/"/g, "&quot;")}" target="_blank" rel="noopener noreferrer">`
+          : "<a>";
+      }
+      return `<${n}>`; // keep tag, drop all attributes
+    });
+
+const looksHtml = (s: string) => /<\/?[a-z][\s\S]*>/i.test(s);
+
+const toCellHtml = (s: string): string =>
+  looksHtml(s)
+    ? s
+    : s.replace(/(https?:\/\/[^\s<]+)/g, (u) => `<a href="${u}">${u}</a>`);
+
+function RichCell({ html }: { html: string }) {
+  return (
+    <span
+      className={
+        "[&_b]:font-semibold [&_strong]:font-semibold [&_i]:italic [&_em]:italic [&_u]:underline " +
+        "[&_a]:text-[#27aae1] [&_a]:underline [&_a:hover]:text-[#1c86b3] [&_a]:break-all " +
+        "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:leading-relaxed"
+      }
+      dangerouslySetInnerHTML={{ __html: sanitizeCell(toCellHtml(html || "")) }}
+    />
+  );
+} 
+
 export default function EvidenceReport({ source }: { source: EvidenceSource }) {
   const bundle = useMemo(() => buildServiceReports(source), [source]);
   const [active, setActive] = useState(0);
@@ -721,9 +765,12 @@ function FieldTable({ rows }: { rows: RenderSection["tables"][number]["rows"] })
               <td className="w-1/3 bg-slate-50/70 px-3 py-2 align-top text-xs font-semibold text-slate-600">
                 {r.label}
               </td>
-              <td className={`whitespace-pre-wrap break-words px-3 py-2 align-top text-sm ${r.present ? "text-slate-700" : "text-slate-300"}`}>
+              {/* <td className={`whitespace-pre-wrap break-words px-3 py-2 align-top text-sm ${r.present ? "text-slate-700" : "text-slate-300"}`}>
                 {r.value}
-              </td>
+              </td> */}
+              <td className={`whitespace-pre-wrap break-words px-3 py-2 align-top text-sm ${r.present ? "text-slate-700" : "text-slate-300"}`}>
+  <RichCell html={r.value} />
+</td>
             </tr>
           ))}
         </tbody>

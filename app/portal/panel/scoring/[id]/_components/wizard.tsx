@@ -18,7 +18,7 @@ import {
 import { PanelAppraisalScore, PanelScoreCreatePayload } from "@/types/new/panel-score";
 import { EvidenceTarget } from "@/types/new/decision-template";
 import {
-  CriterionGroup, CriterionOption, evidenceForService, norm, scoreForGroup, scoreValueOf,
+  CriterionGroup, CriterionOption, evidenceForService, formatEvidenceValue, norm, scoreForGroup, scoreValueOf,
   serviceKey,
 } from "../../_lib/scoring";
 import { AutoPick, AutoFailReason, failMessage } from "../../_lib/autoscore";
@@ -324,7 +324,8 @@ export default function PanelScoringWizard({
                   <div key={f} className="grid grid-cols-1 gap-1 px-3 py-2.5 text-xs sm:grid-cols-[180px_1fr]">
                     <span className="break-words font-medium text-slate-500">{humanizeKey(f)}</span>
                     <div className="min-w-0">
-                      <EvidenceValue value={ev[f]} />
+                      {/* <EvidenceValue value={ev[f]} /> */}
+                      <EvidenceValue value={formatEvidenceValue(ev[f])} />
                     </div>
                   </div>
                 ))}

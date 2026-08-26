@@ -76,10 +76,23 @@ export interface RenderSection {
   hasData: boolean;
 }
 
+// function resolveTable(t: SubTable, get: Getter): RenderTable | null {
+//   const rows: RenderRow[] = t.rows.map((r) => {
+//     const raw = resolveValue(r.value, get);
+//     return { label: r.label, value: cleanVal(raw), present: isPresent(raw) };
+//   });
+//   if (t.gated && !rows.some((r) => r.present)) return null;
+//   return { caption: t.caption, rows };
+// }
+
 function resolveTable(t: SubTable, get: Getter): RenderTable | null {
   const rows: RenderRow[] = t.rows.map((r) => {
     const raw = resolveValue(r.value, get);
-    return { label: r.label, value: cleanVal(raw), present: isPresent(raw) };
+    return {
+      label: humanizeLabel(r.label),
+      value: groupNumeric(cleanVal(raw)),
+      present: isPresent(raw),
+    };
   });
   if (t.gated && !rows.some((r) => r.present)) return null;
   return { caption: t.caption, rows };
@@ -100,6 +113,32 @@ export function resolveSection(section: ReportSection, get: Getter): RenderSecti
   };
 }
 
+
+/* Display-only: thousands-group a value that is a clean whole/decimal number.
+   String-based so decimal precision is preserved (no toLocaleString rounding).
+   Strict full-string match — CIs, ranges, codes, dates pass through unchanged.
+   Never feeds back into scoring/band arithmetic; this is the render string. */
+const NUMERIC = /^-?\d+(\.\d+)?$/;
+
+const groupNumeric = (s: string): string => {
+  const t = s.trim();
+  if (!NUMERIC.test(t)) return s;
+  const neg = t.startsWith("-");
+  const [int, dec] = (neg ? t.slice(1) : t).split(".");
+  return (neg ? "-" : "") + int.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (dec != null ? "." + dec : "");
+};
+
+
+/* Field-key → readable label: underscores to spaces, collapse runs, then
+   uppercase each word's first LETTER. Number-led words (100000) are untouched,
+   and already-caps tokens (GBD, DALYs) are preserved — only the first char is
+   ever raised, never lowered. */
+const humanizeLabel = (s: string): string =>
+  s
+    .replace(/_/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b[a-z]/gi, (c) => c.toUpperCase());
 /* ------------------------------------------------------------------ *
  * Top-level build.
  * ------------------------------------------------------------------ */

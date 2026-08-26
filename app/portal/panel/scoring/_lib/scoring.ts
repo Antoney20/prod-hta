@@ -97,6 +97,28 @@ export interface CriterionGroup {
   options: CriterionOption[];
 }
 
+/* ----------------------------------------------------- display formatting */
+// Thousands-group numeric evidence for display. String-based, so decimal
+// precision is preserved verbatim (no toLocaleString rounding). Only clean
+// whole/decimal numbers qualify — codes, dates, CIs, ranges pass through.
+// Display-only: never feed the result back into scoring/band arithmetic.
+const NUMERIC = /^-?\d+(\.\d+)?$/;
+
+const addCommas = (s: string): string => {
+  const neg = s.startsWith("-");
+  const [int, dec] = (neg ? s.slice(1) : s).split(".");
+  return (neg ? "-" : "") + int.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (dec != null ? "." + dec : "");
+};
+
+/** Comma-group a scalar (or array of scalars) for display. Non-numeric values
+ *  are returned untouched. */
+export function formatEvidenceValue(v: unknown): unknown {
+  if (typeof v === "number" && Number.isFinite(v)) return addCommas(String(v));
+  if (typeof v === "string" && NUMERIC.test(v.trim())) return addCommas(v.trim());
+  if (Array.isArray(v)) return v.map(formatEvidenceValue);
+  return v;
+}
+
 // Wizard/display order for criteria. Matched by loose prefix (punctuation and
 // spacing collapsed), so "Burden of Disease (Morbidity)" AND "(Mortality)" both
 // resolve to the "burden of disease" slot and sort next to each other. Anything

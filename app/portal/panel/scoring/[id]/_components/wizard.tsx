@@ -237,30 +237,33 @@ export default function PanelScoringWizard({
   const drafted = (g: CriterionGroup) => !!drafts[g.key];
   const draftedCount = groups.filter(drafted).length;
   const allScored = draftedCount === groups.length;
+  const missingGroups = groups.filter((g) => !drafted(g));
 
   const handleSubmitClick = () => {
     setSubmitAttempted(true);
-    if (allScored) setConfirmOpen(true);
+    setConfirmOpen(true);
   };
 
   const handleConfirm = async () => {
     setConfirmOpen(false);
-    const payloads: PanelScoreCreatePayload[] = groups.map((g) => {
-      const d = drafts[g.key];
-      const auto = autoPicks[g.key];
-      return {
-        ...(isNational ? { national_proposal: target.id } : { intervention: target.id }),
-        criteria: d.optionId,
-        ...(service ? { service } : {}), // service name sent only when scoped to one
-        score: {
-          value: d.value,
-          criteria_label: g.name,
-          option_id: d.optionId,
-          ...(auto ? { auto: true, auto_value: auto.value } : {}),
-        },
-        ...(d.comment ? { comment: d.comment } : {}),
-      };
-    });
+    const payloads: PanelScoreCreatePayload[] = groups
+      .filter((g) => drafts[g.key]) // only scored criteria are sent
+      .map((g) => {
+        const d = drafts[g.key];
+        const auto = autoPicks[g.key];
+        return {
+          ...(isNational ? { national_proposal: target.id } : { intervention: target.id }),
+          criteria: d.optionId,
+          ...(service ? { service } : {}), // service name sent only when scoped to one
+          score: {
+            value: d.value,
+            criteria_label: g.name,
+            option_id: d.optionId,
+            ...(auto ? { auto: true, auto_value: auto.value } : {}),
+          },
+          ...(d.comment ? { comment: d.comment } : {}),
+        };
+      });
     await onSubmit(payloads);
     // scores are now committed server-side — the local draft is no longer needed
     clearStoredDrafts(target.id, service);
@@ -372,7 +375,7 @@ export default function PanelScoringWizard({
             {missing && (
               <div className="flex items-center gap-1.5 text-amber-600">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                <span className="text-xs font-medium">Pick an option before submitting.</span>
+                <span className="text-xs font-medium">Not scored — will be submitted without a score.</span>
               </div>
             )}
           </CardHeader>
@@ -500,9 +503,18 @@ export default function PanelScoringWizard({
             <AlertDialogTitle>Submit appraisal scores?</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 text-sm">
               <span className="block">
-                Submitting all <strong>{groups.length}</strong> criteria for{" "}
+                Submitting <strong>{draftedCount}</strong> of <strong>{groups.length}</strong> criteria for{" "}
                 {service ? `service “${service}”` : "the general target"}.
               </span>
+              {missingGroups.length > 0 && (
+                <span className="block rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                  <strong>
+                    {missingGroups.length} criteri{missingGroups.length === 1 ? "on" : "a"} will be submitted
+                    without a score:
+                  </strong>{" "}
+                  {missingGroups.map((g) => g.name).join(", ")}.
+                </span>
+              )}
               <span className="block text-xs text-slate-400">
                 Once submitted, this scope is locked and cannot be rescored.
               </span>

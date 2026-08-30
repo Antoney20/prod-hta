@@ -14,6 +14,8 @@ import { EvidenceInterventionRef } from "@/types/new/assessment";
 import { getInterventions, getNationalPrograms } from "@/app/api/new/search";
 import UploadWizard from "./wizard";
 import EvidenceTable from "./table";
+import ColumnManager from "./columns";
+
 
 export interface TargetLabel {
   reference: string;
@@ -136,6 +138,8 @@ export default function CriterionEvidencePage() {
         <Overview label="Interventions" value={evidence.filter((e) => e.intervention).length} />
         <Overview label="Programs" value={evidence.filter((e) => e.national_proposal).length} />
       </div>
+
+      <ColumnManager criterion={criterion} onCriterionChanged={onCriterionChanged} />
 
       <UploadWizard
         criterion={criterion}

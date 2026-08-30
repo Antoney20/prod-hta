@@ -247,8 +247,19 @@ export default function BrowseByPackagePage() {
     () => scopedItems.filter((i) => !i.scored && !i.reviewStatus?.decision).length,
     [scopedItems]
   );
-  const totalScoredNoPendingDecision = useMemo(
-    () => scopedItems.filter((i) => i.scored && !i.reviewStatus?.decision).length,
+  // Sum of every scored row (all "Yes" badges) in the current scope.
+  const totalScored = useMemo(
+    () => scopedItems.filter((i) => i.scored).length,
+    [scopedItems]
+  );
+  // Type breakdowns for the Total block — respect the scope toggle, so the
+  // non-selected type reads 0 when the toggle is filtered to one type.
+  const totalInterventions = useMemo(
+    () => scopedItems.filter((i) => i.targetType === "intervention").length,
+    [scopedItems]
+  );
+  const totalNational = useMemo(
+    () => scopedItems.filter((i) => i.targetType === "national_proposal").length,
     [scopedItems]
   );
 
@@ -495,7 +506,7 @@ export default function BrowseByPackagePage() {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Status</p>
           <div className="flex gap-3">
             <StatCard label="Pending" value={totalPending} sub="not yet scored" warn />
-            <StatCard label="Scored by me" value={totalScoredNoPendingDecision} sub="awaiting decision" accent />
+            <StatCard label="Scored by me" value={totalScored} sub="all scored" accent />
           </div>
         </div>
 
@@ -514,12 +525,8 @@ export default function BrowseByPackagePage() {
           </div>
         </div>
 
-        <div className="self-stretch w-px bg-slate-200 mt-5" />
 
-        <div className="flex flex-col gap-1.5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 px-0.5">Total</p>
-          <StatCard label={scopeNoun.replace(/^\w/, (c) => c.toUpperCase())} value={totalAll} sub={`Count`} />
-        </div>
+       
       </div>
 
       {/* Mobile sidebar Sheet */}
@@ -703,9 +710,7 @@ export default function BrowseByPackagePage() {
                           </TableCell>
 
                           <TableCell>
-                            {isNational ? (
-                              <span className="text-slate-300 text-xs">—</span>
-                            ) : scored ? (
+                            {scored ? (
                               <Badge className="text-xs bg-emerald-100 text-emerald-700 border-emerald-200">Yes</Badge>
                             ) : (
                               <Badge variant="outline" className="text-xs text-slate-500">No</Badge>

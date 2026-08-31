@@ -17,7 +17,7 @@ import { getAppraisalCriteria, listPanelScores } from "@/app/api/new/panel/panel
 import { generatePayload, regeneratePayload } from "@/app/api/new/panel/template";
 import { globalUserStore, useGlobalUser } from "@/app/context/guard";
 
-import { buildScoreMap, targetRollup } from "./_lib/scoring";
+import { buildScoreMap, targetRollup, unitsOf, scopeScored } from "./_lib/scoring";
 import PanelScoreTable from "./_components/table";
 
 type KindFilter = "all" | EvidenceTarget["kind"];
@@ -112,12 +112,20 @@ export default function PanelScoringOverviewPage() {
   const stats = useMemo(() => {
     let pending = 0;
     let mine = 0;
+    let servicesScored = 0;
+    let interventionsScored = 0;
     for (const t of targets) {
       if (isScoredByMe(t)) mine += 1;
       else pending += 1;
+      // named service scopes that have been scored (general "" scope excluded)
+      for (const u of unitsOf(t)) {
+        if (u !== "" && scopeScored(scoreMap, t.id, u)) servicesScored += 1;
+      }
+      // an intervention is "scored" when every one of its scopes is scored
+      if (t.kind === "intervention" && isFullyScored(t)) interventionsScored += 1;
     }
-    return { pending, mine, total: targets.length };
-  }, [targets, isScoredByMe]);
+    return { pending, mine, servicesScored, interventionsScored };
+  }, [targets, scoreMap, isScoredByMe, isFullyScored]);
 
   const packages = useMemo(() => {
     const base = targets.filter((t) => kind === "all" || t.kind === kind);
@@ -207,10 +215,11 @@ export default function PanelScoringOverviewPage() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Pending" value={stats.pending} sub="not yet scored by me" accent="#fe7105" />
         <StatCard label="Scored by me" value={stats.mine} sub="at least one unit scored" accent="#059669" />
-        <StatCard label="Total" value={stats.total} sub="targets in template" />
+        <StatCard label="Services scored" value={stats.servicesScored} sub="service scopes scored" accent="#27aae1" />
+        <StatCard label="Interventions scored" value={stats.interventionsScored} sub="all services scored" accent="#059669" />
       </div>
 
       {/* Body: packages rail (left) + table container (right) */}

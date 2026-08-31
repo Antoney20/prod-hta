@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CriteriaAppraisalTool, PanelAppraisalScore } from "@/types/new/panel-score";
 import { EvidenceTarget } from "@/types/new/decision-template";
-import { collectServices, unitScored, unitsOf } from "../_lib/scoring";
+import { collectServices, scopeScored, unitScored, unitsOf } from "../_lib/scoring";
 
 const TH = "px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500 whitespace-nowrap";
 const TD = "px-3 py-3 align-top";
@@ -100,6 +100,12 @@ export default function PanelScoreTable({
               const isOpen = expanded.has(rowId);
               const fully = isFullyScored(t);
 
+              // scored/total across every scope (general + named services),
+              // using the SAME lock signal as the Yes/No and the sub-rows.
+              const units = unitsOf(t);
+              const scoredUnits = units.filter((u) => scopeScored(scoreMap, t.id, u)).length;
+              const totalUnits = units.length;
+
               const mainRow = (
                 <tr key={rowId} className="transition-colors hover:bg-slate-50/70">
                   <td className={`${TD} border-r border-slate-50`}>
@@ -141,13 +147,27 @@ export default function PanelScoreTable({
                     <p className="line-clamp-2 max-w-xs">{t.name || "—"}</p>
                   </td>
                   <td className={`${TD} text-xs`}>
-                    {canExpand ? (
-                      <span className="text-slate-500">
-                        General + {services.length} service{services.length === 1 ? "" : "s"}
-                      </span>
-                    ) : (
-                      <span className="text-slate-300">No service</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {canExpand ? (
+                        <span className="text-slate-500">
+                          General + {services.length} service{services.length === 1 ? "" : "s"}
+                        </span>
+                      ) : (
+                        <span className="text-slate-300">No service</span>
+                      )}
+                      {totalUnits > 0 && (
+                        <span
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
+                            scoredUnits === totalUnits
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                          title={`${scoredUnits} of ${totalUnits} scope${totalUnits === 1 ? "" : "s"} scored`}
+                        >
+                          {scoredUnits}/{totalUnits}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className={`${TD} text-center`}>
                     <YesNo scored={fully} />
@@ -158,7 +178,6 @@ export default function PanelScoreTable({
 
               if (!isOpen || !canExpand) return [mainRow];
 
-              const units = unitsOf(t);
               const subRows = units.map((u, si) => {
                 const scored = unitScored(scoreMap, t.id, u, criteria);
                 const isGeneral = u === "";

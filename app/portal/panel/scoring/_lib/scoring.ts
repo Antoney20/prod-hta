@@ -308,13 +308,18 @@ export function scopeScored(
 /* These take the flat tool list and group internally, so the main page and
    table keep working unchanged while being correct per-criterion.          */
 
+/** A unit (scope) counts as scored the moment ANY score is committed for it —
+ *  the SAME lock signal the wizard uses (scopeScored). This aligns the overview
+ *  table's per-service Yes with the wizard lock: a partial submit (e.g. 8/12)
+ *  still locks the scope, so it must read Yes here too, not require all 12
+ *  groups. `_criteria` is retained only for call-site/signature compatibility. */
 export function unitScored(
   map: Map<string, PanelAppraisalScore>,
   targetId: string,
   service: string,
-  criteria: CriteriaAppraisalTool[]
+  _criteria: CriteriaAppraisalTool[]
 ): boolean {
-  return groupsScored(map, targetId, service, groupCriteria(criteria));
+  return scopeScored(map, targetId, service);
 }
 
 export function unitProgress(
@@ -336,13 +341,17 @@ export function unitProgress(
   return { scored, total: groups.length, score };
 }
 
+/** Rollup for the overview. A scope is "scored" when any score is committed for
+ *  it (scopeScored), so a target reads fully scored only when EVERY scope has
+ *  been scored — i.e. all services (plus the general scope, when present) are
+ *  done. `_criteria` kept for signature compatibility. */
 export function targetRollup(
   map: Map<string, PanelAppraisalScore>,
   target: EvidenceTarget,
-  criteria: CriteriaAppraisalTool[]
+  _criteria: CriteriaAppraisalTool[]
 ): { scoredUnits: number; totalUnits: number; anyScored: boolean } {
   const units = unitsOf(target);
-  const scoredUnits = units.filter((u) => unitScored(map, target.id, u, criteria)).length;
-  const anyScored = units.some((u) => unitProgress(map, target.id, u, criteria).scored > 0);
+  const scoredUnits = units.filter((u) => scopeScored(map, target.id, u)).length;
+  const anyScored = scoredUnits > 0;
   return { scoredUnits, totalUnits: units.length, anyScored };
 }
